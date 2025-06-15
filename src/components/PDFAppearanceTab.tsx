@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -96,14 +97,15 @@ export const PDFAppearanceTab = ({
 
   return (
     <div className="space-y-6">
-      {/* Action Buttons */}
+      {/* Action Buttons with softer styling */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">PDF Appearance</h3>
-        <div className="flex space-x-2">
+        <h3 className="text-lg font-medium text-foreground tracking-tight">PDF Appearance</h3>
+        <div className="flex space-x-3">
           <Button
             variant="outline"
             size="sm"
             onClick={resetToDefaults}
+            className="font-normal"
           >
             Reset to Default
           </Button>
@@ -112,6 +114,7 @@ export const PDFAppearanceTab = ({
             size="sm"
             onClick={handlePreviewPDF}
             disabled={previewLoading}
+            className="font-normal"
           >
             <Eye className="w-4 h-4 mr-2" />
             {previewLoading ? 'Generating...' : 'Preview'}
@@ -119,6 +122,7 @@ export const PDFAppearanceTab = ({
           <Button
             size="sm"
             onClick={handleDownloadPDF}
+            className="font-normal"
           >
             <Download className="w-4 h-4 mr-2" />
             Download PDF
@@ -127,63 +131,63 @@ export const PDFAppearanceTab = ({
       </div>
 
       <Tabs defaultValue="layout" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="layout" className="flex items-center space-x-2">
+        <TabsList className="grid w-full grid-cols-5 bg-muted/30 rounded-lg p-1">
+          <TabsTrigger value="layout" className="flex items-center space-x-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md font-normal">
             <Layout className="w-4 h-4" />
             <span>Layout</span>
           </TabsTrigger>
-          <TabsTrigger value="typography" className="flex items-center space-x-2">
+          <TabsTrigger value="typography" className="flex items-center space-x-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md font-normal">
             <Type className="w-4 h-4" />
             <span>Typography</span>
           </TabsTrigger>
-          <TabsTrigger value="colors" className="flex items-center space-x-2">
+          <TabsTrigger value="colors" className="flex items-center space-x-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md font-normal">
             <Palette className="w-4 h-4" />
             <span>Colors</span>
           </TabsTrigger>
-          <TabsTrigger value="branding" className="flex items-center space-x-2">
+          <TabsTrigger value="branding" className="flex items-center space-x-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md font-normal">
             <Settings className="w-4 h-4" />
             <span>Branding</span>
           </TabsTrigger>
-          <TabsTrigger value="sections" className="flex items-center space-x-2">
+          <TabsTrigger value="sections" className="flex items-center space-x-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md font-normal">
             <Settings className="w-4 h-4" />
             <span>Sections</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="layout" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Layout Settings</CardTitle>
+        <TabsContent value="layout" className="space-y-4 mt-6">
+          <Card className="glass-effect border-border/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-medium tracking-tight">Layout Settings</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <Label>Header Style</Label>
+                <Label className="text-sm font-medium mb-3 block">Header Style</Label>
                 <RadioGroup
                   value={customization.layout.headerStyle}
                   onValueChange={(value) => handleLayoutChange('headerStyle', value)}
-                  className="flex space-x-4 mt-2"
+                  className="flex space-x-6"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="centered" id="centered" />
-                    <Label htmlFor="centered">Centered</Label>
+                    <Label htmlFor="centered" className="font-normal">Centered</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="left" id="left" />
-                    <Label htmlFor="left">Left Aligned</Label>
+                    <Label htmlFor="left" className="font-normal">Left Aligned</Label>
                   </div>
                 </RadioGroup>
               </div>
 
-              <Separator />
+              <Separator className="bg-border/40" />
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Page Orientation</Label>
+                  <Label className="text-sm font-medium">Page Orientation</Label>
                   <Select
                     value={customization.layout.pageOrientation}
                     onValueChange={(value) => handleLayoutChange('pageOrientation', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-2 bg-background border-border/50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -194,13 +198,13 @@ export const PDFAppearanceTab = ({
                 </div>
               </div>
 
-              <Separator />
+              <Separator className="bg-border/40" />
 
               <div>
-                <Label>Margins (pt)</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
+                <Label className="text-sm font-medium mb-3 block">Margins (pt)</Label>
+                <div className="grid grid-cols-4 gap-3">
                   <div>
-                    <Label className="text-xs">Top</Label>
+                    <Label className="text-xs text-muted-foreground">Top</Label>
                     <Input
                       type="number"
                       value={customization.layout.margins.top}
@@ -208,10 +212,11 @@ export const PDFAppearanceTab = ({
                         ...customization.layout.margins,
                         top: parseInt(e.target.value) || 20
                       })}
+                      className="mt-1 bg-background border-border/50"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Bottom</Label>
+                    <Label className="text-xs text-muted-foreground">Bottom</Label>
                     <Input
                       type="number"
                       value={customization.layout.margins.bottom}
@@ -219,10 +224,11 @@ export const PDFAppearanceTab = ({
                         ...customization.layout.margins,
                         bottom: parseInt(e.target.value) || 20
                       })}
+                      className="mt-1 bg-background border-border/50"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Left</Label>
+                    <Label className="text-xs text-muted-foreground">Left</Label>
                     <Input
                       type="number"
                       value={customization.layout.margins.left}
@@ -230,10 +236,11 @@ export const PDFAppearanceTab = ({
                         ...customization.layout.margins,
                         left: parseInt(e.target.value) || 20
                       })}
+                      className="mt-1 bg-background border-border/50"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Right</Label>
+                    <Label className="text-xs text-muted-foreground">Right</Label>
                     <Input
                       type="number"
                       value={customization.layout.margins.right}
@@ -241,15 +248,16 @@ export const PDFAppearanceTab = ({
                         ...customization.layout.margins,
                         right: parseInt(e.target.value) || 20
                       })}
+                      className="mt-1 bg-background border-border/50"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <Label>Section Spacing</Label>
-                <div className="mt-2">
-                  <Label className="text-sm text-muted-foreground">
+                <Label className="text-sm font-medium mb-3 block">Section Spacing</Label>
+                <div>
+                  <Label className="text-sm text-muted-foreground mb-2 block">
                     Section Gap: {customization.layout.spacing.sectionGap}pt
                   </Label>
                   <Slider
@@ -261,7 +269,7 @@ export const PDFAppearanceTab = ({
                     max={40}
                     min={10}
                     step={2}
-                    className="mt-2"
+                    className="w-full"
                   />
                 </div>
               </div>
@@ -269,19 +277,19 @@ export const PDFAppearanceTab = ({
           </Card>
         </TabsContent>
 
-        <TabsContent value="typography" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Typography Settings</CardTitle>
+        <TabsContent value="typography" className="space-y-4 mt-6">
+          <Card className="glass-effect border-border/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-medium tracking-tight">Typography Settings</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <Label>Font Family</Label>
+                <Label className="text-sm font-medium">Font Family</Label>
                 <Select
                   value={customization.typography.fontFamily}
                   onValueChange={(value) => handleTypographyChange('fontFamily', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-2 bg-background border-border/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -292,13 +300,13 @@ export const PDFAppearanceTab = ({
                 </Select>
               </div>
 
-              <Separator />
+              <Separator className="bg-border/40" />
 
               <div>
-                <Label>Font Sizes</Label>
-                <div className="grid grid-cols-2 gap-4 mt-2">
+                <Label className="text-sm font-medium mb-4 block">Font Sizes</Label>
+                <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <Label className="text-sm">Title: {customization.typography.fontSize.title}pt</Label>
+                    <Label className="text-sm text-muted-foreground mb-2 block">Title: {customization.typography.fontSize.title}pt</Label>
                     <Slider
                       value={[customization.typography.fontSize.title]}
                       onValueChange={([value]) => handleTypographyChange('fontSize', {
@@ -311,7 +319,7 @@ export const PDFAppearanceTab = ({
                     />
                   </div>
                   <div>
-                    <Label className="text-sm">Header: {customization.typography.fontSize.header}pt</Label>
+                    <Label className="text-sm text-muted-foreground mb-2 block">Header: {customization.typography.fontSize.header}pt</Label>
                     <Slider
                       value={[customization.typography.fontSize.header]}
                       onValueChange={([value]) => handleTypographyChange('fontSize', {
@@ -324,7 +332,7 @@ export const PDFAppearanceTab = ({
                     />
                   </div>
                   <div>
-                    <Label className="text-sm">Body: {customization.typography.fontSize.body}pt</Label>
+                    <Label className="text-sm text-muted-foreground mb-2 block">Body: {customization.typography.fontSize.body}pt</Label>
                     <Slider
                       value={[customization.typography.fontSize.body]}
                       onValueChange={([value]) => handleTypographyChange('fontSize', {
@@ -337,7 +345,7 @@ export const PDFAppearanceTab = ({
                     />
                   </div>
                   <div>
-                    <Label className="text-sm">Small: {customization.typography.fontSize.small}pt</Label>
+                    <Label className="text-sm text-muted-foreground mb-2 block">Small: {customization.typography.fontSize.small}pt</Label>
                     <Slider
                       value={[customization.typography.fontSize.small]}
                       onValueChange={([value]) => handleTypographyChange('fontSize', {
@@ -355,47 +363,47 @@ export const PDFAppearanceTab = ({
           </Card>
         </TabsContent>
 
-        <TabsContent value="colors" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Color Scheme</CardTitle>
+        <TabsContent value="colors" className="space-y-4 mt-6">
+          <Card className="glass-effect border-border/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-medium tracking-tight">Color Scheme</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Primary Color</Label>
+                  <Label className="text-sm font-medium mb-2 block">Primary Color</Label>
                   <Input
                     type="color"
                     value={customization.colors.primary}
                     onChange={(e) => handleColorsChange('primary', e.target.value)}
-                    className="h-10"
+                    className="h-12 bg-background border-border/50"
                   />
                 </div>
                 <div>
-                  <Label>Secondary Color</Label>
+                  <Label className="text-sm font-medium mb-2 block">Secondary Color</Label>
                   <Input
                     type="color"
                     value={customization.colors.secondary}
                     onChange={(e) => handleColorsChange('secondary', e.target.value)}
-                    className="h-10"
+                    className="h-12 bg-background border-border/50"
                   />
                 </div>
                 <div>
-                  <Label>Text Color</Label>
+                  <Label className="text-sm font-medium mb-2 block">Text Color</Label>
                   <Input
                     type="color"
                     value={customization.colors.text}
                     onChange={(e) => handleColorsChange('text', e.target.value)}
-                    className="h-10"
+                    className="h-12 bg-background border-border/50"
                   />
                 </div>
                 <div>
-                  <Label>Accent Color</Label>
+                  <Label className="text-sm font-medium mb-2 block">Accent Color</Label>
                   <Input
                     type="color"
                     value={customization.colors.accent}
                     onChange={(e) => handleColorsChange('accent', e.target.value)}
-                    className="h-10"
+                    className="h-12 bg-background border-border/50"
                   />
                 </div>
               </div>
@@ -403,25 +411,26 @@ export const PDFAppearanceTab = ({
           </Card>
         </TabsContent>
 
-        <TabsContent value="branding" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Branding</CardTitle>
+        <TabsContent value="branding" className="space-y-4 mt-6">
+          <Card className="glass-effect border-border/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-medium tracking-tight">Branding</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <Label>Company Name</Label>
+                <Label className="text-sm font-medium mb-2 block">Company Name</Label>
                 <Input
                   value={customization.branding.companyName || ''}
                   onChange={(e) => handleBrandingChange('companyName', e.target.value)}
                   placeholder="Your Production Company"
+                  className="bg-background border-border/50"
                 />
               </div>
 
-              <Separator />
+              <Separator className="bg-border/40" />
 
               <div>
-                <Label>Footer Text</Label>
+                <Label className="text-sm font-medium mb-2 block">Footer Text</Label>
                 <Input
                   value={customization.branding.footer?.text || ''}
                   onChange={(e) => handleBrandingChange('footer', {
@@ -429,11 +438,12 @@ export const PDFAppearanceTab = ({
                     text: e.target.value
                   })}
                   placeholder="© 2024 Your Company"
+                  className="bg-background border-border/50"
                 />
               </div>
 
               <div>
-                <Label>Footer Position</Label>
+                <Label className="text-sm font-medium mb-2 block">Footer Position</Label>
                 <Select
                   value={customization.branding.footer?.position || 'center'}
                   onValueChange={(value) => handleBrandingChange('footer', {
@@ -441,7 +451,7 @@ export const PDFAppearanceTab = ({
                     position: value
                   })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background border-border/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -455,17 +465,17 @@ export const PDFAppearanceTab = ({
           </Card>
         </TabsContent>
 
-        <TabsContent value="sections" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Section Visibility & Formatting</CardTitle>
+        <TabsContent value="sections" className="space-y-4 mt-6">
+          <Card className="glass-effect border-border/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-medium tracking-tight">Section Visibility & Formatting</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <Label className="text-base">Section Visibility</Label>
-                <div className="space-y-3 mt-3">
-                  <div className="flex items-center justify-between">
-                    <Label>Show Weather</Label>
+                <Label className="text-base font-medium mb-4 block">Section Visibility</Label>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                    <Label className="font-normal">Show Weather</Label>
                     <Switch
                       checked={customization.sections.visibility.weather}
                       onCheckedChange={(checked) => handleSectionsChange('visibility', {
@@ -474,8 +484,8 @@ export const PDFAppearanceTab = ({
                       })}
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Show Emergency Contacts</Label>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                    <Label className="font-normal">Show Emergency Contacts</Label>
                     <Switch
                       checked={customization.sections.visibility.emergencyContacts}
                       onCheckedChange={(checked) => handleSectionsChange('visibility', {
@@ -484,8 +494,8 @@ export const PDFAppearanceTab = ({
                       })}
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Show Schedule</Label>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                    <Label className="font-normal">Show Schedule</Label>
                     <Switch
                       checked={customization.sections.visibility.schedule}
                       onCheckedChange={(checked) => handleSectionsChange('visibility', {
@@ -494,8 +504,8 @@ export const PDFAppearanceTab = ({
                       })}
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Show Notes</Label>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                    <Label className="font-normal">Show Notes</Label>
                     <Switch
                       checked={customization.sections.visibility.notes}
                       onCheckedChange={(checked) => handleSectionsChange('visibility', {
@@ -507,34 +517,34 @@ export const PDFAppearanceTab = ({
                 </div>
               </div>
 
-              <Separator />
+              <Separator className="bg-border/40" />
 
               <div>
-                <Label className="text-base">Formatting Options</Label>
-                <div className="space-y-3 mt-3">
+                <Label className="text-base font-medium mb-4 block">Formatting Options</Label>
+                <div className="space-y-4">
                   <div>
-                    <Label>Contact Layout</Label>
+                    <Label className="text-sm font-medium mb-3 block">Contact Layout</Label>
                     <RadioGroup
                       value={customization.sections.formatting.contactLayout}
                       onValueChange={(value) => handleSectionsChange('formatting', {
                         ...customization.sections.formatting,
                         contactLayout: value
                       })}
-                      className="flex space-x-4 mt-2"
+                      className="flex space-x-6"
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="list" id="list" />
-                        <Label htmlFor="list">List</Label>
+                        <Label htmlFor="list" className="font-normal">List</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="table" id="table" />
-                        <Label htmlFor="table">Table</Label>
+                        <Label htmlFor="table" className="font-normal">Table</Label>
                       </div>
                     </RadioGroup>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label>Compact Schedule</Label>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                    <Label className="font-normal">Compact Schedule</Label>
                     <Switch
                       checked={customization.sections.formatting.scheduleCompact}
                       onCheckedChange={(checked) => handleSectionsChange('formatting', {
@@ -544,8 +554,8 @@ export const PDFAppearanceTab = ({
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label>Prominent Emergency Contacts</Label>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
+                    <Label className="font-normal">Prominent Emergency Contacts</Label>
                     <Switch
                       checked={customization.sections.formatting.emergencyProminent}
                       onCheckedChange={(checked) => handleSectionsChange('formatting', {

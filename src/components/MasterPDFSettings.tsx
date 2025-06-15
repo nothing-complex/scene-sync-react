@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -103,28 +104,28 @@ export const MasterPDFSettings = ({ onBack }: MasterPDFSettingsProps) => {
   };
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center">
-          <Button variant="ghost" onClick={onBack} className="mr-4">
+          <Button variant="ghost" onClick={onBack} className="mr-4 font-normal">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Master PDF Appearance</h1>
-            <p className="text-gray-600 mt-1">Configure default PDF styling for all callsheets</p>
+            <h1 className="text-3xl font-medium text-foreground tracking-tight">Master PDF Appearance</h1>
+            <p className="text-muted-foreground mt-1 font-normal">Configure default PDF styling for all callsheets</p>
           </div>
         </div>
-        <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={handleSave} className="font-normal">
           <Save className="w-4 h-4 mr-2" />
           Save Master Settings
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>PDF Appearance Settings</CardTitle>
-          <p className="text-sm text-muted-foreground">
+      <Card className="glass-effect border-border/30">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-medium tracking-tight">PDF Appearance Settings</CardTitle>
+          <p className="text-sm text-muted-foreground font-normal">
             These settings will be applied as defaults to all new callsheets. Preview uses sample data.
           </p>
         </CardHeader>

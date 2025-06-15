@@ -38,21 +38,21 @@ export const SimplePDFSettings = ({
   return (
     <div className="space-y-6">
       {/* Quick Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Quick Settings</CardTitle>
+      <Card className="glass-effect border-border/30">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-medium tracking-tight">Quick Settings</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Label>Header Style</Label>
+              <Label className="text-sm font-medium mb-2 block">Header Style</Label>
               <Select 
                 value={customization.layout.headerStyle} 
                 onValueChange={(value: 'centered' | 'left' | 'custom') => 
                   updateCustomization('layout', { headerStyle: value })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-background border-border/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -64,14 +64,14 @@ export const SimplePDFSettings = ({
             </div>
 
             <div>
-              <Label>Font Family</Label>
+              <Label className="text-sm font-medium mb-2 block">Font Family</Label>
               <Select 
                 value={customization.typography.fontFamily} 
                 onValueChange={(value: 'helvetica' | 'arial' | 'times') => 
                   updateCustomization('typography', { fontFamily: value })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-background border-border/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -84,13 +84,13 @@ export const SimplePDFSettings = ({
           </div>
 
           <div>
-            <Label>Page Orientation</Label>
+            <Label className="text-sm font-medium mb-3 block">Page Orientation</Label>
             <RadioGroup 
               value={customization.layout.pageOrientation} 
               onValueChange={(value: 'portrait' | 'landscape') => 
                 updateCustomization('layout', { pageOrientation: value })
               }
-              className="flex flex-row space-x-6 mt-2"
+              className="flex flex-row space-x-8"
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="portrait" id="portrait" />
@@ -106,9 +106,9 @@ export const SimplePDFSettings = ({
       </Card>
 
       {/* Logo Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Company Logo</CardTitle>
+      <Card className="glass-effect border-border/30">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-medium tracking-tight">Company Logo</CardTitle>
         </CardHeader>
         <CardContent>
           <LogoUpload
@@ -121,18 +121,18 @@ export const SimplePDFSettings = ({
       </Card>
 
       {/* Generate PDF */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Generate PDF</CardTitle>
+      <Card className="glass-effect border-border/30">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-medium tracking-tight">Generate PDF</CardTitle>
         </CardHeader>
         <CardContent>
           <Button 
             onClick={handleDownloadPDF}
-            className="w-full bg-blue-600 hover:bg-blue-700"
+            className="w-full font-normal"
           >
             Download Customized PDF
           </Button>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground mt-3 font-normal">
             Uses your current settings to generate the callsheet PDF
           </p>
         </CardContent>
