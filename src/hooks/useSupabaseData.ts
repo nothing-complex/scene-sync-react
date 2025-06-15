@@ -2,13 +2,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Database } from '@/integrations/supabase/types';
+
+type TableName = keyof Database['public']['Tables'];
+type TableRow<T extends TableName> = Database['public']['Tables'][T]['Row'];
 
 // Basic hook for Supabase data fetching with authentication
-export const useSupabaseData = <T>(
-  table: string,
+export const useSupabaseData = <T extends TableName>(
+  table: T,
   dependencies: any[] = []
 ) => {
-  const [data, setData] = useState<T[]>([]);
+  const [data, setData] = useState<TableRow<T>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -29,7 +33,7 @@ export const useSupabaseData = <T>(
           .eq('user_id', user.id);
 
         if (error) throw error;
-        setData(result || []);
+        setData((result as TableRow<T>[]) || []);
         setError(null);
       } catch (err) {
         console.error(`Error fetching ${table}:`, err);
@@ -42,11 +46,28 @@ export const useSupabaseData = <T>(
     fetchData();
   }, [table, user, ...dependencies]);
 
-  return { data, loading, error, refetch: () => {
+  const refetch = async () => {
     if (user) {
-      // Trigger re-fetch by updating dependencies
+      setLoading(true);
+      try {
+        const { data: result, error } = await supabase
+          .from(table)
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        setData((result as TableRow<T>[]) || []);
+        setError(null);
+      } catch (err) {
+        console.error(`Error refetching ${table}:`, err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
     }
-  }};
+  };
+
+  return { data, loading, error, refetch };
 };
 
 // TODO: Add hooks for:

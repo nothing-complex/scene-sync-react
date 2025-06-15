@@ -1,3 +1,4 @@
+
 export interface EmergencyService {
   id: string;
   name: string;
@@ -36,7 +37,7 @@ interface EmergencyNumbers {
   medical: string;
 }
 
-export class EmergencyService {
+export class EmergencyServiceClass {
   private static readonly OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
   private static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -159,7 +160,7 @@ export class EmergencyService {
             coordinates: { lat: element.lat, lon: element.lon }
           };
         })
-        .filter((service): service is EmergencyService => service !== null) // Fixed: Properly typed filter
+        .filter((service): service is EmergencyService => service !== null)
         .sort((a, b) => a.distance - b.distance) // Sort by distance
         .slice(0, 20); // Limit to 20 results
 
