@@ -7,12 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCallsheet, Contact, CallsheetData, ScheduleItem } from '@/contexts/CallsheetContext';
 import { ContactSelector } from './ContactSelector';
 import { LocationInput } from './LocationInput';
 import { EmergencyNumbers } from './EmergencyNumbers';
+import { PDFAppearanceTab } from './PDFAppearanceTab';
 import { WeatherService, WeatherData } from '@/services/weatherService';
 import { EmergencyServiceApi, EmergencyService } from '@/services/emergencyService';
+import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
 
 interface CallsheetFormProps {
   onBack: () => void;
@@ -66,6 +69,9 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     fire: string;
     medical: string;
   } | null>(null);
+
+  const [pdfCustomization, setPdfCustomization] = useState<PDFCustomization>(DEFAULT_PDF_CUSTOMIZATION);
+  const [activeTab, setActiveTab] = useState('basic');
 
   useEffect(() => {
     if (existingCallsheet) {
@@ -296,7 +302,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   }
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-8 max-w-6xl">
       <div className="flex items-center mb-8">
         <Button variant="ghost" onClick={onBack} className="mr-4">
           <ArrowLeft className="w-5 h-5 mr-2" />
@@ -310,469 +316,503 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="w-5 h-5 mr-2" />
-              Production Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="projectTitle">Project Title *</Label>
-                <Input
-                  id="projectTitle"
-                  value={formData.projectTitle || ''}
-                  onChange={(e) => handleInputChange('projectTitle', e.target.value)}
-                  placeholder="Enter project title"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="shootDate">Shoot Date *</Label>
-                <Input
-                  id="shootDate"
-                  type="date"
-                  value={formData.shootDate || ''}
-                  onChange={(e) => handleInputChange('shootDate', e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="generalCallTime">General Call Time *</Label>
-              <Input
-                id="generalCallTime"
-                type="time"
-                value={formData.generalCallTime || ''}
-                onChange={(e) => handleInputChange('generalCallTime', e.target.value)}
-                required
-                className="md:w-1/2"
-              />
-            </div>
-          </CardContent>
-        </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="basic">Callsheet Details</TabsTrigger>
+          <TabsTrigger value="appearance">PDF Appearance</TabsTrigger>
+        </TabsList>
 
-        {/* Emergency Numbers - Prominent Display */}
-        {emergencyNumbers && (
-          <EmergencyNumbers emergencyNumbers={emergencyNumbers} />
-        )}
-
-        {/* Location Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <MapPin className="w-5 h-5 mr-2" />
-              Location Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <LocationInput
-                label="Location Name"
-                value={formData.location || ''}
-                onChange={(value) => handleInputChange('location', value)}
-                onLocationSelect={handleLocationSelect}
-                placeholder="Search for a location..."
-                id="location"
-              />
-              <div>
-                <Label htmlFor="locationAddress">Location Address</Label>
-                <Input
-                  id="locationAddress"
-                  value={formData.locationAddress || ''}
-                  onChange={(e) => handleInputChange('locationAddress', e.target.value)}
-                  placeholder="Full address with zip code"
-                />
-              </div>
-            </div>
-            
-            {/* Weather Units Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Weather Units</Label>
-                <RadioGroup 
-                  value={weatherUnits} 
-                  onValueChange={handleWeatherUnitsChange}
-                  className="flex flex-row space-x-4 mt-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="imperial" id="imperial" />
-                    <Label htmlFor="imperial" className="font-normal">Imperial (°F, mph)</Label>
+        <TabsContent value="basic" className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Production Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="projectTitle">Project Title *</Label>
+                    <Input
+                      id="projectTitle"
+                      value={formData.projectTitle || ''}
+                      onChange={(e) => handleInputChange('projectTitle', e.target.value)}
+                      placeholder="Enter project title"
+                      required
+                    />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="metric" id="metric" />
-                    <Label htmlFor="metric" className="font-normal">Metric (°C, km/h)</Label>
+                  <div>
+                    <Label htmlFor="shootDate">Shoot Date *</Label>
+                    <Input
+                      id="shootDate"
+                      type="date"
+                      value={formData.shootDate || ''}
+                      onChange={(e) => handleInputChange('shootDate', e.target.value)}
+                      required
+                    />
                   </div>
-                </RadioGroup>
-              </div>
-              <div>
-                <Label htmlFor="weather">Weather</Label>
-                <div className="relative">
-                  <Input
-                    id="weather"
-                    value={formData.weather || ''}
-                    onChange={(e) => handleInputChange('weather', e.target.value)}
-                    placeholder="Auto-populated from location and date or enter manually"
-                    className="pr-20"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRefreshWeather}
-                    disabled={weatherLoading || (!selectedLocation && !formData.location) || !formData.shootDate}
-                    className="absolute right-1 top-1 h-8 w-16 text-xs"
-                  >
-                    {weatherLoading ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <Cloud className="w-3 h-3" />
-                    )}
-                  </Button>
                 </div>
-                {weatherLoading && (
-                  <p className="text-xs text-muted-foreground mt-1">Fetching weather data for {formData.shootDate}...</p>
-                )}
-                {!formData.shootDate && (
-                  <p className="text-xs text-muted-foreground mt-1">Set shoot date to get weather forecast</p>
-                )}
-              </div>
-            </div>
+                <div>
+                  <Label htmlFor="generalCallTime">General Call Time *</Label>
+                  <Input
+                    id="generalCallTime"
+                    type="time"
+                    value={formData.generalCallTime || ''}
+                    onChange={(e) => handleInputChange('generalCallTime', e.target.value)}
+                    required
+                    className="md:w-1/2"
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Emergency Services Section */}
-            {emergencyServices.length > 0 && (
-              <div className="mt-6">
-                <Label className="text-base font-medium flex items-center mb-3">
-                  <AlertTriangle className="w-4 h-4 mr-2" />
-                  Nearby Emergency Services
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
-                  {emergencyServices.map((service) => (
-                    <div key={service.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center">
-                          <span className="mr-2">{EmergencyServiceApi.getServiceIcon(service.type)}</span>
-                          <div>
-                            <div className="font-medium text-sm">{service.name}</div>
-                            <div className="text-xs text-gray-600">{EmergencyServiceApi.formatServiceType(service.type)}</div>
-                            <div className="text-xs text-gray-500">
-                              {service.distance}{weatherUnits === 'imperial' ? 'mi' : 'km'} away
+            {/* Emergency Numbers - Prominent Display */}
+            {emergencyNumbers && (
+              <EmergencyNumbers emergencyNumbers={emergencyNumbers} />
+            )}
+
+            {/* Location Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Location Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <LocationInput
+                    label="Location Name"
+                    value={formData.location || ''}
+                    onChange={(value) => handleInputChange('location', value)}
+                    onLocationSelect={handleLocationSelect}
+                    placeholder="Search for a location..."
+                    id="location"
+                  />
+                  <div>
+                    <Label htmlFor="locationAddress">Location Address</Label>
+                    <Input
+                      id="locationAddress"
+                      value={formData.locationAddress || ''}
+                      onChange={(e) => handleInputChange('locationAddress', e.target.value)}
+                      placeholder="Full address with zip code"
+                    />
+                  </div>
+                </div>
+                
+                {/* Weather Units Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Weather Units</Label>
+                    <RadioGroup 
+                      value={weatherUnits} 
+                      onValueChange={handleWeatherUnitsChange}
+                      className="flex flex-row space-x-4 mt-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="imperial" id="imperial" />
+                        <Label htmlFor="imperial" className="font-normal">Imperial (°F, mph)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="metric" id="metric" />
+                        <Label htmlFor="metric" className="font-normal">Metric (°C, km/h)</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  <div>
+                    <Label htmlFor="weather">Weather</Label>
+                    <div className="relative">
+                      <Input
+                        id="weather"
+                        value={formData.weather || ''}
+                        onChange={(e) => handleInputChange('weather', e.target.value)}
+                        placeholder="Auto-populated from location and date or enter manually"
+                        className="pr-20"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRefreshWeather}
+                        disabled={weatherLoading || (!selectedLocation && !formData.location) || !formData.shootDate}
+                        className="absolute right-1 top-1 h-8 w-16 text-xs"
+                      >
+                        {weatherLoading ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Cloud className="w-3 h-3" />
+                        )}
+                      </Button>
+                    </div>
+                    {weatherLoading && (
+                      <p className="text-xs text-muted-foreground mt-1">Fetching weather data for {formData.shootDate}...</p>
+                    )}
+                    {!formData.shootDate && (
+                      <p className="text-xs text-muted-foreground mt-1">Set shoot date to get weather forecast</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Emergency Services Section */}
+                {emergencyServices.length > 0 && (
+                  <div className="mt-6">
+                    <Label className="text-base font-medium flex items-center mb-3">
+                      <AlertTriangle className="w-4 h-4 mr-2" />
+                      Nearby Emergency Services
+                    </Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                      {emergencyServices.map((service) => (
+                        <div key={service.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center">
+                              <span className="mr-2">{EmergencyServiceApi.getServiceIcon(service.type)}</span>
+                              <div>
+                                <div className="font-medium text-sm">{service.name}</div>
+                                <div className="text-xs text-gray-600">{EmergencyServiceApi.formatServiceType(service.type)}</div>
+                                <div className="text-xs text-gray-500">
+                                  {service.distance}{weatherUnits === 'imperial' ? 'mi' : 'km'} away
+                                </div>
+                              </div>
                             </div>
                           </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleAddEmergencyService(service)}
+                            className="text-orange-600 hover:text-orange-700"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    {emergencyServicesLoading && (
+                      <p className="text-xs text-muted-foreground mt-2">Loading emergency services...</p>
+                    )}
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="parkingInstructions">Parking Instructions</Label>
+                    <Textarea
+                      id="parkingInstructions"
+                      value={formData.parkingInstructions || ''}
+                      onChange={(e) => handleInputChange('parkingInstructions', e.target.value)}
+                      placeholder="Parking details and restrictions"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="basecampLocation">Basecamp Location</Label>
+                    <Textarea
+                      id="basecampLocation"
+                      value={formData.basecampLocation || ''}
+                      onChange={(e) => handleInputChange('basecampLocation', e.target.value)}
+                      placeholder="Craft services, trailers, equipment staging"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cast & Crew */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Cast */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Cast ({(formData.cast || []).length})
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowContactSelector({ show: true, type: 'cast' })}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Cast
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(formData.cast || []).map((castMember) => (
+                      <div key={castMember.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{castMember.name}</div>
+                          <div className="text-sm text-gray-600">{castMember.character || castMember.role}</div>
+                          <div className="text-sm text-gray-500">{castMember.phone}</div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveContact(castMember.id, 'cast')}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {(formData.cast || []).length === 0 && (
+                      <p className="text-gray-500 text-center py-4">No cast members added yet</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Crew */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Crew ({(formData.crew || []).length})
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowContactSelector({ show: true, type: 'crew' })}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Crew
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(formData.crew || []).map((crewMember) => (
+                      <div key={crewMember.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{crewMember.name}</div>
+                          <div className="text-sm text-gray-600">{crewMember.role}</div>
+                          <div className="text-sm text-gray-500">{crewMember.phone}</div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveContact(crewMember.id, 'crew')}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {(formData.crew || []).length === 0 && (
+                      <p className="text-gray-500 text-center py-4">No crew members added yet</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Schedule */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Shooting Schedule</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddScheduleItem}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Scene
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {(formData.schedule || []).map((item) => (
+                    <div key={item.id} className="p-4 border border-gray-200 rounded-lg">
+                      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                        <div>
+                          <Label>Scene #</Label>
+                          <Input
+                            value={item.sceneNumber}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'sceneNumber', e.target.value)}
+                            placeholder="1A"
+                          />
+                        </div>
+                        <div>
+                          <Label>INT/EXT</Label>
+                          <Select
+                            value={item.intExt}
+                            onValueChange={(value: 'INT' | 'EXT') => 
+                              handleUpdateScheduleItem(item.id, 'intExt', value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="INT">INT</SelectItem>
+                              <SelectItem value="EXT">EXT</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Description</Label>
+                          <Input
+                            value={item.description}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'description', e.target.value)}
+                            placeholder="Kitchen - Morning coffee"
+                          />
+                        </div>
+                        <div>
+                          <Label>Pages</Label>
+                          <Input
+                            value={item.pageCount}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'pageCount', e.target.value)}
+                            placeholder="2/8"
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveScheduleItem(item.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAddEmergencyService(service)}
-                        className="text-orange-600 hover:text-orange-700"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <Label>Location</Label>
+                          <Input
+                            value={item.location}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'location', e.target.value)}
+                            placeholder="Studio Kitchen Set"
+                          />
+                        </div>
+                        <div>
+                          <Label>Estimated Time</Label>
+                          <Input
+                            value={item.estimatedTime}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'estimatedTime', e.target.value)}
+                            placeholder="9:00 AM - 11:00 AM"
+                          />
+                        </div>
+                      </div>
                     </div>
                   ))}
+                  {(formData.schedule || []).length === 0 && (
+                    <p className="text-gray-500 text-center py-8">No scenes added yet</p>
+                  )}
                 </div>
-                {emergencyServicesLoading && (
-                  <p className="text-xs text-muted-foreground mt-2">Loading emergency services...</p>
-                )}
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="parkingInstructions">Parking Instructions</Label>
-                <Textarea
-                  id="parkingInstructions"
-                  value={formData.parkingInstructions || ''}
-                  onChange={(e) => handleInputChange('parkingInstructions', e.target.value)}
-                  placeholder="Parking details and restrictions"
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label htmlFor="basecampLocation">Basecamp Location</Label>
-                <Textarea
-                  id="basecampLocation"
-                  value={formData.basecampLocation || ''}
-                  onChange={(e) => handleInputChange('basecampLocation', e.target.value)}
-                  placeholder="Craft services, trailers, equipment staging"
-                  rows={3}
-                />
-              </div>
+              </CardContent>
+            </Card>
+
+            {/* Emergency Contacts & Notes */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Emergency Contacts</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowContactSelector({ show: true, type: 'emergency' })}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Contact
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(formData.emergencyContacts || []).map((contact) => (
+                      <div key={contact.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{contact.name}</div>
+                          <div className="text-sm text-gray-600">{contact.role}</div>
+                          <div className="text-sm text-gray-500">{contact.phone}</div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveContact(contact.id, 'emergency')}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {(formData.emergencyContacts || []).length === 0 && (
+                      <p className="text-gray-500 text-center py-4">No emergency contacts added</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Special Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={formData.specialNotes || ''}
+                    onChange={(e) => handleInputChange('specialNotes', e.target.value)}
+                    placeholder="Additional production notes, safety information, special instructions..."
+                    rows={8}
+                  />
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Cast & Crew */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Cast */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  Cast ({(formData.cast || []).length})
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowContactSelector({ show: true, type: 'cast' })}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Cast
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {(formData.cast || []).map((castMember) => (
-                  <div key={castMember.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <div className="font-medium">{castMember.name}</div>
-                      <div className="text-sm text-gray-600">{castMember.character || castMember.role}</div>
-                      <div className="text-sm text-gray-500">{castMember.phone}</div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveContact(castMember.id, 'cast')}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                {(formData.cast || []).length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No cast members added yet</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Crew */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  Crew ({(formData.crew || []).length})
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowContactSelector({ show: true, type: 'crew' })}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Crew
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {(formData.crew || []).map((crewMember) => (
-                  <div key={crewMember.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <div className="font-medium">{crewMember.name}</div>
-                      <div className="text-sm text-gray-600">{crewMember.role}</div>
-                      <div className="text-sm text-gray-500">{crewMember.phone}</div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveContact(crewMember.id, 'crew')}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                {(formData.crew || []).length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No crew members added yet</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Schedule */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Shooting Schedule</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddScheduleItem}
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Scene
+            {/* Submit Buttons */}
+            <div className="flex justify-end space-x-4 pt-6 border-t">
+              <Button type="button" variant="outline" onClick={onBack}>
+                Cancel
               </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {(formData.schedule || []).map((item) => (
-                <div key={item.id} className="p-4 border border-gray-200 rounded-lg">
-                  <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-                    <div>
-                      <Label>Scene #</Label>
-                      <Input
-                        value={item.sceneNumber}
-                        onChange={(e) => handleUpdateScheduleItem(item.id, 'sceneNumber', e.target.value)}
-                        placeholder="1A"
-                      />
-                    </div>
-                    <div>
-                      <Label>INT/EXT</Label>
-                      <Select
-                        value={item.intExt}
-                        onValueChange={(value: 'INT' | 'EXT') => 
-                          handleUpdateScheduleItem(item.id, 'intExt', value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="INT">INT</SelectItem>
-                          <SelectItem value="EXT">EXT</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="md:col-span-2">
-                      <Label>Description</Label>
-                      <Input
-                        value={item.description}
-                        onChange={(e) => handleUpdateScheduleItem(item.id, 'description', e.target.value)}
-                        placeholder="Kitchen - Morning coffee"
-                      />
-                    </div>
-                    <div>
-                      <Label>Pages</Label>
-                      <Input
-                        value={item.pageCount}
-                        onChange={(e) => handleUpdateScheduleItem(item.id, 'pageCount', e.target.value)}
-                        placeholder="2/8"
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveScheduleItem(item.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <Label>Location</Label>
-                      <Input
-                        value={item.location}
-                        onChange={(e) => handleUpdateScheduleItem(item.id, 'location', e.target.value)}
-                        placeholder="Studio Kitchen Set"
-                      />
-                    </div>
-                    <div>
-                      <Label>Estimated Time</Label>
-                      <Input
-                        value={item.estimatedTime}
-                        onChange={(e) => handleUpdateScheduleItem(item.id, 'estimatedTime', e.target.value)}
-                        placeholder="9:00 AM - 11:00 AM"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {(formData.schedule || []).length === 0 && (
-                <p className="text-gray-500 text-center py-8">No scenes added yet</p>
-              )}
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                {isEditing ? 'Update Callsheet' : 'Create Callsheet'}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </form>
+        </TabsContent>
 
-        {/* Emergency Contacts & Notes */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Emergency Contacts</span>
-                <Button
-                  type="button"
+        <TabsContent value="appearance">
+          {formData.projectTitle ? (
+            <PDFAppearanceTab
+              callsheet={formData as CallsheetData}
+              customization={pdfCustomization}
+              onCustomizationChange={setPdfCustomization}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <p className="text-muted-foreground">
+                  Please fill in the basic callsheet details first to preview PDF appearance options.
+                </p>
+                <Button 
+                  onClick={() => setActiveTab('basic')} 
+                  className="mt-4"
                   variant="outline"
-                  size="sm"
-                  onClick={() => setShowContactSelector({ show: true, type: 'emergency' })}
                 >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Contact
+                  Go to Callsheet Details
                 </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {(formData.emergencyContacts || []).map((contact) => (
-                  <div key={contact.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                    <div>
-                      <div className="font-medium">{contact.name}</div>
-                      <div className="text-sm text-gray-600">{contact.role}</div>
-                      <div className="text-sm text-gray-500">{contact.phone}</div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveContact(contact.id, 'emergency')}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                {(formData.emergencyContacts || []).length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No emergency contacts added</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Special Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                value={formData.specialNotes || ''}
-                onChange={(e) => handleInputChange('specialNotes', e.target.value)}
-                placeholder="Additional production notes, safety information, special instructions..."
-                rows={8}
-              />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Submit Buttons */}
-        <div className="flex justify-end space-x-4 pt-6 border-t">
-          <Button type="button" variant="outline" onClick={onBack}>
-            Cancel
-          </Button>
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-            {isEditing ? 'Update Callsheet' : 'Create Callsheet'}
-          </Button>
-        </div>
-      </form>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

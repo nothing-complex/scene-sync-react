@@ -1,7 +1,8 @@
-
-import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
+import { PDFCustomizationService } from './pdfCustomizationService';
+import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
 
+// Legacy service for backward compatibility
 export class CallsheetPDFService {
   private doc: jsPDF;
   private pageWidth: number;
@@ -224,6 +225,16 @@ export class CallsheetPDFService {
   }
 }
 
+// Enhanced service with customization
+export const generateCustomCallsheetPDF = (
+  callsheet: CallsheetData, 
+  customization: Partial<PDFCustomization> = {}
+) => {
+  const pdfService = new PDFCustomizationService(customization);
+  pdfService.savePDF(callsheet);
+};
+
+// Keep the original function for backward compatibility
 export const generateCallsheetPDF = (callsheet: CallsheetData) => {
   const pdfService = new CallsheetPDFService();
   pdfService.generatePDF(callsheet);
