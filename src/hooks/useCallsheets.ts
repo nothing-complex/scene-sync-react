@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { CallsheetData, Contact } from '@/contexts/CallsheetContext';
+import { CallsheetData, Contact, ScheduleItem } from '@/contexts/CallsheetContext';
 
 export const useCallsheets = () => {
   const [callsheets, setCallsheets] = useState<CallsheetData[]>([]);
@@ -38,10 +38,10 @@ export const useCallsheets = () => {
         locationAddress: row.location_address,
         parkingInstructions: row.parking_instructions || '',
         basecampLocation: row.basecamp_location || '',
-        cast: Array.isArray(row.cast_members) ? row.cast_members as Contact[] : [],
-        crew: Array.isArray(row.crew_members) ? row.crew_members as Contact[] : [],
-        schedule: Array.isArray(row.schedule) ? row.schedule : [],
-        emergencyContacts: Array.isArray(row.emergency_contacts) ? row.emergency_contacts as Contact[] : [],
+        cast: Array.isArray(row.cast_members) ? (row.cast_members as unknown as Contact[]) : [],
+        crew: Array.isArray(row.crew_members) ? (row.crew_members as unknown as Contact[]) : [],
+        schedule: Array.isArray(row.schedule) ? (row.schedule as unknown as ScheduleItem[]) : [],
+        emergencyContacts: Array.isArray(row.emergency_contacts) ? (row.emergency_contacts as unknown as Contact[]) : [],
         weather: row.weather || '',
         specialNotes: row.special_notes || '',
         createdAt: row.created_at,

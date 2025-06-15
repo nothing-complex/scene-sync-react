@@ -83,7 +83,7 @@ export const useSupabaseData = <T extends Record<string, any>>(
         const { data: result, error } = await query;
 
         if (error) throw error;
-        setData(result as T[] || []);
+        setData((result as unknown as T[]) || []);
       } catch (err) {
         console.error(`Error fetching ${table}:`, err);
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -114,7 +114,7 @@ export const useSupabaseData = <T extends Record<string, any>>(
         const { data: result, error } = await query;
 
         if (error) throw error;
-        setData(result as T[] || []);
+        setData((result as unknown as T[]) || []);
         setError(null);
       } catch (err) {
         console.error(`Error refetching ${table}:`, err);
