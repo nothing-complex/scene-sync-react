@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font, pdf } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -17,202 +16,229 @@ interface ReactPDFServiceProps {
 
 const createStyles = (customization: PDFCustomization) => StyleSheet.create({
   page: {
-    backgroundColor: customization.colors.background,
+    backgroundColor: '#fefdfb',  // Warm sand background
     padding: customization.layout.margins.top,
     fontFamily: 'Helvetica',
     fontSize: customization.typography.fontSize.body,
-    color: customization.colors.text,
+    color: '#2c3e50',  // Darker, sophisticated text
   },
   
-  // Header styles
+  // Header styles - inspired by Airbnb's clean header
   headerContainer: {
-    marginBottom: 30,
+    marginBottom: 35,
     alignItems: customization.layout.headerStyle === 'centered' ? 'center' : 'flex-start',
   },
   
   companyCard: {
     backgroundColor: '#ffffff',
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 15,
+    padding: 12,
+    borderRadius: 16,  // More rounded like Airbnb
+    marginBottom: 20,
     alignSelf: customization.layout.headerStyle === 'centered' ? 'center' : 'flex-start',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    borderWidth: 0.5,
+    borderColor: '#e8e6e3',
   },
   
   companyName: {
-    fontSize: customization.typography.fontSize.small,
-    color: customization.colors.secondary,
+    fontSize: customization.typography.fontSize.small + 1,
+    color: '#6b7280',
     textAlign: customization.layout.headerStyle === 'centered' ? 'center' : 'left',
+    fontWeight: 500,
+    letterSpacing: 0.5,
   },
   
   titleCard: {
     backgroundColor: customization.colors.accent,
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 20,
+    padding: 20,
+    borderRadius: 20,  // More pronounced rounding
+    marginBottom: 25,
     alignSelf: customization.layout.headerStyle === 'centered' ? 'center' : 'flex-start',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowRadius: 15,
   },
   
   title: {
     fontSize: customization.typography.fontSize.title,
-    fontWeight: customization.typography.fontWeight.title,
+    fontWeight: 'bold',
     color: '#ffffff',
     textAlign: customization.layout.headerStyle === 'centered' ? 'center' : 'left',
+    letterSpacing: 1.2,
   },
   
   projectTitleCard: {
     backgroundColor: '#ffffff',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 25,
+    padding: 18,
+    borderRadius: 16,
+    marginBottom: 30,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#f3f2f0',
   },
   
   projectTitle: {
-    fontSize: customization.typography.fontSize.header,
-    fontWeight: customization.typography.fontWeight.header,
+    fontSize: customization.typography.fontSize.header + 2,
+    fontWeight: 'bold',
     color: customization.colors.primary,
     textAlign: customization.layout.headerStyle === 'centered' ? 'center' : 'left',
+    letterSpacing: 0.3,
   },
 
-  // Card styles
+  // Enhanced card styles inspired by Airbnb
   sectionCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    marginBottom: 20,
+    borderRadius: 18,  // Softer, more modern rounding
+    marginBottom: 24,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    borderWidth: 0.5,
+    borderColor: '#f0efec',
     overflow: 'hidden',
   },
   
   cardHeader: {
-    backgroundColor: '#f8fafc',
-    padding: 15,
+    backgroundColor: '#fafaf9',  // Subtle warm background
+    padding: 18,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#f0efec',
     flexDirection: 'row',
     alignItems: 'center',
   },
   
   cardContent: {
-    padding: 15,
+    padding: 20,
   },
   
   sectionTitle: {
     fontSize: customization.typography.fontSize.header,
-    fontWeight: customization.typography.fontWeight.header,
-    color: customization.colors.accent,
-    marginLeft: 10,
+    fontWeight: 'bold',
+    color: customization.colors.primary,
+    marginLeft: 12,
+    letterSpacing: 0.5,
   },
 
-  // Grid layouts
+  // Grid layouts with better spacing
   twoColumnGrid: {
     flexDirection: 'row',
-    gap: 20,
+    gap: 24,
   },
   
   column: {
     flex: 1,
   },
 
-  // Inner cards
+  // Refined inner cards inspired by Airbnb's info sections
   innerCard: {
-    backgroundColor: '#f1f5f9',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
+    backgroundColor: '#f8f7f5',  // Warm neutral
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
     borderWidth: 0.5,
-    borderColor: '#e2e8f0',
+    borderColor: '#ebe9e6',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
   },
   
   innerCardAccent: {
-    backgroundColor: '#fef7ed',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 0.5,
+    backgroundColor: '#fef9f3',  // Warm accent background
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
     borderColor: '#fed7aa',
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
 
-  // Text styles
+  // Enhanced typography
   label: {
     fontSize: customization.typography.fontSize.small,
-    color: customization.colors.secondary,
-    marginBottom: 4,
-    fontWeight: 'bold',
+    color: '#6b7280',
+    marginBottom: 5,
+    fontWeight: 600,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   
   value: {
     fontSize: customization.typography.fontSize.body,
-    color: customization.colors.text,
-    lineHeight: 1.4,
+    color: '#374151',
+    lineHeight: 1.5,
+    fontWeight: 400,
   },
 
-  // Contact styles
+  // Contact styles with Airbnb-inspired layout
   contactItem: {
     backgroundColor: '#ffffff',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 10,
     borderWidth: 0.5,
-    borderColor: '#e2e8f0',
+    borderColor: '#f0efec',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
   },
   
   contactName: {
     fontSize: customization.typography.fontSize.body,
     fontWeight: 'bold',
-    color: customization.colors.text,
-    marginBottom: 4,
+    color: '#1f2937',
+    marginBottom: 6,
+    letterSpacing: 0.1,
   },
   
   contactDetails: {
     fontSize: customization.typography.fontSize.small,
-    color: customization.colors.secondary,
-    lineHeight: 1.3,
+    color: '#6b7280',
+    lineHeight: 1.4,
   },
 
-  // Schedule styles
+  // Modern schedule styling
   scheduleItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: '#f8fafc',
-    borderRadius: 8,
+    marginBottom: 18,
+    padding: 16,
+    backgroundColor: '#fafaf9',
+    borderRadius: 14,
     borderLeftWidth: 4,
     borderLeftColor: customization.colors.accent,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
   },
   
   sceneNumber: {
     backgroundColor: customization.colors.accent,
     color: '#ffffff',
-    padding: 6,
-    borderRadius: 6,
+    padding: 8,
+    borderRadius: 10,
     fontSize: customization.typography.fontSize.small,
     fontWeight: 'bold',
-    minWidth: 40,
+    minWidth: 45,
     textAlign: 'center',
-    marginRight: 12,
+    marginRight: 15,
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
   },
   
   scheduleContent: {
@@ -221,51 +247,64 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
   
   scheduleHeader: {
     flexDirection: 'row',
-    marginBottom: 4,
-    gap: 15,
+    marginBottom: 6,
+    gap: 18,
   },
   
   scheduleText: {
     fontSize: customization.typography.fontSize.small,
-    color: customization.colors.secondary,
+    color: '#6b7280',
+    fontWeight: 500,
   },
 
-  // Notes styles
+  // Enhanced notes styling
   notesCard: {
-    backgroundColor: '#fef3c7',
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: '#fffbeb',
+    padding: 18,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#fbbf24',
+    borderColor: '#fed7aa',
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
   },
 
-  // Footer
+  // Refined footer
   footer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 25,
     left: 0,
     right: 0,
-    backgroundColor: '#f1f5f9',
-    padding: 8,
+    backgroundColor: '#f8f7f5',
+    padding: 10,
     textAlign: 'center',
+    borderRadius: 8,
+    marginHorizontal: 40,
   },
   
   footerText: {
     fontSize: customization.typography.fontSize.small,
-    color: customization.colors.secondary,
+    color: '#9ca3af',
+    letterSpacing: 0.2,
   },
 });
 
+// Enhanced icon component with better styling
 const IconPlaceholder: React.FC<{ type: string }> = ({ type }) => (
   <View style={{
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
     backgroundColor: '#f59e0b',
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   }}>
-    <Text style={{ color: '#ffffff', fontSize: 8, fontWeight: 'bold' }}>
+    <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: 'bold' }}>
       {type === 'calendar' ? '📅' : type === 'location' ? '📍' : type === 'users' ? '👥' : type === 'clock' ? '🕐' : '📄'}
     </Text>
   </View>
