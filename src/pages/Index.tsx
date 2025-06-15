@@ -1,13 +1,36 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import { Sidebar } from '@/components/Sidebar';
+import { Dashboard } from '@/components/Dashboard';
+import { CallsheetForm } from '@/components/CallsheetForm';
+import { ContactsManager } from '@/components/ContactsManager';
+import { CallsheetProvider } from '@/contexts/CallsheetContext';
 
 const Index = () => {
+  const [activeView, setActiveView] = useState('dashboard');
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return <Dashboard onCreateNew={() => setActiveView('create')} />;
+      case 'create':
+        return <CallsheetForm onBack={() => setActiveView('dashboard')} />;
+      case 'contacts':
+        return <ContactsManager onBack={() => setActiveView('dashboard')} />;
+      default:
+        return <Dashboard onCreateNew={() => setActiveView('create')} />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <CallsheetProvider>
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar activeView={activeView} setActiveView={setActiveView} />
+        <main className="flex-1 overflow-auto">
+          {renderActiveView()}
+        </main>
       </div>
-    </div>
+    </CallsheetProvider>
   );
 };
 
