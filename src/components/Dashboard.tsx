@@ -1,4 +1,5 @@
 
+
 import { useState } from 'react';
 import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, TrendingUp, Users, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -141,8 +142,8 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
           {callsheets.length === 0 ? (
             <Card className="glass-effect border-0">
               <CardContent className="p-16 text-center">
-                <div className="w-16 h-16 gradient-sand rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Camera className="w-8 h-8 text-primary-foreground" />
+                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Camera className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-light text-foreground mb-3">Start your first production</h3>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto font-light">
@@ -260,3 +261,4 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
     </div>
   );
 };
+
