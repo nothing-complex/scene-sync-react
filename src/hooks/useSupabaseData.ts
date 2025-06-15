@@ -7,11 +7,11 @@ import type { Database } from '@/integrations/supabase/types';
 type TableName = keyof Database['public']['Tables'];
 
 // Simple generic hook for basic Supabase data fetching
-export const useSupabaseData = <T = any>(
+export const useSupabaseData = (
   table: TableName,
   dependencies: any[] = []
 ) => {
-  const [data, setData] = useState<T[]>([]);
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -32,7 +32,7 @@ export const useSupabaseData = <T = any>(
           .eq('user_id', user.id);
 
         if (error) throw error;
-        setData((result as T[]) || []);
+        setData(result || []);
         setError(null);
       } catch (err) {
         console.error(`Error fetching ${table}:`, err);
@@ -55,7 +55,7 @@ export const useSupabaseData = <T = any>(
           .eq('user_id', user.id);
 
         if (error) throw error;
-        setData((result as T[]) || []);
+        setData(result || []);
         setError(null);
       } catch (err) {
         console.error(`Error refetching ${table}:`, err);
