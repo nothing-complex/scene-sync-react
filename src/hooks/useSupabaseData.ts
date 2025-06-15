@@ -3,15 +3,27 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Simple hook for basic Supabase data fetching
-export const useSupabaseData = (
+// Enhanced hook for comprehensive Supabase data fetching with error handling
+export const useSupabaseData = <T = any>(
   table: string,
-  dependencies: any[] = []
+  options: {
+    select?: string;
+    filter?: { column: string; value: any; operator?: string };
+    orderBy?: { column: string; ascending?: boolean };
+    dependencies?: any[];
+  } = {}
 ) => {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+
+  const {
+    select = '*',
+    filter,
+    orderBy,
+    dependencies = []
+  } = options;
 
   useEffect(() => {
     if (!user) {
@@ -23,14 +35,55 @@ export const useSupabaseData = (
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data: result, error } = await (supabase as any)
-          .from(table)
-          .select('*')
-          .eq('user_id', user.id);
+        setError(null);
+        
+        let query = supabase.from(table).select(select);
+        
+        // Apply user filter by default
+        query = query.eq('user_id', user.id);
+        
+        // Apply additional filter if provided
+        if (filter) {
+          const { column, value, operator = 'eq' } = filter;
+          switch (operator) {
+            case 'eq':
+              query = query.eq(column, value);
+              break;
+            case 'neq':
+              query = query.neq(column, value);
+              break;
+            case 'gt':
+              query = query.gt(column, value);
+              break;
+            case 'gte':
+              query = query.gte(column, value);
+              break;
+            case 'lt':
+              query = query.lt(column, value);
+              break;
+            case 'lte':
+              query = query.lte(column, value);
+              break;
+            case 'like':
+              query = query.like(column, value);
+              break;
+            case 'ilike':
+              query = query.ilike(column, value);
+              break;
+            default:
+              query = query.eq(column, value);
+          }
+        }
+        
+        // Apply ordering if provided
+        if (orderBy) {
+          query = query.order(orderBy.column, { ascending: orderBy.ascending ?? false });
+        }
+
+        const { data: result, error } = await query;
 
         if (error) throw error;
         setData(result || []);
-        setError(null);
       } catch (err) {
         console.error(`Error fetching ${table}:`, err);
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -40,16 +93,25 @@ export const useSupabaseData = (
     };
 
     fetchData();
-  }, [table, user, ...dependencies]);
+  }, [table, select, user, ...dependencies]);
 
   const refetch = async () => {
     if (user) {
       setLoading(true);
       try {
-        const { data: result, error } = await (supabase as any)
-          .from(table)
-          .select('*')
-          .eq('user_id', user.id);
+        let query = supabase.from(table).select(select);
+        query = query.eq('user_id', user.id);
+        
+        if (filter) {
+          const { column, value, operator = 'eq' } = filter;
+          (query as any)[operator](column, value);
+        }
+        
+        if (orderBy) {
+          query = query.order(orderBy.column, { ascending: orderBy.ascending ?? false });
+        }
+
+        const { data: result, error } = await query;
 
         if (error) throw error;
         setData(result || []);
@@ -66,8 +128,22 @@ export const useSupabaseData = (
   return { data, loading, error, refetch };
 };
 
-// TODO: Add hooks for:
-// - useProjects()
-// - useCallsheets(projectId?)
-// - useContacts()
-// - Real-time subscriptions with useEffect cleanup
+// Specialized hooks for specific tables
+export const useProjects = () => {
+  return useSupabaseData('projects', {
+    orderBy: { column: 'created_at', ascending: false }
+  });
+};
+
+export const useCallsheetsData = (projectId?: string) => {
+  return useSupabaseData('callsheets', {
+    filter: projectId ? { column: 'project_id', value: projectId } : undefined,
+    orderBy: { column: 'created_at', ascending: false }
+  });
+};
+
+export const useContactsData = () => {
+  return useSupabaseData('contacts', {
+    orderBy: { column: 'created_at', ascending: false }
+  });
+};

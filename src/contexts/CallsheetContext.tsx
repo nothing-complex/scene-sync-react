@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+
+import React, { createContext, useContext, useState } from 'react';
+import { useCallsheets } from '@/hooks/useCallsheets';
+import { useContacts } from '@/hooks/useContacts';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface Contact {
@@ -47,13 +49,16 @@ export interface ScheduleItem {
 interface CallsheetContextType {
   callsheets: CallsheetData[];
   contacts: Contact[];
-  addCallsheet: (callsheet: Omit<CallsheetData, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateCallsheet: (id: string, callsheet: Partial<CallsheetData>) => void;
-  deleteCallsheet: (id: string) => void;
-  addContact: (contact: Omit<Contact, 'id'>) => void;
-  updateContact: (id: string, contact: Partial<Contact>) => void;
-  deleteContact: (id: string) => void;
-  duplicateCallsheet: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  addCallsheet: (callsheet: Omit<CallsheetData, 'id' | 'createdAt' | 'updatedAt'>) => Promise<any>;
+  updateCallsheet: (id: string, callsheet: Partial<CallsheetData>) => Promise<void>;
+  deleteCallsheet: (id: string) => Promise<void>;
+  addContact: (contact: Omit<Contact, 'id'>) => Promise<any>;
+  updateContact: (id: string, contact: Partial<Contact>) => Promise<void>;
+  deleteContact: (id: string) => Promise<void>;
+  duplicateCallsheet: (id: string) => Promise<void>;
+  refetch: () => Promise<void>;
 }
 
 const CallsheetContext = createContext<CallsheetContextType | undefined>(undefined);
@@ -67,174 +72,63 @@ export const useCallsheet = () => {
 };
 
 export const CallsheetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [callsheets, setCallsheets] = useState<CallsheetData[]>([]);
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  
+  const callsheetHook = useCallsheets();
+  const contactHook = useContacts();
 
-  // Load data from localStorage on mount (fallback for existing data)
-  useEffect(() => {
-    if (!user) {
-      setCallsheets([]);
-      setContacts([]);
-      return;
-    }
-
-    // TODO: Replace localStorage with Supabase queries
-    // For now, keep localStorage as fallback while we transition
-    const savedCallsheets = localStorage.getItem('callsheets');
-    const savedContacts = localStorage.getItem('contacts');
-    
-    if (savedCallsheets) {
-      setCallsheets(JSON.parse(savedCallsheets));
-    }
-    
-    if (savedContacts) {
-      setContacts(JSON.parse(savedContacts));
-    } else {
-      // Add some default contacts
-      const defaultContacts = [
-        {
-          id: '1',
-          name: 'John Director',
-          role: 'Director',
-          phone: '(555) 123-4567',
-          email: 'john@production.com',
-          department: 'Direction'
-        },
-        {
-          id: '2',
-          name: 'Sarah Producer',
-          role: 'Producer',
-          phone: '(555) 234-5678',
-          email: 'sarah@production.com',
-          department: 'Production'
-        }
-      ];
-      setContacts(defaultContacts);
-      localStorage.setItem('contacts', JSON.stringify(defaultContacts));
-    }
-
-    // TODO: Implement Supabase data fetching
-    // fetchCallsheetsFromSupabase();
-    // fetchContactsFromSupabase();
-  }, [user]);
-
-  // Save to localStorage whenever data changes (temporary fallback)
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('callsheets', JSON.stringify(callsheets));
-    }
-  }, [callsheets, user]);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-    }
-  }, [contacts, user]);
-
-  // TODO: Implement Supabase CRUD operations
-  const addCallsheet = async (callsheetData: Omit<CallsheetData, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!user) return;
-
-    // TODO: Save to Supabase
-    // const { data, error } = await supabase.from('callsheets').insert({
-    //   project_title: callsheetData.projectTitle,
-    //   shoot_date: callsheetData.shootDate,
-    //   // ... map other fields
-    //   user_id: user.id
-    // });
-
-    // Temporary localStorage implementation
-    const newCallsheet: CallsheetData = {
-      ...callsheetData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      userId: user.id,
-    };
-    setCallsheets(prev => [newCallsheet, ...prev]);
-  };
-
-  const updateCallsheet = async (id: string, updates: Partial<CallsheetData>) => {
-    if (!user) return;
-
-    // TODO: Update in Supabase
-    // await supabase.from('callsheets').update(updates).eq('id', id);
-
-    setCallsheets(prev => prev.map(callsheet => 
-      callsheet.id === id 
-        ? { ...callsheet, ...updates, updatedAt: new Date().toISOString() }
-        : callsheet
-    ));
-  };
-
-  const deleteCallsheet = async (id: string) => {
-    if (!user) return;
-
-    // TODO: Delete from Supabase
-    // await supabase.from('callsheets').delete().eq('id', id);
-
-    setCallsheets(prev => prev.filter(callsheet => callsheet.id !== id));
-  };
-
-  const duplicateCallsheet = (id: string) => {
-    const originalCallsheet = callsheets.find(c => c.id === id);
-    if (originalCallsheet) {
-      const { id: _, createdAt: __, updatedAt: ___, ...callsheetData } = originalCallsheet;
-      addCallsheet({
-        ...callsheetData,
-        projectTitle: `${callsheetData.projectTitle} (Copy)`,
-      });
+  const duplicateCallsheet = async (id: string) => {
+    try {
+      setError(null);
+      const originalCallsheet = callsheetHook.callsheets.find(c => c.id === id);
+      if (originalCallsheet) {
+        const { id: _, createdAt: __, updatedAt: ___, ...callsheetData } = originalCallsheet;
+        await callsheetHook.addCallsheet({
+          ...callsheetData,
+          projectTitle: `${callsheetData.projectTitle} (Copy)`,
+        });
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while duplicating the callsheet';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     }
   };
 
-  const addContact = async (contactData: Omit<Contact, 'id'>) => {
-    if (!user) return;
-
-    // TODO: Save to Supabase
-    // const { data, error } = await supabase.from('contacts').insert({
-    //   ...contactData,
-    //   user_id: user.id
-    // });
-
-    const newContact: Contact = {
-      ...contactData,
-      id: Date.now().toString(),
-    };
-    setContacts(prev => [newContact, ...prev]);
+  const refetch = async () => {
+    try {
+      setError(null);
+      await Promise.all([
+        callsheetHook.refetch(),
+        contactHook.refetch()
+      ]);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while refreshing data';
+      setError(errorMessage);
+    }
   };
 
-  const updateContact = async (id: string, updates: Partial<Contact>) => {
-    if (!user) return;
-
-    // TODO: Update in Supabase
-    // await supabase.from('contacts').update(updates).eq('id', id);
-
-    setContacts(prev => prev.map(contact => 
-      contact.id === id ? { ...contact, ...updates } : contact
-    ));
-  };
-
-  const deleteContact = async (id: string) => {
-    if (!user) return;
-
-    // TODO: Delete from Supabase
-    // await supabase.from('contacts').delete().eq('id', id);
-
-    setContacts(prev => prev.filter(contact => contact.id !== id));
-  };
+  // Combine loading states
+  const loading = callsheetHook.loading || contactHook.loading;
+  
+  // Combine error states
+  const combinedError = error || callsheetHook.error || contactHook.error;
 
   return (
     <CallsheetContext.Provider value={{
-      callsheets,
-      contacts,
-      addCallsheet,
-      updateCallsheet,
-      deleteCallsheet,
-      addContact,
-      updateContact,
-      deleteContact,
+      callsheets: callsheetHook.callsheets,
+      contacts: contactHook.contacts,
+      loading,
+      error: combinedError,
+      addCallsheet: callsheetHook.addCallsheet,
+      updateCallsheet: callsheetHook.updateCallsheet,
+      deleteCallsheet: callsheetHook.deleteCallsheet,
+      addContact: contactHook.addContact,
+      updateContact: contactHook.updateContact,
+      deleteContact: contactHook.deleteContact,
       duplicateCallsheet,
+      refetch,
     }}>
       {children}
     </CallsheetContext.Provider>
