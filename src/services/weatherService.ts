@@ -1,4 +1,3 @@
-
 export interface WeatherData {
   temperature: number;
   condition: string;
@@ -14,6 +13,22 @@ interface GeocodingResult {
   longitude: number;
   country: string;
   admin1?: string; // state/region
+}
+
+interface NominatimResult {
+  display_name: string;
+  lat: string;
+  lon: string;
+  address?: {
+    house_number?: string;
+    road?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    state?: string;
+    country?: string;
+    postcode?: string;
+  };
 }
 
 interface WeatherResponse {
@@ -55,12 +70,92 @@ const weatherCodeMap: { [key: number]: { condition: string; description: string 
 
 export class WeatherService {
   private static readonly GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
+  private static readonly NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
   private static readonly WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
+
+  private static formatNominatimResult(result: NominatimResult): GeocodingResult {
+    const lat = parseFloat(result.lat);
+    const lon = parseFloat(result.lon);
+    
+    // Try to extract a clean name from the display_name
+    let name = result.display_name;
+    if (result.address) {
+      const addr = result.address;
+      if (addr.house_number && addr.road) {
+        name = `${addr.house_number} ${addr.road}`;
+        if (addr.city || addr.town || addr.village) {
+          name += `, ${addr.city || addr.town || addr.village}`;
+        }
+      } else if (addr.road) {
+        name = addr.road;
+        if (addr.city || addr.town || addr.village) {
+          name += `, ${addr.city || addr.town || addr.village}`;
+        }
+      } else {
+        // Fallback to first part of display_name
+        name = result.display_name.split(',')[0];
+      }
+    }
+
+    return {
+      name,
+      latitude: lat,
+      longitude: lon,
+      country: result.address?.country || '',
+      admin1: result.address?.state
+    };
+  }
 
   static async searchLocations(query: string): Promise<GeocodingResult[]> {
     if (!query || query.length < 2) return [];
     
     try {
+      // First try Nominatim for full address search
+      const nominatimResponse = await fetch(
+        `${this.NOMINATIM_URL}?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=us,ca,gb,au,de,fr,es,it,nl,dk,se,no,fi`,
+        {
+          headers: {
+            'User-Agent': 'Callsheet-App/1.0'
+          }
+        }
+      );
+      
+      if (nominatimResponse.ok) {
+        const nominatimData: NominatimResult[] = await nominatimResponse.json();
+        const nominatimResults = nominatimData.map(this.formatNominatimResult);
+        
+        // If we got good address results, prioritize them
+        if (nominatimResults.length > 0) {
+          // Also try Open-Meteo for city names to supplement
+          try {
+            const meteoResponse = await fetch(`${this.GEOCODING_URL}?name=${encodeURIComponent(query)}&count=3`);
+            if (meteoResponse.ok) {
+              const meteoData = await meteoResponse.json();
+              const meteoResults = meteoData.results || [];
+              
+              // Combine results, prioritizing Nominatim (addresses) over Metro (cities)
+              const combined = [...nominatimResults];
+              meteoResults.forEach((meteoResult: GeocodingResult) => {
+                // Only add if not already similar to existing results
+                if (!combined.some(existing => 
+                  Math.abs(existing.latitude - meteoResult.latitude) < 0.01 &&
+                  Math.abs(existing.longitude - meteoResult.longitude) < 0.01
+                )) {
+                  combined.push(meteoResult);
+                }
+              });
+              
+              return combined.slice(0, 10);
+            }
+          } catch (error) {
+            console.warn('Open-Meteo geocoding failed, using Nominatim only:', error);
+          }
+          
+          return nominatimResults.slice(0, 10);
+        }
+      }
+      
+      // Fallback to Open-Meteo if Nominatim fails or returns no results
       const response = await fetch(`${this.GEOCODING_URL}?name=${encodeURIComponent(query)}&count=10`);
       if (!response.ok) throw new Error('Location search failed');
       
@@ -73,16 +168,8 @@ export class WeatherService {
   }
 
   static async geocodeLocation(location: string): Promise<GeocodingResult[]> {
-    try {
-      const response = await fetch(`${this.GEOCODING_URL}?name=${encodeURIComponent(location)}&count=5`);
-      if (!response.ok) throw new Error('Geocoding failed');
-      
-      const data = await response.json();
-      return data.results || [];
-    } catch (error) {
-      console.error('Geocoding error:', error);
-      return [];
-    }
+    // Use the same enhanced search for geocoding
+    return this.searchLocations(location);
   }
 
   static async getCurrentWeather(latitude: number, longitude: number, units: 'imperial' | 'metric' = 'imperial'): Promise<WeatherData | null> {

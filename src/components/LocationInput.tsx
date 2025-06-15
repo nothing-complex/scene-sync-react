@@ -27,7 +27,7 @@ export const LocationInput = ({
   value, 
   onChange, 
   onLocationSelect,
-  placeholder = "Search for a location...",
+  placeholder = "Search for a location or address...",
   id 
 }: LocationInputProps) => {
   const [suggestions, setSuggestions] = useState<GeocodingResult[]>([]);
@@ -38,7 +38,7 @@ export const LocationInput = ({
 
   useEffect(() => {
     const searchLocations = async () => {
-      if (value.length < 2) {
+      if (value.length < 3) { // Increased minimum length for address search
         setSuggestions([]);
         setShowSuggestions(false);
         return;
@@ -58,7 +58,7 @@ export const LocationInput = ({
       }
     };
 
-    const timeoutId = setTimeout(searchLocations, 300);
+    const timeoutId = setTimeout(searchLocations, 400); // Slightly longer delay for address search
     return () => clearTimeout(timeoutId);
   }, [value]);
 
@@ -81,6 +81,17 @@ export const LocationInput = ({
   const handleInputFocus = () => {
     if (suggestions.length > 0) {
       setShowSuggestions(true);
+    }
+  };
+
+  const getLocationTypeIcon = (location: GeocodingResult): string => {
+    // Simple heuristic to determine if it's likely an address vs city
+    if (location.name.match(/^\d+\s/)) {
+      return '🏠'; // Has house number
+    } else if (location.name.includes(',') && location.name.split(',')[0].length < 30) {
+      return '🏠'; // Likely street address
+    } else {
+      return '🏙️'; // Likely city/place
     }
   };
 
@@ -111,7 +122,9 @@ export const LocationInput = ({
                 type="button"
               >
                 <div className="flex items-center">
-                  <MapPin className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+                  <span className="w-4 h-4 mr-2 text-xs">
+                    {getLocationTypeIcon(location)}
+                  </span>
                   <div>
                     <div className="font-medium text-sm">
                       {WeatherService.formatLocationName(location)}
