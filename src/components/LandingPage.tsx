@@ -1,12 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isScrolling, setIsScrolling] = useState(false);
 
   useEffect(() => {
@@ -65,12 +66,21 @@ export const LandingPage = () => {
             <span className="text-xl font-medium text-foreground tracking-tight">CallTime</span>
           </div>
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" onClick={() => navigate('/auth')} className="font-normal">
-              Sign in
-            </Button>
-            <Button onClick={() => navigate('/auth')} className="btn-primary">
-              Start for free
-            </Button>
+            {user ? (
+              <Button onClick={() => navigate('/')} className="btn-primary flex items-center space-x-2">
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Go to Dashboard</span>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => navigate('/auth')} className="font-normal">
+                  Sign in
+                </Button>
+                <Button onClick={() => navigate('/auth')} className="btn-primary">
+                  Start for free
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
