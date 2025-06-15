@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -90,7 +89,8 @@ const DUMMY_CALLSHEET: CallsheetData = {
   weather: 'Sunny, 75°F, Light breeze from the west at 5 mph',
   specialNotes: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
   createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  updatedAt: new Date().toISOString(),
+  userId: 'preview-user' // Add the missing userId property
 };
 
 export const MasterPDFSettings = ({ onBack }: MasterPDFSettingsProps) => {

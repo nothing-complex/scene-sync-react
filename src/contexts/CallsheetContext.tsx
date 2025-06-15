@@ -16,7 +16,7 @@ interface CallsheetContextType {
   refetch: () => Promise<void>;
   // Contact management methods
   contacts: Contact[];
-  addContact: (contact: Omit<Contact, 'id'>) => Promise<void>;
+  addContact: (contact: Omit<Contact, 'id'>) => Promise<any>; // Changed return type to match actual implementation
   updateContact: (id: string, updates: Partial<Contact>) => Promise<void>;
   deleteContact: (id: string) => Promise<void>;
 }

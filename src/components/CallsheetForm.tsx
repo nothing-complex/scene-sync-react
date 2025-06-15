@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCallsheet, Contact, CallsheetData, ScheduleItem } from '@/contexts/CallsheetContext';
+import { useAuth } from '@/contexts/AuthContext'; // Add this import
 import { ContactSelector } from './ContactSelector';
 import { LocationInput } from './LocationInput';
 import { EmergencyNumbers } from './EmergencyNumbers';
@@ -34,6 +35,7 @@ interface GeocodingResult {
 
 export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   const { addCallsheet, updateCallsheet, callsheets, contacts } = useCallsheet();
+  const { user } = useAuth(); // Add this line
   
   const existingCallsheet = callsheetId ? callsheets.find(c => c.id === callsheetId) : null;
   const isEditing = !!existingCallsheet;
