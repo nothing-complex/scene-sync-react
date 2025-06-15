@@ -6,18 +6,26 @@ import { useNavigate } from 'react-router-dom';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
-  const [hasScrolled, setHasScrolled] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
 
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+
     const handleScroll = () => {
-      if (window.scrollY > 50 && !hasScrolled) {
-        setHasScrolled(true);
-      }
+      setIsScrolling(true);
+      
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        setIsScrolling(false);
+      }, 150);
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasScrolled]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, []);
 
   const features = [
     {
@@ -69,8 +77,8 @@ export const LandingPage = () => {
       {/* Softer Hero Section */}
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto animate-fade-in-up">
-          <h1 className={`text-6xl md:text-8xl font-medium text-foreground leading-[1.1] tracking-tight mb-6 ${hasScrolled ? 'animate-rubber-band-subtle' : ''}`}>
-            Professional callsheets that crews{' '}
+          <h1 className={`text-7xl md:text-9xl font-medium text-foreground leading-[1.1] tracking-tight mb-6 animate-scroll-follow ${isScrolling ? 'scrolling' : ''}`}>
+            Professional callsheets crews{' '}
             <span className="text-foreground">actually</span>{' '}
             <span className="text-primary interactive-underline">want</span>{' '}
             <span className="text-primary">to</span> use.

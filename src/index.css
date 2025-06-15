@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -186,31 +185,12 @@
     }
   }
 
-  .animate-rubber-band-subtle {
-    animation: rubber-band-subtle 2s ease-in-out;
+  .animate-scroll-follow {
+    transform: translateY(0);
+    transition: transform 0.15s ease-out;
   }
 
-  @keyframes rubber-band-subtle {
-    0% {
-      transform: scale3d(1, 1, 1);
-    }
-    30% {
-      transform: scale3d(1.02, 0.98, 1);
-    }
-    40% {
-      transform: scale3d(0.98, 1.02, 1);
-    }
-    50% {
-      transform: scale3d(1.01, 0.99, 1);
-    }
-    65% {
-      transform: scale3d(0.99, 1.01, 1);
-    }
-    75% {
-      transform: scale3d(1.005, 0.995, 1);
-    }
-    100% {
-      transform: scale3d(1, 1, 1);
-    }
+  .animate-scroll-follow.scrolling {
+    transform: translateY(10px);
   }
 }
