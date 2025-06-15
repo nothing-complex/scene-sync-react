@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, TrendingUp, Users, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,7 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 dark:from-background dark:via-card dark:to-primary/5">
+    <div className="min-h-screen bg-background">
       <div className="p-8">
         {/* Enhanced Welcome Section */}
         <div className="mb-8">
