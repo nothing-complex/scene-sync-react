@@ -111,38 +111,47 @@ export const useCallsheetShares = () => {
   };
 
   useEffect(() => {
-    fetchShares();
-
-    // Clean up any existing channel
+    // Clean up any existing channel first
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
     }
 
-    // Set up real-time subscription for shares - fix the subscription issue
-    if (user?.id) {
-      channelRef.current = supabase
-        .channel(`callsheet_shares_${user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'callsheet_shares'
-          },
-          () => {
-            fetchShares();
-          }
-        )
-        .subscribe();
+    // Only proceed if user is available
+    if (!user?.id) {
+      setShares([]);
+      setLoading(false);
+      return;
     }
 
+    // Fetch initial data
+    fetchShares();
+
+    // Set up real-time subscription with a unique channel name
+    const channelName = `callsheet_shares_user_${user.id}_${Date.now()}`;
+    channelRef.current = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'callsheet_shares'
+        },
+        () => {
+          fetchShares();
+        }
+      )
+      .subscribe();
+
+    // Cleanup function
     return () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
     };
-  }, [user?.id]); // Add user.id as dependency to avoid subscription conflicts
+  }, [user?.id]);
 
   return {
     shares,

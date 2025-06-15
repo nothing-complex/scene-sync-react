@@ -161,31 +161,40 @@ export const useCallsheets = () => {
   };
 
   useEffect(() => {
-    fetchCallsheets();
-
-    // Clean up any existing channel
+    // Clean up any existing channel first
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
     }
 
-    // Set up real-time subscription
-    if (user?.id) {
-      channelRef.current = supabase
-        .channel(`callsheets_${user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'callsheets'
-          },
-          () => {
-            fetchCallsheets();
-          }
-        )
-        .subscribe();
+    // Only proceed if user is available
+    if (!user?.id) {
+      setCallsheets([]);
+      setLoading(false);
+      return;
     }
 
+    // Fetch initial data
+    fetchCallsheets();
+
+    // Set up real-time subscription with a unique channel name
+    const channelName = `callsheets_user_${user.id}_${Date.now()}`;
+    channelRef.current = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'callsheets'
+        },
+        () => {
+          fetchCallsheets();
+        }
+      )
+      .subscribe();
+
+    // Cleanup function
     return () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
