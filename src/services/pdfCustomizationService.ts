@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
@@ -57,13 +56,60 @@ export class PDFCustomizationService {
     */
   }
 
-  private addHeader(callsheet: CallsheetData): number {
+  private async addLogo(y: number): Promise<number> {
+    if (!this.customization.branding.logo) return y;
+
+    const { logo } = this.customization.branding;
+    
+    // Define logo sizes in points
+    const logoSizes = {
+      small: 30,
+      medium: 50,
+      large: 70
+    };
+
+    const logoSize = logoSizes[logo.size];
+    
+    // Calculate position based on logo.position
+    let logoX: number;
+    switch (logo.position) {
+      case 'top-left':
+        logoX = this.customization.layout.margins.left;
+        break;
+      case 'top-center':
+        logoX = (this.pageWidth - logoSize) / 2;
+        break;
+      case 'top-right':
+        logoX = this.pageWidth - this.customization.layout.margins.right - logoSize;
+        break;
+      default:
+        logoX = this.customization.layout.margins.left;
+    }
+
+    try {
+      this.doc.addImage(
+        logo.url,
+        'PNG',
+        logoX,
+        y,
+        logoSize,
+        logoSize,
+        undefined,
+        'FAST'
+      );
+      return y + logoSize + 10; // Return new Y position after logo
+    } catch (error) {
+      console.error('Failed to add logo to PDF:', error);
+      return y; // Return original Y if logo fails
+    }
+  }
+
+  private async addHeader(callsheet: CallsheetData): Promise<number> {
     let y = this.customization.layout.margins.top;
 
     // Add logo if configured
     if (this.customization.branding.logo) {
-      // TODO: Implement logo loading and positioning
-      y += 40; // Reserve space for logo
+      y = await this.addLogo(y);
     }
 
     // Company name
@@ -358,8 +404,8 @@ export class PDFCustomizationService {
     }
   }
 
-  generatePDF(callsheet: CallsheetData): jsPDF {
-    let currentY = this.addHeader(callsheet);
+  async generatePDF(callsheet: CallsheetData): Promise<jsPDF> {
+    let currentY = await this.addHeader(callsheet);
     
     // Add watermark on each page
     this.addWatermark();
@@ -409,8 +455,8 @@ export class PDFCustomizationService {
     return this.doc;
   }
 
-  savePDF(callsheet: CallsheetData, filename?: string): void {
-    const doc = this.generatePDF(callsheet);
+  async savePDF(callsheet: CallsheetData, filename?: string): Promise<void> {
+    const doc = await this.generatePDF(callsheet);
     const fileName = filename || `${callsheet.projectTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_callsheet.pdf`;
     doc.save(fileName);
   }

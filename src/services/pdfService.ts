@@ -1,3 +1,5 @@
+
+import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomizationService } from './pdfCustomizationService';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';

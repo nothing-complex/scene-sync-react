@@ -62,11 +62,23 @@ export const PDFAppearanceTab = ({
     });
   };
 
+  const handleLogoChange = (logoData: { url: string; size: 'small' | 'medium' | 'large' } | null) => {
+    updateCustomization({
+      branding: { 
+        ...customization.branding, 
+        logo: logoData ? {
+          ...logoData,
+          position: customization.branding.logo?.position || 'top-center'
+        } : null
+      }
+    });
+  };
+
   const handlePreviewPDF = async () => {
     setPreviewLoading(true);
     try {
       const pdfService = new PDFCustomizationService(customization);
-      const doc = pdfService.generatePDF(callsheet);
+      const doc = await pdfService.generatePDF(callsheet);
       
       // Open PDF in new tab for preview
       const pdfBlob = doc.output('blob');
@@ -79,9 +91,9 @@ export const PDFAppearanceTab = ({
     }
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     const pdfService = new PDFCustomizationService(customization);
-    pdfService.savePDF(callsheet);
+    await pdfService.savePDF(callsheet);
   };
 
   const resetToDefaults = () => {
