@@ -268,6 +268,11 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
       return;
     }
 
+    if (!user) {
+      alert('You must be logged in to create a callsheet');
+      return;
+    }
+
     const callsheetData = {
       projectTitle: formData.projectTitle,
       shootDate: formData.shootDate,
@@ -282,6 +287,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
       emergencyContacts: formData.emergencyContacts || [],
       weather: formData.weather || '',
       specialNotes: formData.specialNotes || '',
+      userId: user.id, // Add the missing userId property
     };
 
     if (isEditing && callsheetId) {
