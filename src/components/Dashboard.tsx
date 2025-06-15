@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, TrendingUp, Users, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,7 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl font-light text-foreground mb-2">
-                {greeting}, {getUserFirstName()}
+                {greeting}, {getUserFirstName()}.
               </h1>
               <p className="text-muted-foreground text-lg font-light">
                 Ready to create amazing productions today?
