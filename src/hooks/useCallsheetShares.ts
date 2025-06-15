@@ -2,18 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Tables } from '@/integrations/supabase/types';
 
-export interface CallsheetShare {
-  id: string;
-  callsheet_id: string;
-  shared_by: string;
-  shared_with_email: string;
-  shared_with_user: string | null;
-  status: 'pending' | 'accepted' | 'declined';
-  can_edit: boolean;
-  created_at: string;
-  accepted_at: string | null;
-}
+// Use the database type directly to ensure compatibility
+export type CallsheetShare = Tables<'callsheet_shares'>;
 
 export const useCallsheetShares = () => {
   const [shares, setShares] = useState<CallsheetShare[]>([]);
