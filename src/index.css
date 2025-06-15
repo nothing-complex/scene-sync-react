@@ -52,43 +52,46 @@
   }
 
   .dark {
-    /* Dark mode with warm undertones */
-    --background: 30 20% 8%;
-    --foreground: 45 25% 96%;
+    /* Dark mode with sand-tinted blacks and brighter complementary colors */
+    --background: 30 25% 6%;
+    --foreground: 45 30% 94%;
 
-    --card: 30 20% 10%;
-    --card-foreground: 45 25% 96%;
+    --card: 30 20% 8%;
+    --card-foreground: 45 25% 92%;
 
-    --popover: 30 20% 10%;
-    --popover-foreground: 45 25% 96%;
+    --popover: 30 20% 8%;
+    --popover-foreground: 45 25% 92%;
 
-    --primary: 35 45% 55%;
-    --primary-foreground: 30 20% 8%;
+    /* Brighter sand primary for dark mode */
+    --primary: 40 60% 70%;
+    --primary-foreground: 30 25% 8%;
 
-    --secondary: 30 15% 15%;
-    --secondary-foreground: 45 25% 96%;
+    --secondary: 30 15% 12%;
+    --secondary-foreground: 45 25% 90%;
 
-    --muted: 30 15% 15%;
-    --muted-foreground: 40 10% 65%;
+    --muted: 30 15% 12%;
+    --muted-foreground: 40 15% 60%;
 
-    --accent: 30 15% 18%;
-    --accent-foreground: 45 25% 96%;
+    --accent: 30 20% 15%;
+    --accent-foreground: 45 25% 90%;
 
-    --destructive: 0 65% 55%;
+    /* Brighter destructive for better contrast */
+    --destructive: 0 75% 65%;
     --destructive-foreground: 45 25% 96%;
 
-    --border: 30 15% 18%;
-    --input: 30 15% 18%;
-    --ring: 35 45% 55%;
+    --border: 30 15% 16%;
+    --input: 30 15% 16%;
+    --ring: 40 60% 70%;
 
-    --sidebar-background: 30 20% 6%;
-    --sidebar-foreground: 45 25% 90%;
-    --sidebar-primary: 35 45% 55%;
-    --sidebar-primary-foreground: 30 20% 8%;
-    --sidebar-accent: 30 15% 12%;
-    --sidebar-accent-foreground: 45 25% 90%;
-    --sidebar-border: 30 15% 15%;
-    --sidebar-ring: 35 45% 55%;
+    /* Enhanced sidebar colors for dark mode */
+    --sidebar-background: 30 25% 4%;
+    --sidebar-foreground: 45 30% 88%;
+    --sidebar-primary: 40 60% 70%;
+    --sidebar-primary-foreground: 30 25% 8%;
+    --sidebar-accent: 30 20% 10%;
+    --sidebar-accent-foreground: 45 25% 85%;
+    --sidebar-border: 30 15% 12%;
+    --sidebar-ring: 40 60% 70%;
   }
 }
 
@@ -98,7 +101,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-light;
+    @apply bg-background text-foreground font-light transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 }

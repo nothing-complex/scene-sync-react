@@ -3,6 +3,7 @@ import { Film, FileText, Users, User, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ThemeToggle } from './ThemeToggle';
 
 interface SidebarProps {
   activeView: string;
@@ -78,11 +79,19 @@ export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
           </p>
           <Button 
             onClick={() => setActiveView('create')}
-            className="w-full justify-start bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground shadow-sm"
+            className="w-full justify-start bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground shadow-sm mb-2"
           >
             <FileText className="w-4 h-4 mr-2" />
             New Callsheet
           </Button>
+        </div>
+
+        {/* Theme Toggle */}
+        <div className="mt-6">
+          <p className="text-xs font-medium text-sidebar-foreground/60 uppercase tracking-wider mb-3 px-4">
+            Appearance
+          </p>
+          <ThemeToggle />
         </div>
       </nav>
 
