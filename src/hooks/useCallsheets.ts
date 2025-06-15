@@ -1,8 +1,7 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { CallsheetData, Contact, ScheduleItem } from '@/contexts/CallsheetContext';
+import { CallsheetData, Contact, ScheduleItem } from '@/types/callsheet';
 
 export const useCallsheets = () => {
   const [callsheets, setCallsheets] = useState<CallsheetData[]>([]);
@@ -116,6 +115,7 @@ export const useCallsheets = () => {
     } catch (err) {
       console.error('Error adding callsheet:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred while adding the callsheet';
+      console.error('Setting error message:', errorMessage);
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -160,6 +160,7 @@ export const useCallsheets = () => {
     } catch (err) {
       console.error('Error updating callsheet:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred while updating the callsheet';
+      console.error('Setting error message:', errorMessage);
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -187,6 +188,7 @@ export const useCallsheets = () => {
     } catch (err) {
       console.error('Error deleting callsheet:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred while deleting the callsheet';
+      console.error('Setting error message:', errorMessage);
       setError(errorMessage);
       throw new Error(errorMessage);
     }
@@ -249,6 +251,7 @@ export const useCallsheets = () => {
     } catch (err) {
       console.error('Error duplicating callsheet:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred while duplicating the callsheet';
+      console.error('Setting error message:', errorMessage);
       setError(errorMessage);
       throw new Error(errorMessage);
     }

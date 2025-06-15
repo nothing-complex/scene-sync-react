@@ -1,6 +1,8 @@
+
 import React, { createContext, useContext } from 'react';
-import { CallsheetData } from '@/types/callsheet';
+import { CallsheetData, Contact, ScheduleItem } from '@/types/callsheet';
 import { useCallsheets } from '@/hooks/useCallsheets';
+import { useContacts } from '@/hooks/useContacts';
 
 interface CallsheetContextType {
   callsheets: CallsheetData[];
@@ -12,6 +14,11 @@ interface CallsheetContextType {
   duplicateCallsheet: (id: string) => Promise<any>;
   getCallsheet: (id: string) => CallsheetData | undefined;
   refetch: () => Promise<void>;
+  // Contact management methods
+  contacts: Contact[];
+  addContact: (contact: Omit<Contact, 'id'>) => Promise<void>;
+  updateContact: (id: string, updates: Partial<Contact>) => Promise<void>;
+  deleteContact: (id: string) => Promise<void>;
 }
 
 const CallsheetContext = createContext<CallsheetContextType | undefined>(undefined);
@@ -36,6 +43,13 @@ export const CallsheetProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     refetch 
   } = useCallsheets();
 
+  const {
+    contacts,
+    addContact,
+    updateContact,
+    deleteContact
+  } = useContacts();
+
   const getCallsheet = (id: string): CallsheetData | undefined => {
     return callsheets.find(callsheet => callsheet.id === id);
   };
@@ -51,8 +65,15 @@ export const CallsheetProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       duplicateCallsheet,
       getCallsheet,
       refetch,
+      contacts,
+      addContact,
+      updateContact,
+      deleteContact,
     }}>
       {children}
     </CallsheetContext.Provider>
   );
 };
+
+// Export the types so they can be imported from this module
+export type { CallsheetData, Contact, ScheduleItem };
