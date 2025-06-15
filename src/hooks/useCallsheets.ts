@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,7 +23,6 @@ export const useCallsheets = () => {
       const { data, error: fetchError } = await supabase
         .from('callsheets')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -125,8 +123,7 @@ export const useCallsheets = () => {
       const { error: updateError } = await supabase
         .from('callsheets')
         .update(updateData)
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (updateError) throw updateError;
 
@@ -148,8 +145,7 @@ export const useCallsheets = () => {
       const { error: deleteError } = await supabase
         .from('callsheets')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (deleteError) throw deleteError;
 

@@ -27,7 +27,7 @@ export const useCallsheetShares = () => {
       const { data, error: fetchError } = await supabase
         .from('callsheet_shares')
         .select('*')
-        .or(`shared_by.eq.${user.id},shared_with_user.eq.${user.id},shared_with_email.eq.${user.email}`)
+        .or(`shared_by.eq.${user.id},shared_with_user.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
@@ -101,7 +101,7 @@ export const useCallsheetShares = () => {
   const getPendingShares = () => {
     return shares.filter(share => 
       share.status === 'pending' && 
-      (share.shared_with_email === user?.email || share.shared_with_user === user?.id)
+      share.shared_with_email === user?.email
     );
   };
 
@@ -112,9 +112,9 @@ export const useCallsheetShares = () => {
   useEffect(() => {
     fetchShares();
 
-    // Set up real-time subscription for shares
+    // Set up real-time subscription for shares - fix the subscription issue
     const channel = supabase
-      .channel('callsheet_shares_changes')
+      .channel(`callsheet_shares_${user?.id}`)
       .on(
         'postgres_changes',
         {
@@ -131,7 +131,7 @@ export const useCallsheetShares = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user?.id]); // Add user.id as dependency to avoid subscription conflicts
 
   return {
     shares,
