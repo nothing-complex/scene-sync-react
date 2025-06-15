@@ -10,30 +10,30 @@ export const LandingPage = () => {
 
   const features = [
     {
-      icon: Clock,
-      title: "Smart Scheduling",
-      description: "Create detailed call sheets with automated time calculations and crew notifications."
+      icon: FileText,
+      title: "Professional Callsheets",
+      description: "Create detailed callsheets with project information, locations, and contact details in minutes."
     },
     {
       icon: Users,
       title: "Contact Management", 
-      description: "Organize your cast and crew contacts with role assignments and availability tracking."
+      description: "Organize your cast and crew contacts with role assignments and easy access for future projects."
     },
     {
-      icon: FileText,
-      title: "Professional PDFs",
-      description: "Generate beautiful, industry-standard callsheets that look polished and professional."
+      icon: Clock,
+      title: "Beautiful PDFs",
+      description: "Generate polished, industry-standard callsheet PDFs with customizable appearance and branding."
     }
   ];
 
   const testimonials = [
     {
-      quote: "CallTime has transformed how we manage our film productions. Setup is incredibly fast and intuitive.",
+      quote: "CallTime makes creating professional callsheets incredibly fast and straightforward.",
       author: "Sarah Chen",
       role: "Independent Filmmaker"
     },
     {
-      quote: "The clean interface and automated features save us hours on every shoot day preparation.",
+      quote: "Finally, a tool that generates beautiful callsheets without the spreadsheet headaches.",
       author: "Marcus Rodriguez", 
       role: "Production Manager"
     }
@@ -68,7 +68,7 @@ export const LandingPage = () => {
             Professional callsheets that <span className="text-primary font-medium underline decoration-primary/30">crews actually want</span> to use
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto font-light">
-            Skip the spreadsheet chaos. CallTime delivers beautiful callsheets, streamlined contact management, and professional PDFs from day one.
+            Create beautiful callsheets in minutes. Manage your contacts, customize your PDFs, and deliver professional-looking callsheets that crews can rely on.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -76,7 +76,7 @@ export const LandingPage = () => {
               onClick={() => navigate('/auth')}
               className="bg-foreground text-background hover:bg-foreground/90 px-8 py-3 text-lg"
             >
-              Get CallTime free
+              Create your first callsheet
             </Button>
             <Button 
               size="lg" 
@@ -84,7 +84,7 @@ export const LandingPage = () => {
               onClick={() => navigate('/auth')}
               className="px-8 py-3 text-lg border-2"
             >
-              Book a demo
+              See how it works
             </Button>
           </div>
         </div>
@@ -94,10 +94,10 @@ export const LandingPage = () => {
       <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-light text-foreground mb-4">
-            Everything you need for smooth productions
+            Everything you need for professional callsheets
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            From pre-production planning to day-of-shoot coordination, CallTime keeps your team organized and informed.
+            From project setup to PDF generation, CallTime streamlines your callsheet creation process.
           </p>
         </div>
         
@@ -126,19 +126,19 @@ export const LandingPage = () => {
                   <Star key={i} className="w-5 h-5 fill-primary text-primary" />
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground">Verified by production teams</span>
+              <span className="text-sm text-muted-foreground">Used by production teams</span>
             </div>
             
             <h2 className="text-3xl md:text-4xl font-light text-foreground mb-6">
-              Company Wiki
+              Simple. Professional. Reliable.
             </h2>
             <p className="text-lg text-muted-foreground mb-8 font-light">
-              Welcome to our production team! We are thrilled to have you join our group of dedicated professionals committed to excellence and innovation. This comprehensive guide helps you understand our culture, values, and workflow processes.
+              CallTime brings order to your production workflow. Create callsheets with project details, location information, and cast & crew contacts. Generate beautiful PDFs that your team can depend on, shoot after shoot.
             </p>
             
             <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
               <CheckCircle className="w-4 h-4 text-green-500" />
-              <span>Verified setup process</span>
+              <span>Ready to use in minutes</span>
             </div>
           </div>
         </div>
@@ -174,17 +174,17 @@ export const LandingPage = () => {
       <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center">
           <h2 className="text-3xl md:text-4xl font-light text-foreground mb-6">
-            Ready to streamline your productions?
+            Ready to create professional callsheets?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto font-light">
-            Join hundreds of filmmakers who have simplified their workflow with CallTime.
+            Join filmmakers who have streamlined their callsheet process with CallTime.
           </p>
           <Button 
             size="lg" 
             onClick={() => navigate('/auth')}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg group"
           >
-            Start your free account
+            Start creating callsheets
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
