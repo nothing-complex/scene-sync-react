@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -58,14 +57,14 @@ export const LandingPage = () => {
       {/* Softer Hero Section */}
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto animate-fade-in-up">
-          <h1 className="text-5xl md:text-7xl font-medium text-foreground leading-[1.1] tracking-tight mb-6">
+          <h1 className="text-6xl md:text-8xl font-medium text-foreground leading-[1.1] tracking-tight mb-6 animate-bounce-subtle">
             Professional callsheets that crews{' '}
             <span className="text-foreground">actually</span>{' '}
             <span className="text-primary interactive-underline">want</span>{' '}
-            to use
+            <span className="text-primary">to</span> use.
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-            Create beautiful callsheets in minutes. Manage your contacts, customize your PDFs, and deliver professional-looking callsheets that crews can rely on.
+            Create beautiful and functional callsheets in minutes. Manage your contacts, customize your PDFs, and deliver professional-looking callsheets that crews can rely on.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
