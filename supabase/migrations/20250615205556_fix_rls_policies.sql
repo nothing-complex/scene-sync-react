@@ -5,13 +5,23 @@ DROP POLICY IF EXISTS "Users can view their own shares" ON public.callsheet_shar
 DROP POLICY IF EXISTS "Shared users can update their shares" ON public.callsheet_shares;
 DROP POLICY IF EXISTS "Users can view own and shared callsheets" ON public.callsheets;
 DROP POLICY IF EXISTS "Users can update own and shared callsheets" ON public.callsheets;
+DROP POLICY IF EXISTS "Users can create shares for their callsheets" ON public.callsheet_shares;
 
--- Create simpler, working policies
+-- Create simpler, working policies that don't access auth.users
 CREATE POLICY "Users can view their own shares" 
 ON public.callsheet_shares FOR SELECT 
 USING (
   shared_by = auth.uid() OR 
   shared_with_user = auth.uid()
+);
+
+CREATE POLICY "Users can create shares for their callsheets" 
+ON public.callsheet_shares FOR INSERT 
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.callsheets 
+    WHERE id = callsheet_id AND user_id = auth.uid()
+  )
 );
 
 CREATE POLICY "Shared users can update their shares" 
@@ -33,6 +43,10 @@ USING (
   )
 );
 
+CREATE POLICY "Users can insert own callsheets" 
+ON public.callsheets FOR INSERT 
+WITH CHECK (user_id = auth.uid());
+
 CREATE POLICY "Users can update own and shared callsheets" 
 ON public.callsheets FOR UPDATE 
 USING (
@@ -45,3 +59,7 @@ USING (
     AND can_edit = true
   )
 );
+
+CREATE POLICY "Users can delete own callsheets" 
+ON public.callsheets FOR DELETE 
+USING (user_id = auth.uid());

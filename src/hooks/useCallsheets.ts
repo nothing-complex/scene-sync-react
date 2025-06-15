@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { CallsheetData, Contact, ScheduleItem } from '@/contexts/CallsheetContext';
@@ -8,6 +9,7 @@ export const useCallsheets = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const channelRef = useRef<any>(null);
 
   const fetchCallsheets = async () => {
     if (!user) {
@@ -160,7 +162,37 @@ export const useCallsheets = () => {
 
   useEffect(() => {
     fetchCallsheets();
-  }, [user]);
+
+    // Clean up any existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
+    // Set up real-time subscription
+    if (user?.id) {
+      channelRef.current = supabase
+        .channel(`callsheets_${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'callsheets'
+          },
+          () => {
+            fetchCallsheets();
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [user?.id]);
 
   return {
     callsheets,

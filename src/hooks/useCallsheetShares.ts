@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Tables } from '@/integrations/supabase/types';
@@ -12,6 +12,7 @@ export const useCallsheetShares = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const channelRef = useRef<any>(null);
 
   const fetchShares = async () => {
     if (!user) {
@@ -112,24 +113,34 @@ export const useCallsheetShares = () => {
   useEffect(() => {
     fetchShares();
 
+    // Clean up any existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
     // Set up real-time subscription for shares - fix the subscription issue
-    const channel = supabase
-      .channel(`callsheet_shares_${user?.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'callsheet_shares'
-        },
-        () => {
-          fetchShares();
-        }
-      )
-      .subscribe();
+    if (user?.id) {
+      channelRef.current = supabase
+        .channel(`callsheet_shares_${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'callsheet_shares'
+          },
+          () => {
+            fetchShares();
+          }
+        )
+        .subscribe();
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [user?.id]); // Add user.id as dependency to avoid subscription conflicts
 

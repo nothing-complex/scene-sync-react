@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Check, X, Calendar, User, Loader2 } from 'lucide-react';
 import { useCallsheetShares } from '@/hooks/useCallsheetShares';
-import { useCallsheet } from '@/contexts/CallsheetContext';
+import { useCallsheets } from '@/hooks/useCallsheets';
 import { useToast } from '@/components/ui/use-toast';
 
 export const ShareInvitations = () => {
   const { getPendingShares, respondToShare } = useCallsheetShares();
-  const { callsheets } = useCallsheet();
+  const { callsheets } = useCallsheets();
   const { toast } = useToast();
   const [responding, setResponding] = useState<string | null>(null);
 
