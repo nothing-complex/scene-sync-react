@@ -9,6 +9,7 @@ export const useCallsheets = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const channelRef = useRef<any>(null);
+  const isCleaningUpRef = useRef(false);
 
   const fetchCallsheets = async () => {
     if (!user) {
@@ -260,11 +261,19 @@ export const useCallsheets = () => {
   useEffect(() => {
     console.log('useCallsheets effect triggered, user:', user?.id);
     
+    // Prevent cleanup races
+    if (isCleaningUpRef.current) {
+      console.log('Cleanup in progress, skipping effect');
+      return;
+    }
+
     // Clean up any existing channel first
     if (channelRef.current) {
       console.log('Cleaning up existing channel');
+      isCleaningUpRef.current = true;
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
+      isCleaningUpRef.current = false;
     }
 
     // Only proceed if user is available
@@ -278,33 +287,44 @@ export const useCallsheets = () => {
     // Fetch initial data
     fetchCallsheets();
 
-    // Set up real-time subscription
-    const channelName = `callsheets_user_${user.id}_${Date.now()}`;
+    // Set up real-time subscription with unique identifier
+    const uniqueId = `${user.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const channelName = `callsheets_user_${uniqueId}`;
     console.log('Setting up real-time channel:', channelName);
     
-    channelRef.current = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'callsheets'
-        },
-        (payload) => {
-          console.log('Real-time callsheet change:', payload);
-          fetchCallsheets();
-        }
-      )
-      .subscribe();
+    try {
+      channelRef.current = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'callsheets'
+          },
+          (payload) => {
+            console.log('Real-time callsheet change:', payload);
+            fetchCallsheets();
+          }
+        )
+        .subscribe();
+    } catch (error) {
+      console.error('Error setting up channel subscription:', error);
+    }
 
     // Cleanup function
     return () => {
       console.log('Cleaning up channel on unmount');
+      isCleaningUpRef.current = true;
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch (error) {
+          console.error('Error removing channel:', error);
+        }
         channelRef.current = null;
       }
+      isCleaningUpRef.current = false;
     };
   }, [user?.id]);
 
