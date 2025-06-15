@@ -5,6 +5,7 @@ export interface WeatherData {
   description: string;
   windSpeed: number;
   humidity: number;
+  units: 'imperial' | 'metric';
 }
 
 interface GeocodingResult {
@@ -12,6 +13,7 @@ interface GeocodingResult {
   latitude: number;
   longitude: number;
   country: string;
+  admin1?: string; // state/region
 }
 
 interface WeatherResponse {
@@ -55,6 +57,21 @@ export class WeatherService {
   private static readonly GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
   private static readonly WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
 
+  static async searchLocations(query: string): Promise<GeocodingResult[]> {
+    if (!query || query.length < 2) return [];
+    
+    try {
+      const response = await fetch(`${this.GEOCODING_URL}?name=${encodeURIComponent(query)}&count=10`);
+      if (!response.ok) throw new Error('Location search failed');
+      
+      const data = await response.json();
+      return data.results || [];
+    } catch (error) {
+      console.error('Location search error:', error);
+      return [];
+    }
+  }
+
   static async geocodeLocation(location: string): Promise<GeocodingResult[]> {
     try {
       const response = await fetch(`${this.GEOCODING_URL}?name=${encodeURIComponent(location)}&count=5`);
@@ -68,10 +85,13 @@ export class WeatherService {
     }
   }
 
-  static async getCurrentWeather(latitude: number, longitude: number): Promise<WeatherData | null> {
+  static async getCurrentWeather(latitude: number, longitude: number, units: 'imperial' | 'metric' = 'imperial'): Promise<WeatherData | null> {
     try {
+      const tempUnit = units === 'imperial' ? 'fahrenheit' : 'celsius';
+      const windUnit = units === 'imperial' ? 'mph' : 'kmh';
+      
       const response = await fetch(
-        `${this.WEATHER_URL}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph`
+        `${this.WEATHER_URL}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&temperature_unit=${tempUnit}&wind_speed_unit=${windUnit}`
       );
       
       if (!response.ok) throw new Error('Weather fetch failed');
@@ -90,6 +110,7 @@ export class WeatherService {
         description: weatherInfo.description,
         windSpeed: Math.round(current.wind_speed_10m),
         humidity: current.relative_humidity_2m,
+        units
       };
     } catch (error) {
       console.error('Weather fetch error:', error);
@@ -97,7 +118,7 @@ export class WeatherService {
     }
   }
 
-  static async getWeatherForLocation(location: string): Promise<WeatherData | null> {
+  static async getWeatherForLocation(location: string, units: 'imperial' | 'metric' = 'imperial'): Promise<WeatherData | null> {
     if (!location.trim()) return null;
 
     const locations = await this.geocodeLocation(location);
@@ -105,10 +126,23 @@ export class WeatherService {
 
     // Use the first result
     const firstLocation = locations[0];
-    return await this.getCurrentWeather(firstLocation.latitude, firstLocation.longitude);
+    return await this.getCurrentWeather(firstLocation.latitude, firstLocation.longitude, units);
   }
 
   static formatWeatherString(weather: WeatherData): string {
-    return `${weather.condition}, ${weather.temperature}°F, Wind: ${weather.windSpeed} mph, Humidity: ${weather.humidity}%`;
+    const tempUnit = weather.units === 'imperial' ? '°F' : '°C';
+    const windUnit = weather.units === 'imperial' ? 'mph' : 'km/h';
+    return `${weather.condition}, ${weather.temperature}${tempUnit}, Wind: ${weather.windSpeed} ${windUnit}, Humidity: ${weather.humidity}%`;
+  }
+
+  static formatLocationName(location: GeocodingResult): string {
+    let name = location.name;
+    if (location.admin1) {
+      name += `, ${location.admin1}`;
+    }
+    if (location.country) {
+      name += `, ${location.country}`;
+    }
+    return name;
   }
 }

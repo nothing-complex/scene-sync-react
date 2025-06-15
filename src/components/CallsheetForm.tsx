@@ -6,13 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useCallsheet, Contact, CallsheetData, ScheduleItem } from '@/contexts/CallsheetContext';
 import { ContactSelector } from './ContactSelector';
+import { LocationInput } from './LocationInput';
 import { WeatherService, WeatherData } from '@/services/weatherService';
 
 interface CallsheetFormProps {
   onBack: () => void;
   callsheetId?: string;
+}
+
+interface GeocodingResult {
+  name: string;
+  latitude: number;
+  longitude: number;
+  country: string;
+  admin1?: string;
 }
 
 export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
@@ -43,7 +53,8 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   }>({ show: false, type: 'cast' });
 
   const [weatherLoading, setWeatherLoading] = useState(false);
-  const [lastLocationFetch, setLastLocationFetch] = useState('');
+  const [weatherUnits, setWeatherUnits] = useState<'imperial' | 'metric'>('imperial');
+  const [selectedLocation, setSelectedLocation] = useState<GeocodingResult | null>(null);
 
   useEffect(() => {
     if (existingCallsheet) {
@@ -51,18 +62,23 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     }
   }, [existingCallsheet]);
 
-  // Auto-fetch weather when location changes
-  useEffect(() => {
-    const fetchWeather = async () => {
-      const location = formData.location || formData.locationAddress;
-      if (!location || location === lastLocationFetch || location.length < 3) return;
+  const handleInputChange = (field: keyof CallsheetData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
+  const handleLocationSelect = async (location: GeocodingResult) => {
+    setSelectedLocation(location);
+    
+    // Auto-fetch weather for the selected location
+    if (!formData.weather) {
       setWeatherLoading(true);
-      setLastLocationFetch(location);
-
       try {
-        const weatherData = await WeatherService.getWeatherForLocation(location);
-        if (weatherData && !formData.weather) {
+        const weatherData = await WeatherService.getCurrentWeather(
+          location.latitude, 
+          location.longitude, 
+          weatherUnits
+        );
+        if (weatherData) {
           const weatherString = WeatherService.formatWeatherString(weatherData);
           handleInputChange('weather', weatherString);
         }
@@ -71,24 +87,26 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
       } finally {
         setWeatherLoading(false);
       }
-    };
-
-    // Debounce the weather fetch
-    const timeoutId = setTimeout(fetchWeather, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [formData.location, formData.locationAddress, lastLocationFetch, formData.weather]);
-
-  const handleInputChange = (field: keyof CallsheetData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleRefreshWeather = async () => {
-    const location = formData.location || formData.locationAddress;
-    if (!location) return;
+    if (!selectedLocation && !formData.location) return;
 
     setWeatherLoading(true);
     try {
-      const weatherData = await WeatherService.getWeatherForLocation(location);
+      let weatherData: WeatherData | null = null;
+      
+      if (selectedLocation) {
+        weatherData = await WeatherService.getCurrentWeather(
+          selectedLocation.latitude,
+          selectedLocation.longitude,
+          weatherUnits
+        );
+      } else if (formData.location) {
+        weatherData = await WeatherService.getWeatherForLocation(formData.location, weatherUnits);
+      }
+      
       if (weatherData) {
         const weatherString = WeatherService.formatWeatherString(weatherData);
         handleInputChange('weather', weatherString);
@@ -97,6 +115,16 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
       console.error('Failed to refresh weather:', error);
     } finally {
       setWeatherLoading(false);
+    }
+  };
+
+  // Handle weather units change
+  const handleWeatherUnitsChange = async (units: 'imperial' | 'metric') => {
+    setWeatherUnits(units);
+    
+    // Re-fetch weather with new units if we have a location
+    if (selectedLocation || formData.location) {
+      await handleRefreshWeather();
     }
   };
 
@@ -236,16 +264,67 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 />
               </div>
             </div>
+            <div>
+              <Label htmlFor="generalCallTime">General Call Time *</Label>
+              <Input
+                id="generalCallTime"
+                type="time"
+                value={formData.generalCallTime || ''}
+                onChange={(e) => handleInputChange('generalCallTime', e.target.value)}
+                required
+                className="md:w-1/2"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Location Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Location Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <LocationInput
+                label="Location Name"
+                value={formData.location || ''}
+                onChange={(value) => handleInputChange('location', value)}
+                onLocationSelect={handleLocationSelect}
+                placeholder="Search for a location..."
+                id="location"
+              />
+              <div>
+                <Label htmlFor="locationAddress">Location Address</Label>
+                <Input
+                  id="locationAddress"
+                  value={formData.locationAddress || ''}
+                  onChange={(e) => handleInputChange('locationAddress', e.target.value)}
+                  placeholder="Full address with zip code"
+                />
+              </div>
+            </div>
+            
+            {/* Weather Units Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="generalCallTime">General Call Time *</Label>
-                <Input
-                  id="generalCallTime"
-                  type="time"
-                  value={formData.generalCallTime || ''}
-                  onChange={(e) => handleInputChange('generalCallTime', e.target.value)}
-                  required
-                />
+                <Label>Weather Units</Label>
+                <RadioGroup 
+                  value={weatherUnits} 
+                  onValueChange={handleWeatherUnitsChange}
+                  className="flex flex-row space-x-4 mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="imperial" id="imperial" />
+                    <Label htmlFor="imperial" className="font-normal">Imperial (°F, mph)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="metric" id="metric" />
+                    <Label htmlFor="metric" className="font-normal">Metric (°C, km/h)</Label>
+                  </div>
+                </RadioGroup>
               </div>
               <div>
                 <Label htmlFor="weather">Weather</Label>
@@ -262,7 +341,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={handleRefreshWeather}
-                    disabled={weatherLoading || !formData.location}
+                    disabled={weatherLoading || (!selectedLocation && !formData.location)}
                     className="absolute right-1 top-1 h-8 w-16 text-xs"
                   >
                     {weatherLoading ? (
@@ -277,36 +356,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Location Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <MapPin className="w-5 h-5 mr-2" />
-              Location Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="location">Location Name</Label>
-              <Input
-                id="location"
-                value={formData.location || ''}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="e.g., Studio A, Central Park"
-              />
-            </div>
-            <div>
-              <Label htmlFor="locationAddress">Location Address</Label>
-              <Input
-                id="locationAddress"
-                value={formData.locationAddress || ''}
-                onChange={(e) => handleInputChange('locationAddress', e.target.value)}
-                placeholder="Full address with zip code"
-              />
-            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="parkingInstructions">Parking Instructions</Label>
