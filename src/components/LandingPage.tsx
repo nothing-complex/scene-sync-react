@@ -58,10 +58,11 @@ export const LandingPage = () => {
       {/* Softer Hero Section */}
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto animate-fade-in-up">
-          <h1 className="hero-text mb-6">
+          <h1 className="text-5xl md:text-7xl font-medium text-foreground leading-[1.1] tracking-tight mb-6">
             Professional callsheets that crews{' '}
-            <span className="text-primary interactive-underline">actually want to</span>{' '}
-            use
+            <span className="text-foreground">actually</span>{' '}
+            <span className="text-primary interactive-underline">want</span>{' '}
+            to use
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
             Create beautiful callsheets in minutes. Manage your contacts, customize your PDFs, and deliver professional-looking callsheets that crews can rely on.
