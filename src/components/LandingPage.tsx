@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Star } from 'lucide-react';
@@ -6,6 +6,18 @@ import { useNavigate } from 'react-router-dom';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
+  const [hasScrolled, setHasScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50 && !hasScrolled) {
+        setHasScrolled(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasScrolled]);
 
   const features = [
     {
@@ -57,7 +69,7 @@ export const LandingPage = () => {
       {/* Softer Hero Section */}
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto animate-fade-in-up">
-          <h1 className="text-6xl md:text-8xl font-medium text-foreground leading-[1.1] tracking-tight mb-6 animate-bounce-subtle">
+          <h1 className={`text-6xl md:text-8xl font-medium text-foreground leading-[1.1] tracking-tight mb-6 ${hasScrolled ? 'animate-rubber-band-subtle' : ''}`}>
             Professional callsheets that crews{' '}
             <span className="text-foreground">actually</span>{' '}
             <span className="text-primary interactive-underline">want</span>{' '}
