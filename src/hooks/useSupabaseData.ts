@@ -2,17 +2,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Database } from '@/integrations/supabase/types';
 
-type TableName = keyof Database['public']['Tables'];
-type TableRow<T extends TableName> = Database['public']['Tables'][T]['Row'];
-
-// Basic hook for Supabase data fetching with authentication
-export const useSupabaseData = <T extends TableName>(
-  table: T,
+// Simple generic hook for basic Supabase data fetching
+export const useSupabaseData = <T = any>(
+  table: string,
   dependencies: any[] = []
 ) => {
-  const [data, setData] = useState<TableRow<T>[]>([]);
+  const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -33,7 +29,7 @@ export const useSupabaseData = <T extends TableName>(
           .eq('user_id', user.id);
 
         if (error) throw error;
-        setData((result as TableRow<T>[]) || []);
+        setData(result as T[] || []);
         setError(null);
       } catch (err) {
         console.error(`Error fetching ${table}:`, err);
@@ -56,7 +52,7 @@ export const useSupabaseData = <T extends TableName>(
           .eq('user_id', user.id);
 
         if (error) throw error;
-        setData((result as TableRow<T>[]) || []);
+        setData(result as T[] || []);
         setError(null);
       } catch (err) {
         console.error(`Error refetching ${table}:`, err);
@@ -71,8 +67,7 @@ export const useSupabaseData = <T extends TableName>(
 };
 
 // TODO: Add hooks for:
-// - useProjects() - fetch user's projects and memberships
-// - useProjectMembers(projectId) - fetch members of a specific project
-// - useCallsheets(projectId?) - fetch callsheets with optional project filter
-// - useContacts() - fetch user's contacts
-// - useRealtime(table, callback) - subscribe to real-time updates
+// - useProjects()
+// - useCallsheets(projectId?)
+// - useContacts()
+// - Real-time subscriptions with useEffect cleanup

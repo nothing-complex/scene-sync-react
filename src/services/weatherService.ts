@@ -1,3 +1,4 @@
+
 export interface WeatherData {
   temperature: number;
   condition: string;
@@ -5,6 +6,8 @@ export interface WeatherData {
   windSpeed: number;
   humidity: number;
   units: 'imperial' | 'metric';
+  forecastType: 'current' | 'forecast' | 'historical';
+  date?: string;
 }
 
 interface GeocodingResult {
@@ -32,11 +35,19 @@ interface NominatimResult {
 }
 
 interface WeatherResponse {
-  current: {
+  current?: {
     temperature_2m: number;
     relative_humidity_2m: number;
     wind_speed_10m: number;
     weather_code: number;
+  };
+  daily?: {
+    time: string[];
+    temperature_2m_max: number[];
+    temperature_2m_min: number[];
+    relative_humidity_2m_mean: number[];
+    wind_speed_10m_max: number[];
+    weather_code: number[];
   };
 }
 
@@ -104,6 +115,22 @@ export class WeatherService {
       country: result.address?.country || '',
       admin1: result.address?.state
     };
+  }
+
+  private static getDateType(dateString: string): 'past' | 'today' | 'future' {
+    const shootDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    shootDate.setHours(0, 0, 0, 0);
+    
+    if (shootDate < today) return 'past';
+    if (shootDate.getTime() === today.getTime()) return 'today';
+    return 'future';
+  }
+
+  private static formatDateForAPI(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
   }
 
   static async searchLocations(query: string): Promise<GeocodingResult[]> {
@@ -184,7 +211,7 @@ export class WeatherService {
       if (!response.ok) throw new Error('Weather fetch failed');
       
       const data: WeatherResponse = await response.json();
-      const current = data.current;
+      const current = data.current!;
       
       const weatherInfo = weatherCodeMap[current.weather_code] || {
         condition: 'Unknown',
@@ -197,7 +224,77 @@ export class WeatherService {
         description: weatherInfo.description,
         windSpeed: Math.round(current.wind_speed_10m),
         humidity: current.relative_humidity_2m,
-        units
+        units,
+        forecastType: 'current'
+      };
+    } catch (error) {
+      console.error('Weather fetch error:', error);
+      return null;
+    }
+  }
+
+  static async getWeatherForDate(
+    latitude: number, 
+    longitude: number, 
+    dateString: string,
+    units: 'imperial' | 'metric' = 'imperial'
+  ): Promise<WeatherData | null> {
+    try {
+      const dateType = this.getDateType(dateString);
+      const tempUnit = units === 'imperial' ? 'fahrenheit' : 'celsius';
+      const windUnit = units === 'imperial' ? 'mph' : 'kmh';
+      const formattedDate = this.formatDateForAPI(dateString);
+      
+      let url: string;
+      let forecastType: 'current' | 'forecast' | 'historical';
+      
+      if (dateType === 'today') {
+        // Use current weather for today
+        return await this.getCurrentWeather(latitude, longitude, units);
+      } else if (dateType === 'future') {
+        // Use forecast for future dates (up to 16 days)
+        const daysFromNow = Math.floor((new Date(dateString).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+        if (daysFromNow > 16) {
+          console.warn('Forecast only available for up to 16 days ahead');
+          return null;
+        }
+        
+        url = `${this.WEATHER_URL}?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean,wind_speed_10m_max,weather_code&start_date=${formattedDate}&end_date=${formattedDate}&temperature_unit=${tempUnit}&wind_speed_unit=${windUnit}`;
+        forecastType = 'forecast';
+      } else {
+        // Use historical archive for past dates (from 1940 onwards)
+        const archiveUrl = 'https://archive-api.open-meteo.com/v1/archive';
+        url = `${archiveUrl}?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean,wind_speed_10m_max,weather_code&start_date=${formattedDate}&end_date=${formattedDate}&temperature_unit=${tempUnit}&wind_speed_unit=${windUnit}`;
+        forecastType = 'historical';
+      }
+      
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Weather fetch failed');
+      
+      const data: WeatherResponse = await response.json();
+      const daily = data.daily!;
+      
+      if (!daily.time || daily.time.length === 0) {
+        return null;
+      }
+      
+      const weatherInfo = weatherCodeMap[daily.weather_code[0]] || {
+        condition: 'Unknown',
+        description: 'Weather data unavailable'
+      };
+
+      // Use average of min/max temperature
+      const avgTemp = (daily.temperature_2m_max[0] + daily.temperature_2m_min[0]) / 2;
+
+      return {
+        temperature: Math.round(avgTemp),
+        condition: weatherInfo.condition,
+        description: weatherInfo.description,
+        windSpeed: Math.round(daily.wind_speed_10m_max[0]),
+        humidity: Math.round(daily.relative_humidity_2m_mean[0]),
+        units,
+        forecastType,
+        date: formattedDate
       };
     } catch (error) {
       console.error('Weather fetch error:', error);
@@ -219,7 +316,9 @@ export class WeatherService {
   static formatWeatherString(weather: WeatherData): string {
     const tempUnit = weather.units === 'imperial' ? '°F' : '°C';
     const windUnit = weather.units === 'imperial' ? 'mph' : 'km/h';
-    return `${weather.condition}, ${weather.temperature}${tempUnit}, Wind: ${weather.windSpeed} ${windUnit}, Humidity: ${weather.humidity}%`;
+    const typeLabel = weather.forecastType === 'forecast' ? ' (Forecast)' : 
+                     weather.forecastType === 'historical' ? ' (Historical)' : '';
+    return `${weather.condition}, ${weather.temperature}${tempUnit}, Wind: ${weather.windSpeed} ${windUnit}, Humidity: ${weather.humidity}%${typeLabel}`;
   }
 
   static formatLocationName(location: GeocodingResult): string {

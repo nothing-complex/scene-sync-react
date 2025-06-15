@@ -12,7 +12,7 @@ import { ContactSelector } from './ContactSelector';
 import { LocationInput } from './LocationInput';
 import { EmergencyNumbers } from './EmergencyNumbers';
 import { WeatherService, WeatherData } from '@/services/weatherService';
-import { EmergencyService } from '@/services/emergencyService';
+import { EmergencyServiceApi, EmergencyService } from '@/services/emergencyService';
 
 interface CallsheetFormProps {
   onBack: () => void;
@@ -81,33 +81,18 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     setSelectedLocation(location);
     
     // Set emergency numbers based on country
-    const numbers = EmergencyService.getEmergencyNumbers(location.country || 'US');
+    const numbers = EmergencyServiceApi.getEmergencyNumbers(location.country || 'US');
     setEmergencyNumbers(numbers);
     
-    // Auto-fetch weather for the selected location
-    if (!formData.weather) {
-      setWeatherLoading(true);
-      try {
-        const weatherData = await WeatherService.getCurrentWeather(
-          location.latitude, 
-          location.longitude, 
-          weatherUnits
-        );
-        if (weatherData) {
-          const weatherString = WeatherService.formatWeatherString(weatherData);
-          handleInputChange('weather', weatherString);
-        }
-      } catch (error) {
-        console.error('Failed to fetch weather:', error);
-      } finally {
-        setWeatherLoading(false);
-      }
+    // Auto-fetch weather for the selected location and date
+    if (!formData.weather && formData.shootDate) {
+      await fetchWeatherForLocationAndDate(location);
     }
 
     // Auto-fetch emergency services with 10km radius
     setEmergencyServicesLoading(true);
     try {
-      const services = await EmergencyService.getNearbyEmergencyServices(
+      const services = await EmergencyServiceApi.getNearbyEmergencyServices(
         location.latitude,
         location.longitude,
         10, // 10km radius
@@ -121,21 +106,56 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     }
   };
 
+  const fetchWeatherForLocationAndDate = async (location: GeocodingResult) => {
+    if (!formData.shootDate) return;
+
+    setWeatherLoading(true);
+    try {
+      const weatherData = await WeatherService.getWeatherForDate(
+        location.latitude,
+        location.longitude,
+        formData.shootDate,
+        weatherUnits
+      );
+      if (weatherData) {
+        const weatherString = WeatherService.formatWeatherString(weatherData);
+        handleInputChange('weather', weatherString);
+      }
+    } catch (error) {
+      console.error('Failed to fetch weather:', error);
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+
   const handleRefreshWeather = async () => {
     if (!selectedLocation && !formData.location) return;
+    if (!formData.shootDate) {
+      console.warn('Shoot date is required for weather forecast');
+      return;
+    }
 
     setWeatherLoading(true);
     try {
       let weatherData: WeatherData | null = null;
       
       if (selectedLocation) {
-        weatherData = await WeatherService.getCurrentWeather(
+        weatherData = await WeatherService.getWeatherForDate(
           selectedLocation.latitude,
           selectedLocation.longitude,
+          formData.shootDate,
           weatherUnits
         );
       } else if (formData.location) {
-        weatherData = await WeatherService.getWeatherForLocation(formData.location, weatherUnits);
+        const locations = await WeatherService.geocodeLocation(formData.location);
+        if (locations.length > 0) {
+          weatherData = await WeatherService.getWeatherForDate(
+            locations[0].latitude,
+            locations[0].longitude,
+            formData.shootDate,
+            weatherUnits
+          );
+        }
       }
       
       if (weatherData) {
@@ -153,11 +173,18 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   const handleWeatherUnitsChange = async (units: 'imperial' | 'metric') => {
     setWeatherUnits(units);
     
-    // Re-fetch weather with new units if we have a location
-    if (selectedLocation || formData.location) {
+    // Re-fetch weather with new units if we have a location and date
+    if ((selectedLocation || formData.location) && formData.shootDate) {
       await handleRefreshWeather();
     }
   };
+
+  // Auto-refresh weather when shoot date changes
+  useEffect(() => {
+    if (selectedLocation && formData.shootDate) {
+      fetchWeatherForLocationAndDate(selectedLocation);
+    }
+  }, [formData.shootDate, weatherUnits]);
 
   const handleAddContact = (contact: Contact, type: 'cast' | 'crew' | 'emergency') => {
     const fieldName = type === 'emergency' ? 'emergencyContacts' : type;
@@ -210,7 +237,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     const emergencyContact = {
       id: service.id,
       name: service.name,
-      role: `${EmergencyService.formatServiceType(service.type)} (${service.distance}${weatherUnits === 'imperial' ? 'mi' : 'km'})`,
+      role: `${EmergencyServiceApi.formatServiceType(service.type)} (${service.distance}${weatherUnits === 'imperial' ? 'mi' : 'km'})`,
       phone: service.phone || 'Phone not available',
       email: '',
       character: '',
@@ -389,7 +416,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                     id="weather"
                     value={formData.weather || ''}
                     onChange={(e) => handleInputChange('weather', e.target.value)}
-                    placeholder="Auto-populated from location or enter manually"
+                    placeholder="Auto-populated from location and date or enter manually"
                     className="pr-20"
                   />
                   <Button
@@ -397,7 +424,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={handleRefreshWeather}
-                    disabled={weatherLoading || (!selectedLocation && !formData.location)}
+                    disabled={weatherLoading || (!selectedLocation && !formData.location) || !formData.shootDate}
                     className="absolute right-1 top-1 h-8 w-16 text-xs"
                   >
                     {weatherLoading ? (
@@ -408,7 +435,10 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                   </Button>
                 </div>
                 {weatherLoading && (
-                  <p className="text-xs text-muted-foreground mt-1">Fetching weather data...</p>
+                  <p className="text-xs text-muted-foreground mt-1">Fetching weather data for {formData.shootDate}...</p>
+                )}
+                {!formData.shootDate && (
+                  <p className="text-xs text-muted-foreground mt-1">Set shoot date to get weather forecast</p>
                 )}
               </div>
             </div>
@@ -425,10 +455,10 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                     <div key={service.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center">
-                          <span className="mr-2">{EmergencyService.getServiceIcon(service.type)}</span>
+                          <span className="mr-2">{EmergencyServiceApi.getServiceIcon(service.type)}</span>
                           <div>
                             <div className="font-medium text-sm">{service.name}</div>
-                            <div className="text-xs text-gray-600">{EmergencyService.formatServiceType(service.type)}</div>
+                            <div className="text-xs text-gray-600">{EmergencyServiceApi.formatServiceType(service.type)}</div>
                             <div className="text-xs text-gray-500">
                               {service.distance}{weatherUnits === 'imperial' ? 'mi' : 'km'} away
                             </div>
