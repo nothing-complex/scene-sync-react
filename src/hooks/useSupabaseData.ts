@@ -23,7 +23,7 @@ export const useSupabaseData = (
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data: result, error } = await supabase
+        const { data: result, error } = await (supabase as any)
           .from(table)
           .select('*')
           .eq('user_id', user.id);
@@ -46,7 +46,7 @@ export const useSupabaseData = (
     if (user) {
       setLoading(true);
       try {
-        const { data: result, error } = await supabase
+        const { data: result, error } = await (supabase as any)
           .from(table)
           .select('*')
           .eq('user_id', user.id);
