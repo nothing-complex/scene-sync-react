@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +9,6 @@ export const useCallsheets = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const channelRef = useRef<any>(null);
-  const isSubscribedRef = useRef(false);
 
   const fetchCallsheets = async () => {
     if (!user) {
@@ -267,7 +265,6 @@ export const useCallsheets = () => {
       console.log('Cleaning up existing channel');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
-      isSubscribedRef.current = false;
     }
 
     // Only proceed if user is available
@@ -281,29 +278,25 @@ export const useCallsheets = () => {
     // Fetch initial data
     fetchCallsheets();
 
-    // Set up real-time subscription with proper cleanup prevention
-    if (!isSubscribedRef.current) {
-      const channelName = `callsheets_user_${user.id}_${Date.now()}`;
-      console.log('Setting up real-time channel:', channelName);
-      
-      channelRef.current = supabase
-        .channel(channelName)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'callsheets'
-          },
-          (payload) => {
-            console.log('Real-time callsheet change:', payload);
-            fetchCallsheets();
-          }
-        )
-        .subscribe();
-      
-      isSubscribedRef.current = true;
-    }
+    // Set up real-time subscription
+    const channelName = `callsheets_user_${user.id}_${Date.now()}`;
+    console.log('Setting up real-time channel:', channelName);
+    
+    channelRef.current = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'callsheets'
+        },
+        (payload) => {
+          console.log('Real-time callsheet change:', payload);
+          fetchCallsheets();
+        }
+      )
+      .subscribe();
 
     // Cleanup function
     return () => {
@@ -312,7 +305,6 @@ export const useCallsheets = () => {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
-      isSubscribedRef.current = false;
     };
   }, [user?.id]);
 
