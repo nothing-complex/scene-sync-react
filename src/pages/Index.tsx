@@ -44,11 +44,11 @@ const Index = () => {
       <div className="flex h-screen bg-background">
         <Sidebar activeView={activeView} setActiveView={setActiveView} />
         <main className="flex-1 overflow-auto">
-          {/* Enhanced Header with user info */}
-          <div className="bg-card border-b border-border/40 px-8 py-4 flex justify-between items-center shadow-sm">
-            <div className="flex items-center space-x-3">
-              <User className="w-5 h-5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground font-medium">
+          {/* Softer Header with user info */}
+          <div className="bg-card border-b border-border/30 px-6 py-3 flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <User className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground font-normal">
                 Welcome, {user?.email}
               </span>
             </div>
@@ -56,7 +56,7 @@ const Index = () => {
               variant="outline" 
               size="sm" 
               onClick={handleSignOut}
-              className="flex items-center space-x-2 font-medium"
+              className="flex items-center space-x-2 font-normal"
             >
               <LogOut className="w-4 h-4" />
               <span>Sign Out</span>
