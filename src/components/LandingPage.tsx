@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -77,7 +78,7 @@ export const LandingPage = () => {
       {/* Softer Hero Section */}
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto animate-fade-in-up">
-          <h1 className={`text-7xl md:text-9xl font-medium text-foreground leading-[1.1] tracking-tight mb-6 animate-scroll-follow ${isScrolling ? 'scrolling' : ''}`}>
+          <h1 className={`text-5xl md:text-7xl font-medium text-foreground leading-[1.1] tracking-tight mb-6 animate-scroll-follow ${isScrolling ? 'scrolling' : ''}`}>
             Professional callsheets crews{' '}
             <span className="text-foreground">actually</span>{' '}
             <span className="text-primary interactive-underline">want</span>{' '}

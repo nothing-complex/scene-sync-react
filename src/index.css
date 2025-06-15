@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -187,7 +188,7 @@
 
   .animate-scroll-follow {
     transform: translateY(0);
-    transition: transform 0.15s ease-out;
+    transition: transform 0.3s ease-out;
   }
 
   .animate-scroll-follow.scrolling {
