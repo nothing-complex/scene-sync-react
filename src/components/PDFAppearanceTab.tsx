@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -13,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, Palette, Type, Layout, Settings, Download } from 'lucide-react';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
 import { CallsheetData } from '@/contexts/CallsheetContext';
-import { PDFCustomizationService } from '@/services/pdfCustomizationService';
+import { ReactPDFService } from '@/services/reactPdfService';
 
 interface PDFAppearanceTabProps {
   callsheet: CallsheetData;
@@ -77,13 +76,8 @@ export const PDFAppearanceTab = ({
   const handlePreviewPDF = async () => {
     setPreviewLoading(true);
     try {
-      const pdfService = new PDFCustomizationService(customization);
-      const doc = await pdfService.generatePDF(callsheet);
-      
-      // Open PDF in new tab for preview
-      const pdfBlob = doc.output('blob');
-      const url = URL.createObjectURL(pdfBlob);
-      window.open(url, '_blank');
+      const pdfService = new ReactPDFService(customization);
+      await pdfService.previewPDF(callsheet);
     } catch (error) {
       console.error('Failed to generate PDF preview:', error);
     } finally {
@@ -92,7 +86,7 @@ export const PDFAppearanceTab = ({
   };
 
   const handleDownloadPDF = async () => {
-    const pdfService = new PDFCustomizationService(customization);
+    const pdfService = new ReactPDFService(customization);
     await pdfService.savePDF(callsheet);
   };
 
