@@ -1,6 +1,8 @@
 
-import { Film, FileText, Users, Settings } from 'lucide-react';
+import { Film, FileText, Users, User, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface SidebarProps {
   activeView: string;
@@ -22,44 +24,72 @@ export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-72 bg-sidebar border-r border-sidebar-border flex flex-col min-h-screen">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Film className="w-5 h-5 text-white" />
+      <div className="p-6 border-b border-sidebar-border">
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="w-10 h-10 gradient-sand rounded-xl flex items-center justify-center shadow-sm">
+            <Film className="w-6 h-6 text-sidebar-primary-foreground" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">CallTime</h1>
+          <div>
+            <h1 className="text-xl font-semibold text-sidebar-foreground tracking-tight">CallTime</h1>
+            <p className="text-xs text-sidebar-foreground/60 font-light">Production Manager</p>
+          </div>
         </div>
-        <p className="text-sm text-gray-500 mt-1">Film Production Manager</p>
+        
+        {/* User Profile Section */}
+        <div className="flex items-center space-x-3 p-3 rounded-lg bg-sidebar-accent/50">
+          <Avatar className="w-8 h-8">
+            <AvatarFallback className="text-xs bg-sidebar-primary text-sidebar-primary-foreground">
+              FM
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-sidebar-foreground truncate">Film Maker</p>
+            <p className="text-xs text-sidebar-foreground/60">filmmaker@studio.com</p>
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+        <div className="space-y-1">
           {menuItems.map((item) => (
-            <li key={item.id}>
-              <button
-                onClick={() => setActiveView(item.id)}
-                className={cn(
-                  "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors",
-                  activeView === item.id
-                    ? "bg-blue-50 text-blue-700 border border-blue-200"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
-              </button>
-            </li>
+            <button
+              key={item.id}
+              onClick={() => setActiveView(item.id)}
+              className={cn(
+                "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200",
+                activeView === item.id
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              )}
+            >
+              <item.icon className="w-5 h-5" />
+              <span className="font-medium">{item.label}</span>
+            </button>
           ))}
-        </ul>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mt-8">
+          <p className="text-xs font-medium text-sidebar-foreground/60 uppercase tracking-wider mb-3 px-4">
+            Quick Actions
+          </p>
+          <Button 
+            onClick={() => setActiveView('create')}
+            className="w-full justify-start bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground shadow-sm"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            New Callsheet
+          </Button>
+        </div>
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="text-xs text-gray-500">
-          © 2024 CallTime Production Tools
+      <div className="p-4 border-t border-sidebar-border">
+        <div className="text-xs text-sidebar-foreground/50 text-center font-light">
+          © 2024 CallTime Studio Tools
         </div>
       </div>
     </div>
