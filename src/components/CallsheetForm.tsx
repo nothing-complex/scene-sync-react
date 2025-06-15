@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2, AlertTriangle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -59,6 +59,12 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
 
   const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
   const [emergencyServicesLoading, setEmergencyServicesLoading] = useState(false);
+  const [emergencyNumbers, setEmergencyNumbers] = useState<{
+    general: string;
+    police: string;
+    fire: string;
+    medical: string;
+  } | null>(null);
 
   useEffect(() => {
     if (existingCallsheet) {
@@ -72,6 +78,10 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
 
   const handleLocationSelect = async (location: GeocodingResult) => {
     setSelectedLocation(location);
+    
+    // Set emergency numbers based on country
+    const numbers = EmergencyService.getEmergencyNumbers(location.country || 'US');
+    setEmergencyNumbers(numbers);
     
     // Auto-fetch weather for the selected location
     if (!formData.weather) {
@@ -396,6 +406,34 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 )}
               </div>
             </div>
+
+            {/* Emergency Numbers Section */}
+            {emergencyNumbers && (
+              <div className="mt-6">
+                <Label className="text-base font-medium flex items-center mb-3">
+                  <Phone className="w-4 h-4 mr-2" />
+                  Emergency Phone Numbers
+                </Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="text-center">
+                    <div className="font-medium text-red-700">General</div>
+                    <div className="text-lg font-bold text-red-800">{emergencyNumbers.general}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium text-red-700">Police</div>
+                    <div className="text-lg font-bold text-red-800">{emergencyNumbers.police}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium text-red-700">Fire</div>
+                    <div className="text-lg font-bold text-red-800">{emergencyNumbers.fire}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium text-red-700">Medical</div>
+                    <div className="text-lg font-bold text-red-800">{emergencyNumbers.medical}</div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Emergency Services Section */}
             {emergencyServices.length > 0 && (
