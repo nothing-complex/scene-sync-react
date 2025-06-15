@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, TrendingUp, Users, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,9 +41,12 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
   
-  // Get user's display name
-  const getUserDisplayName = () => {
-    return user?.user_metadata?.full_name || 'User';
+  // Get user's first name only
+  const getUserFirstName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name.split(' ')[0];
+    }
+    return 'User';
   };
 
   return (
@@ -55,7 +57,7 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl font-light text-foreground mb-2">
-                {greeting}, {getUserDisplayName()}
+                {greeting}, {getUserFirstName()}
               </h1>
               <p className="text-muted-foreground text-lg font-light">
                 Ready to create amazing productions today?
