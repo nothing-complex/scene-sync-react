@@ -86,12 +86,22 @@ export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
           </Button>
         </div>
 
-        {/* Theme Toggle */}
+        {/* Appearance Section */}
         <div className="mt-6">
           <p className="text-xs font-medium text-sidebar-foreground/60 uppercase tracking-wider mb-3 px-4">
             Appearance
           </p>
-          <ThemeToggle />
+          <div className="space-y-1">
+            <Button
+              variant="ghost"
+              onClick={() => setActiveView('pdf-settings')}
+              className="w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              PDF Appearance
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
 

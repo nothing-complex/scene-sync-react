@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { Dashboard } from '@/components/Dashboard';
 import { CallsheetForm } from '@/components/CallsheetForm';
 import { ContactsManager } from '@/components/ContactsManager';
+import { MasterPDFSettings } from '@/components/MasterPDFSettings';
 import { CallsheetProvider } from '@/contexts/CallsheetContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,8 @@ const Index = () => {
         return <CallsheetForm onBack={() => setActiveView('dashboard')} />;
       case 'contacts':
         return <ContactsManager onBack={() => setActiveView('dashboard')} />;
+      case 'pdf-settings':
+        return <MasterPDFSettings onBack={() => setActiveView('dashboard')} />;
       default:
         return <Dashboard onCreateNew={() => setActiveView('create')} />;
     }

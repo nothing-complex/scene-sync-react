@@ -16,6 +16,7 @@ import { PDFAppearanceTab } from './PDFAppearanceTab';
 import { WeatherService, WeatherData } from '@/services/weatherService';
 import { EmergencyServiceApi, EmergencyService } from '@/services/emergencyService';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
+import { SimplePDFSettings } from './SimplePDFSettings';
 
 interface CallsheetFormProps {
   onBack: () => void;
@@ -319,7 +320,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="basic">Callsheet Details</TabsTrigger>
-          <TabsTrigger value="appearance">PDF Appearance</TabsTrigger>
+          <TabsTrigger value="appearance">Modify PDF</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-8">
@@ -790,7 +791,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
 
         <TabsContent value="appearance">
           {formData.projectTitle ? (
-            <PDFAppearanceTab
+            <SimplePDFSettings
               callsheet={formData as CallsheetData}
               customization={pdfCustomization}
               onCustomizationChange={setPdfCustomization}
@@ -799,7 +800,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
             <Card>
               <CardContent className="p-8 text-center">
                 <p className="text-muted-foreground">
-                  Please fill in the basic callsheet details first to preview PDF appearance options.
+                  Please fill in the basic callsheet details first to customize PDF appearance.
                 </p>
                 <Button 
                   onClick={() => setActiveTab('basic')} 
