@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCallsheet, Contact, CallsheetData, ScheduleItem } from '@/contexts/CallsheetContext';
 import { ContactSelector } from './ContactSelector';
+import { WeatherService, WeatherData } from '@/services/weatherService';
 
 interface CallsheetFormProps {
   onBack: () => void;
@@ -42,14 +42,62 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     type: 'cast' | 'crew' | 'emergency';
   }>({ show: false, type: 'cast' });
 
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [lastLocationFetch, setLastLocationFetch] = useState('');
+
   useEffect(() => {
     if (existingCallsheet) {
       setFormData(existingCallsheet);
     }
   }, [existingCallsheet]);
 
+  // Auto-fetch weather when location changes
+  useEffect(() => {
+    const fetchWeather = async () => {
+      const location = formData.location || formData.locationAddress;
+      if (!location || location === lastLocationFetch || location.length < 3) return;
+
+      setWeatherLoading(true);
+      setLastLocationFetch(location);
+
+      try {
+        const weatherData = await WeatherService.getWeatherForLocation(location);
+        if (weatherData && !formData.weather) {
+          const weatherString = WeatherService.formatWeatherString(weatherData);
+          handleInputChange('weather', weatherString);
+        }
+      } catch (error) {
+        console.error('Failed to fetch weather:', error);
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+
+    // Debounce the weather fetch
+    const timeoutId = setTimeout(fetchWeather, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [formData.location, formData.locationAddress, lastLocationFetch, formData.weather]);
+
   const handleInputChange = (field: keyof CallsheetData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleRefreshWeather = async () => {
+    const location = formData.location || formData.locationAddress;
+    if (!location) return;
+
+    setWeatherLoading(true);
+    try {
+      const weatherData = await WeatherService.getWeatherForLocation(location);
+      if (weatherData) {
+        const weatherString = WeatherService.formatWeatherString(weatherData);
+        handleInputChange('weather', weatherString);
+      }
+    } catch (error) {
+      console.error('Failed to refresh weather:', error);
+    } finally {
+      setWeatherLoading(false);
+    }
   };
 
   const handleAddContact = (contact: Contact, type: 'cast' | 'crew' | 'emergency') => {
@@ -201,12 +249,32 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
               </div>
               <div>
                 <Label htmlFor="weather">Weather</Label>
-                <Input
-                  id="weather"
-                  value={formData.weather || ''}
-                  onChange={(e) => handleInputChange('weather', e.target.value)}
-                  placeholder="e.g., Sunny, 75°F"
-                />
+                <div className="relative">
+                  <Input
+                    id="weather"
+                    value={formData.weather || ''}
+                    onChange={(e) => handleInputChange('weather', e.target.value)}
+                    placeholder="Auto-populated from location or enter manually"
+                    className="pr-20"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRefreshWeather}
+                    disabled={weatherLoading || !formData.location}
+                    className="absolute right-1 top-1 h-8 w-16 text-xs"
+                  >
+                    {weatherLoading ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Cloud className="w-3 h-3" />
+                    )}
+                  </Button>
+                </div>
+                {weatherLoading && (
+                  <p className="text-xs text-muted-foreground mt-1">Fetching weather data...</p>
+                )}
               </div>
             </div>
           </CardContent>
