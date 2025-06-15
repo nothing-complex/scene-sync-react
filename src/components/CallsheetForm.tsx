@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { useCallsheet, Contact, CallsheetData, ScheduleItem } from '@/contexts/C
 import { ContactSelector } from './ContactSelector';
 import { LocationInput } from './LocationInput';
 import { WeatherService, WeatherData } from '@/services/weatherService';
+import { EmergencyService } from '@/services/emergencyService';
 
 interface CallsheetFormProps {
   onBack: () => void;
@@ -56,6 +57,9 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   const [weatherUnits, setWeatherUnits] = useState<'imperial' | 'metric'>('imperial');
   const [selectedLocation, setSelectedLocation] = useState<GeocodingResult | null>(null);
 
+  const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
+  const [emergencyServicesLoading, setEmergencyServicesLoading] = useState(false);
+
   useEffect(() => {
     if (existingCallsheet) {
       setFormData(existingCallsheet);
@@ -87,6 +91,22 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
       } finally {
         setWeatherLoading(false);
       }
+    }
+
+    // Auto-fetch emergency services
+    setEmergencyServicesLoading(true);
+    try {
+      const services = await EmergencyService.getNearbyEmergencyServices(
+        location.latitude,
+        location.longitude,
+        10, // 10km radius
+        weatherUnits
+      );
+      setEmergencyServices(services);
+    } catch (error) {
+      console.error('Failed to fetch emergency services:', error);
+    } finally {
+      setEmergencyServicesLoading(false);
     }
   };
 
@@ -170,6 +190,26 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   const handleRemoveScheduleItem = (itemId: string) => {
     const currentSchedule = formData.schedule || [];
     handleInputChange('schedule', currentSchedule.filter(item => item.id !== itemId));
+  };
+
+  const handleAddEmergencyService = (service: EmergencyService) => {
+    const currentContacts = formData.emergencyContacts || [];
+    
+    // Convert emergency service to contact format
+    const emergencyContact = {
+      id: service.id,
+      name: service.name,
+      role: `${EmergencyService.formatServiceType(service.type)} (${service.distance}${weatherUnits === 'imperial' ? 'mi' : 'km'})`,
+      phone: service.phone || 'Phone not available',
+      email: '',
+      character: '',
+      company: service.address
+    };
+    
+    // Check if already added
+    if (!currentContacts.find(c => c.id === service.id)) {
+      handleInputChange('emergencyContacts', [...currentContacts, emergencyContact]);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -356,6 +396,46 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 )}
               </div>
             </div>
+
+            {/* Emergency Services Section */}
+            {emergencyServices.length > 0 && (
+              <div className="mt-6">
+                <Label className="text-base font-medium flex items-center mb-3">
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  Nearby Emergency Services
+                </Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                  {emergencyServices.map((service) => (
+                    <div key={service.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <span className="mr-2">{EmergencyService.getServiceIcon(service.type)}</span>
+                          <div>
+                            <div className="font-medium text-sm">{service.name}</div>
+                            <div className="text-xs text-gray-600">{EmergencyService.formatServiceType(service.type)}</div>
+                            <div className="text-xs text-gray-500">
+                              {service.distance}{weatherUnits === 'imperial' ? 'mi' : 'km'} away
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAddEmergencyService(service)}
+                        className="text-orange-600 hover:text-orange-700"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                {emergencyServicesLoading && (
+                  <p className="text-xs text-muted-foreground mt-2">Loading emergency services...</p>
+                )}
+              </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
