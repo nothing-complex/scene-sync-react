@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, TrendingUp, Users, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCallsheet } from '@/contexts/CallsheetContext';
 import { CallsheetForm } from './CallsheetForm';
 import { generateCallsheetPDF } from '@/services/pdfService';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DashboardProps {
   onCreateNew: () => void;
@@ -12,6 +14,7 @@ interface DashboardProps {
 
 export const Dashboard = ({ onCreateNew }: DashboardProps) => {
   const { callsheets, duplicateCallsheet, deleteCallsheet } = useCallsheet();
+  const { user } = useAuth();
   const [editingCallsheet, setEditingCallsheet] = useState<string | null>(null);
 
   if (editingCallsheet) {
@@ -38,6 +41,11 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
 
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
+  
+  // Get user's display name
+  const getUserDisplayName = () => {
+    return user?.user_metadata?.full_name || 'User';
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,7 +55,7 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl font-light text-foreground mb-2">
-                {greeting}, Film Maker
+                {greeting}, {getUserDisplayName()}
               </h1>
               <p className="text-muted-foreground text-lg font-light">
                 Ready to create amazing productions today?

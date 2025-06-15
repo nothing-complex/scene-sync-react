@@ -12,7 +12,7 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   const menuItems = [
     {
@@ -31,6 +31,23 @@ export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
     await signOut();
   };
 
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (user?.user_metadata?.full_name) {
+      const names = user.user_metadata.full_name.split(' ');
+      return names.map(name => name[0]).join('').toUpperCase().slice(0, 2);
+    }
+    if (user?.email) {
+      return user.email.slice(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
+
+  // Get display name
+  const getDisplayName = () => {
+    return user?.user_metadata?.full_name || 'User';
+  };
+
   return (
     <div className="w-72 bg-sidebar border-r border-sidebar-border flex flex-col min-h-screen">
       {/* Simpler Header */}
@@ -39,16 +56,16 @@ export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
           <h1 className="text-xl font-medium text-sidebar-foreground tracking-tight">CallTime</h1>
         </div>
         
-        {/* Simplified User Profile Section */}
+        {/* User Profile Section with real user data */}
         <div className="flex items-center space-x-3 p-3 rounded-xl bg-sidebar-accent/40">
           <Avatar className="w-8 h-8">
             <AvatarFallback className="text-xs bg-sidebar-primary text-sidebar-primary-foreground font-medium">
-              FM
+              {getUserInitials()}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">Film Maker</p>
-            <p className="text-xs text-sidebar-foreground/60">filmmaker@studio.com</p>
+            <p className="text-sm font-medium text-sidebar-foreground truncate">{getDisplayName()}</p>
+            <p className="text-xs text-sidebar-foreground/60">{user?.email}</p>
           </div>
         </div>
       </div>
