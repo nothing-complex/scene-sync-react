@@ -27,6 +27,7 @@ interface OverpassElement {
     'addr:housenumber'?: string;
     'addr:city'?: string;
     'addr:postcode'?: string;
+    [key: string]: any; // Add index signature to prevent type issues
   };
 }
 
@@ -172,7 +173,7 @@ export class EmergencyServiceApi {
   }
 
   static getEmergencyNumbers(countryCode: string): EmergencyNumbers {
-    const emergencyNumbers: { [key: string]: EmergencyNumbers } = {
+    const emergencyNumbers: Record<string, EmergencyNumbers> = {
       'US': { general: '911', police: '911', fire: '911', medical: '911' },
       'CA': { general: '911', police: '911', fire: '911', medical: '911' },
       'GB': { general: '999', police: '999', fire: '999', medical: '999' },

@@ -2,13 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Database } from '@/integrations/supabase/types';
 
-type TableName = keyof Database['public']['Tables'];
-
-// Simple generic hook for basic Supabase data fetching
+// Simple hook for basic Supabase data fetching
 export const useSupabaseData = (
-  table: TableName,
+  table: string,
   dependencies: any[] = []
 ) => {
   const [data, setData] = useState<any[]>([]);
