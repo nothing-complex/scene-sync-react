@@ -107,13 +107,15 @@ export class EmergencyService {
   ): Promise<EmergencyService[]> {
     try {
       const radiusMeters = radiusKm * 1000;
+      const hospitalRadiusMeters = 5000; // 5km for hospitals
       
-      // Updated Overpass QL query - removed clinic and doctors
+      // Updated Overpass QL query with separate queries for hospitals (5km) and others (default radius)
       const query = `
         [out:json][timeout:25];
         (
-          node["amenity"~"^(hospital|police|fire_station|pharmacy)$"](around:${radiusMeters},${latitude},${longitude});
+          node["amenity"~"^(police|fire_station|pharmacy)$"](around:${radiusMeters},${latitude},${longitude});
           node["emergency"~"^(fire_station|ambulance_station)$"](around:${radiusMeters},${latitude},${longitude});
+          node["amenity"="hospital"](around:${hospitalRadiusMeters},${latitude},${longitude});
         );
         out center meta;
       `;
