@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { LandingPage } from "./components/LandingPage";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +22,17 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<Index />} />
+            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/" element={
+              <ProtectedRoute fallback={<LandingPage />}>
+                <Index />
+              </ProtectedRoute>
+            } />
             {/* Redirect /index to / to fix navigation issues */}
             <Route path="/index" element={<Navigate to="/" replace />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

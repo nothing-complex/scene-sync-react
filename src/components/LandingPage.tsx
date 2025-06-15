@@ -14,6 +14,12 @@ export const LandingPage = () => {
   // Add debug logging to see auth state
   useEffect(() => {
     console.log('LandingPage - Auth state:', { user: user?.email, loading });
+    
+    // If user is authenticated and we're on the landing page, this means
+    // they should see the dashboard button or be redirected
+    if (user && !loading) {
+      console.log('User is authenticated, showing dashboard option');
+    }
   }, [user, loading]);
 
   useEffect(() => {
@@ -75,7 +81,13 @@ export const LandingPage = () => {
             {loading ? (
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
             ) : user ? (
-              <Button onClick={() => navigate('/')} className="btn-primary flex items-center space-x-2">
+              <Button 
+                onClick={() => {
+                  console.log('Dashboard button clicked, navigating to dashboard');
+                  navigate('/dashboard');
+                }} 
+                className="btn-primary flex items-center space-x-2"
+              >
                 <LayoutDashboard className="w-4 h-4" />
                 <span>Go to Dashboard</span>
               </Button>
@@ -232,4 +244,3 @@ export const LandingPage = () => {
     </div>
   );
 };
-
