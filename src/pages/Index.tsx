@@ -6,6 +6,7 @@ import { CallsheetForm } from '@/components/CallsheetForm';
 import { ContactsManager } from '@/components/ContactsManager';
 import { MasterPDFSettings } from '@/components/MasterPDFSettings';
 import { CallsheetProvider } from '@/contexts/CallsheetContext';
+import { LandingPage } from '@/components/LandingPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
@@ -13,6 +14,11 @@ import { LogOut, User } from 'lucide-react';
 const Index = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const { user, signOut } = useAuth();
+
+  // Show landing page for non-authenticated users
+  if (!user) {
+    return <LandingPage />;
+  }
 
   const handleSignOut = async () => {
     await signOut();
