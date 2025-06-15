@@ -2,10 +2,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Database } from '@/integrations/supabase/types';
+
+type TableName = keyof Database['public']['Tables'];
 
 // Simple generic hook for basic Supabase data fetching
 export const useSupabaseData = <T = any>(
-  table: string,
+  table: TableName,
   dependencies: any[] = []
 ) => {
   const [data, setData] = useState<T[]>([]);
@@ -29,7 +32,7 @@ export const useSupabaseData = <T = any>(
           .eq('user_id', user.id);
 
         if (error) throw error;
-        setData(result as T[] || []);
+        setData((result as T[]) || []);
         setError(null);
       } catch (err) {
         console.error(`Error fetching ${table}:`, err);
@@ -52,7 +55,7 @@ export const useSupabaseData = <T = any>(
           .eq('user_id', user.id);
 
         if (error) throw error;
-        setData(result as T[] || []);
+        setData((result as T[]) || []);
         setError(null);
       } catch (err) {
         console.error(`Error refetching ${table}:`, err);
