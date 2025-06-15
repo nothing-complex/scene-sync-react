@@ -1,11 +1,10 @@
-
-
 import { useState } from 'react';
 import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, TrendingUp, Users, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCallsheet } from '@/contexts/CallsheetContext';
 import { CallsheetForm } from './CallsheetForm';
+import { generateCallsheetPDF } from '@/services/pdfService';
 
 interface DashboardProps {
   onCreateNew: () => void;
@@ -25,8 +24,11 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
   }
 
   const handleExportPDF = (callsheetId: string) => {
-    console.log('Exporting PDF for callsheet:', callsheetId);
-    alert('PDF export functionality would be implemented here with a library like jsPDF or Puppeteer');
+    const callsheet = callsheets.find(cs => cs.id === callsheetId);
+    if (callsheet) {
+      console.log('Generating PDF for callsheet:', callsheetId);
+      generateCallsheetPDF(callsheet);
+    }
   };
 
   const handleEmailDistribution = (callsheetId: string) => {
@@ -261,4 +263,3 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
     </div>
   );
 };
-
