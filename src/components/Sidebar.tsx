@@ -1,9 +1,10 @@
 
-import { Film, FileText, Users, User, Sun, Moon } from 'lucide-react';
+import { Film, FileText, Users, User, Sun, Moon, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ThemeToggle } from './ThemeToggle';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
   activeView: string;
@@ -11,6 +12,8 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
+  const { signOut } = useAuth();
+
   const menuItems = [
     {
       id: 'dashboard',
@@ -23,6 +26,10 @@ export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
       icon: Users,
     },
   ];
+
+  const handleGoHome = async () => {
+    await signOut();
+  };
 
   return (
     <div className="w-72 bg-sidebar border-r border-sidebar-border flex flex-col min-h-screen">
@@ -83,6 +90,14 @@ export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
           >
             <FileText className="w-4 h-4 mr-2" />
             New Callsheet
+          </Button>
+          <Button 
+            onClick={handleGoHome}
+            variant="outline"
+            className="w-full justify-start border-sidebar-border text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          >
+            <Home className="w-4 h-4 mr-2" />
+            Go to Landing Page
           </Button>
         </div>
 
