@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -309,11 +310,13 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Dashboard
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div className="flex-1">
+          <h1 className="section-heading mb-2">
             {isEditing ? 'Edit Callsheet' : 'Create New Callsheet'}
           </h1>
-          <p className="text-gray-600 mt-1">Fill in the production details below</p>
+          <p className="text-muted-foreground font-normal leading-relaxed">
+            Fill in the production details below
+          </p>
         </div>
       </div>
 
