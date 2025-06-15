@@ -76,13 +76,13 @@ export interface PDFSectionConfig {
 export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
   layout: {
     headerStyle: 'centered',
-    margins: { top: 20, bottom: 20, left: 20, right: 20 },
-    spacing: { sectionGap: 20, itemGap: 10 },
+    margins: { top: 30, bottom: 30, left: 30, right: 30 },
+    spacing: { sectionGap: 25, itemGap: 12 },
     pageOrientation: 'portrait'
   },
   typography: {
     fontFamily: 'helvetica',
-    fontSize: { title: 20, header: 14, body: 10, small: 8 },
+    fontSize: { title: 24, header: 13, body: 11, small: 9 },
     fontWeight: { title: 'bold', header: 'bold', body: 'normal' }
   },
   branding: {
@@ -90,10 +90,10 @@ export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
     footer: { text: '', position: 'center' }
   },
   colors: {
-    primary: '#000000',
-    secondary: '#666666',
-    text: '#000000',
-    accent: '#0066cc',
+    primary: '#2c1810',
+    secondary: '#8b6f47',
+    text: '#2c1810',
+    accent: '#d4a574',
     background: '#ffffff'
   },
   sections: {

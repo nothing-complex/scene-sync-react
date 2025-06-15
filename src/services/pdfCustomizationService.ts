@@ -1,3 +1,4 @@
+
 import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
@@ -28,6 +29,31 @@ export class PDFCustomizationService {
 
   private setColor(colorType: 'primary' | 'secondary' | 'text' | 'accent') {
     this.doc.setTextColor(this.customization.colors[colorType]);
+  }
+
+  private addHeaderBorder() {
+    // Add a subtle accent line under the header
+    this.doc.setFillColor(this.customization.colors.accent);
+    this.doc.rect(
+      this.customization.layout.margins.left,
+      80,
+      this.pageWidth - 2 * this.customization.layout.margins.left,
+      2,
+      'F'
+    );
+  }
+
+  private addSectionDivider(y: number): number {
+    // Add a light divider line between sections
+    this.doc.setFillColor(this.customization.colors.secondary);
+    this.doc.rect(
+      this.customization.layout.margins.left,
+      y - 5,
+      this.pageWidth - 2 * this.customization.layout.margins.left,
+      0.5,
+      'F'
+    );
+    return y + 5;
   }
 
   private addWatermark() {
@@ -124,7 +150,7 @@ export class PDFCustomizationService {
       y += 20;
     }
 
-    // Main title
+    // Main title with improved styling
     this.setFont('title');
     this.setColor('primary');
     
@@ -132,12 +158,16 @@ export class PDFCustomizationService {
     const titleX = titleAlign === 'center' ? this.pageWidth / 2 : this.customization.layout.margins.left;
     
     this.doc.text('CALL SHEET', titleX, y, { align: titleAlign });
-    y += this.customization.typography.fontSize.title + 10;
+    y += this.customization.typography.fontSize.title + 5;
 
-    // Project title
+    // Project title with accent color
     this.setFont('header');
     this.setColor('accent');
     this.doc.text(callsheet.projectTitle, titleX, y, { align: titleAlign });
+    y += this.customization.typography.fontSize.header + 15;
+    
+    // Add header border
+    this.addHeaderBorder();
     
     return y + this.customization.layout.spacing.sectionGap;
   }
@@ -147,57 +177,56 @@ export class PDFCustomizationService {
     const leftColumn = this.customization.layout.margins.left;
     const rightColumn = this.pageWidth / 2 + 10;
 
-    this.setFont('body');
-    this.setColor('text');
-
     // Left column
     this.setFont('header');
     this.setColor('primary');
-    this.doc.text('SHOOT DATE:', leftColumn, y);
+    this.doc.text('SHOOT DATE', leftColumn, y);
     
     this.setFont('body');
     this.setColor('text');
-    this.doc.text(new Date(callsheet.shootDate).toLocaleDateString(), leftColumn + 80, y);
+    this.doc.text(new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }), leftColumn, y + 15);
     
-    y += this.customization.layout.spacing.itemGap + 5;
+    y += this.customization.layout.spacing.itemGap + 20;
     
     this.setFont('header');
     this.setColor('primary');
-    this.doc.text('CALL TIME:', leftColumn, y);
+    this.doc.text('GENERAL CALL TIME', leftColumn, y);
     
     this.setFont('body');
     this.setColor('text');
-    this.doc.text(callsheet.generalCallTime, leftColumn + 80, y);
+    this.doc.text(callsheet.generalCallTime, leftColumn, y + 15);
 
     // Right column - location
     let rightY = startY;
     this.setFont('header');
     this.setColor('primary');
-    this.doc.text('LOCATION:', rightColumn, rightY);
+    this.doc.text('LOCATION', rightColumn, rightY);
     
     this.setFont('body');
     this.setColor('text');
     const locationLines = this.doc.splitTextToSize(callsheet.location, 150);
-    this.doc.text(locationLines, rightColumn + 70, rightY);
+    this.doc.text(locationLines, rightColumn, rightY + 15);
     
-    return Math.max(y, rightY + locationLines.length * 12) + this.customization.layout.spacing.sectionGap;
+    return Math.max(y + 15, rightY + 15 + locationLines.length * 12) + this.customization.layout.spacing.sectionGap;
   }
 
   private addLocationDetails(callsheet: CallsheetData, startY: number): number {
-    let y = startY;
+    let y = this.addSectionDivider(startY);
     const margin = this.customization.layout.margins.left;
     
     this.setFont('header');
     this.setColor('primary');
     this.doc.text('LOCATION DETAILS', margin, y);
     
-    y += this.customization.layout.spacing.itemGap + 10;
+    y += this.customization.layout.spacing.itemGap + 15;
     
+    // Address with improved formatting
     this.setFont('body');
-    this.setColor('text');
-    
-    // Address
-    this.setFont('header');
     this.setColor('secondary');
     this.doc.text('Address:', margin, y);
     
@@ -210,19 +239,19 @@ export class PDFCustomizationService {
     
     // Weather (if enabled)
     if (this.customization.sections.visibility.weather && callsheet.weather) {
-      this.setFont('header');
+      this.setFont('body');
       this.setColor('secondary');
       this.doc.text('Weather:', margin, y);
       
       this.setFont('body');
       this.setColor('text');
       this.doc.text(callsheet.weather, margin + 60, y);
-      y += this.customization.layout.spacing.itemGap + 5;
+      y += this.customization.layout.spacing.itemGap + 8;
     }
     
     // Parking
     if (callsheet.parkingInstructions) {
-      this.setFont('header');
+      this.setFont('body');
       this.setColor('secondary');
       this.doc.text('Parking:', margin, y);
       
@@ -235,7 +264,7 @@ export class PDFCustomizationService {
     
     // Basecamp
     if (callsheet.basecampLocation) {
-      this.setFont('header');
+      this.setFont('body');
       this.setColor('secondary');
       this.doc.text('Basecamp:', margin, y);
       
@@ -250,14 +279,14 @@ export class PDFCustomizationService {
   }
 
   private addContactSection(title: string, contacts: any[], startY: number): number {
-    let y = startY;
+    let y = this.addSectionDivider(startY);
     const margin = this.customization.layout.margins.left;
     
     this.setFont('header');
     this.setColor('primary');
     this.doc.text(title, margin, y);
     
-    y += this.customization.layout.spacing.itemGap + 10;
+    y += this.customization.layout.spacing.itemGap + 15;
     
     if (contacts.length === 0) {
       this.setFont('body');
@@ -266,37 +295,39 @@ export class PDFCustomizationService {
       return y + this.customization.layout.spacing.sectionGap;
     }
 
-    this.setFont('small');
+    this.setFont('body');
     
     if (this.customization.sections.formatting.contactLayout === 'table') {
-      // Table format
+      // Table format with improved spacing
       contacts.forEach((contact, index) => {
-        if (y > this.pageHeight - 60) {
+        if (y > this.pageHeight - 80) {
           this.doc.addPage();
           y = this.customization.layout.margins.top;
         }
 
         this.setColor('text');
         this.doc.text(contact.name, margin, y);
-        this.doc.text(contact.role + (contact.character ? ` (${contact.character})` : ''), margin + 120, y);
-        this.doc.text(contact.phone, margin + 250, y);
+        this.doc.text(contact.role + (contact.character ? ` (${contact.character})` : ''), margin + 140, y);
+        this.doc.text(contact.phone, margin + 300, y);
         
-        y += 14;
+        y += 16;
       });
     } else {
-      // List format
+      // Enhanced list format
       contacts.forEach((contact, index) => {
-        if (y > this.pageHeight - 60) {
+        if (y > this.pageHeight - 80) {
           this.doc.addPage();
           y = this.customization.layout.margins.top;
         }
 
         this.setColor('text');
-        this.doc.text(`${contact.name} - ${contact.role}${contact.character ? ` (${contact.character})` : ''}`, margin, y);
-        y += 10;
+        this.setFont('body');
+        this.doc.text(`${contact.name} • ${contact.role}${contact.character ? ` (${contact.character})` : ''}`, margin, y);
+        y += 12;
         this.setColor('secondary');
-        this.doc.text(contact.phone, margin + 10, y);
-        y += 16;
+        this.setFont('small');
+        this.doc.text(contact.phone + (contact.email ? ` • ${contact.email}` : ''), margin + 10, y);
+        y += 18;
       });
     }
     
@@ -306,14 +337,14 @@ export class PDFCustomizationService {
   private addSchedule(callsheet: CallsheetData, startY: number): number {
     if (!this.customization.sections.visibility.schedule) return startY;
     
-    let y = startY;
+    let y = this.addSectionDivider(startY);
     const margin = this.customization.layout.margins.left;
     
     this.setFont('header');
     this.setColor('primary');
     this.doc.text('SHOOTING SCHEDULE', margin, y);
     
-    y += this.customization.layout.spacing.itemGap + 10;
+    y += this.customization.layout.spacing.itemGap + 15;
     
     if (callsheet.schedule.length === 0) {
       this.setFont('body');
@@ -322,37 +353,46 @@ export class PDFCustomizationService {
       return y + this.customization.layout.spacing.sectionGap;
     }
 
-    this.setFont('small');
-    
     callsheet.schedule.forEach((item, index) => {
-      if (y > this.pageHeight - 80) {
+      if (y > this.pageHeight - 100) {
         this.doc.addPage();
         y = this.customization.layout.margins.top;
       }
 
-      this.setColor('text');
-      
       if (this.customization.sections.formatting.scheduleCompact) {
-        // Compact format
-        this.doc.text(`Scene ${item.sceneNumber} - ${item.intExt} - ${item.description}`, margin, y);
-        y += 10;
-        this.setColor('secondary');
-        this.doc.text(`${item.pageCount} pgs | ${item.estimatedTime}`, margin + 10, y);
-        y += 16;
-      } else {
-        // Detailed format
+        // Compact format with better typography
         this.setFont('body');
-        this.doc.text(`Scene ${item.sceneNumber}`, margin, y);
-        this.doc.text(item.intExt, margin + 60, y);
-        this.doc.text(item.estimatedTime, margin + 100, y);
-        this.doc.text(`${item.pageCount} pgs`, margin + 200, y);
-        
+        this.setColor('text');
+        this.doc.text(`Scene ${item.sceneNumber} • ${item.intExt} • ${item.description}`, margin, y);
         y += 12;
+        this.setColor('secondary');
         this.setFont('small');
+        this.doc.text(`${item.pageCount} pages • ${item.estimatedTime}`, margin + 10, y);
+        y += 20;
+      } else {
+        // Enhanced detailed format
+        this.setFont('body');
+        this.setColor('accent');
+        this.doc.text(`Scene ${item.sceneNumber}`, margin, y);
+        this.setColor('text');
+        this.doc.text(item.intExt, margin + 80, y);
+        this.doc.text(item.estimatedTime, margin + 120, y);
+        this.doc.text(`${item.pageCount} pages`, margin + 250, y);
+        
+        y += 15;
+        this.setFont('body');
+        this.setColor('text');
         const descLines = this.doc.splitTextToSize(item.description, this.pageWidth - 2 * margin - 20);
         this.doc.text(descLines, margin + 10, y);
         
-        y += descLines.length * 10 + 12;
+        if (item.location) {
+          y += descLines.length * 12 + 5;
+          this.setFont('small');
+          this.setColor('secondary');
+          this.doc.text(`Location: ${item.location}`, margin + 10, y);
+        }
+        
+        y += 20;
       }
     });
     
@@ -364,14 +404,14 @@ export class PDFCustomizationService {
       return startY;
     }
     
-    let y = startY;
+    let y = this.addSectionDivider(startY);
     const margin = this.customization.layout.margins.left;
     
     this.setFont('header');
     this.setColor('primary');
     this.doc.text('SPECIAL NOTES', margin, y);
     
-    y += this.customization.layout.spacing.itemGap + 10;
+    y += this.customization.layout.spacing.itemGap + 15;
     
     this.setFont('body');
     this.setColor('text');
@@ -384,7 +424,7 @@ export class PDFCustomizationService {
 
   private addFooter(): void {
     if (this.customization.branding.footer?.text) {
-      const y = this.pageHeight - this.customization.layout.margins.bottom + 10;
+      const y = this.pageHeight - this.customization.layout.margins.bottom + 15;
       
       this.setFont('small');
       this.setColor('secondary');
@@ -412,7 +452,7 @@ export class PDFCustomizationService {
     
     // Process sections in configured order
     for (const section of this.customization.sections.order) {
-      if (currentY > this.pageHeight - 100) {
+      if (currentY > this.pageHeight - 120) {
         this.doc.addPage();
         this.addWatermark();
         currentY = this.customization.layout.margins.top;
