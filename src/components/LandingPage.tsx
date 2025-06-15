@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,8 +8,13 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [isScrolling, setIsScrolling] = useState(false);
+
+  // Add debug logging to see auth state
+  useEffect(() => {
+    console.log('LandingPage - Auth state:', { user: user?.email, loading });
+  }, [user, loading]);
 
   useEffect(() => {
     let scrollTimeout: NodeJS.Timeout;
@@ -66,7 +72,9 @@ export const LandingPage = () => {
             <span className="text-xl font-medium text-foreground tracking-tight">CallTime</span>
           </div>
           <div className="flex items-center space-x-3">
-            {user ? (
+            {loading ? (
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            ) : user ? (
               <Button onClick={() => navigate('/')} className="btn-primary flex items-center space-x-2">
                 <LayoutDashboard className="w-4 h-4" />
                 <span>Go to Dashboard</span>
@@ -118,7 +126,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Simplified Features Section */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="text-center mb-16">
           <h2 className="section-heading mb-4">
@@ -141,7 +148,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Simplified Demo Preview */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="glass-effect rounded-2xl p-12 text-center">
           <div className="max-w-3xl mx-auto">
@@ -169,7 +175,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Softer Testimonials */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="grid md:grid-cols-2 gap-8">
           {testimonials.map((testimonial, index) => (
@@ -195,7 +200,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Gentler CTA Section */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="text-center">
           <h2 className="section-heading mb-6">
@@ -215,7 +219,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Minimal Footer */}
       <footer className="border-t border-border/30 bg-muted/30">
         <div className="max-w-5xl mx-auto px-6 py-12">
           <div className="flex items-center justify-between">
@@ -229,3 +232,4 @@ export const LandingPage = () => {
     </div>
   );
 };
+
