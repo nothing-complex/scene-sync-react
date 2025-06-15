@@ -34,80 +34,153 @@ export class PDFCustomizationService {
     this.doc.setTextColor(this.customization.colors[colorType]);
   }
 
-  private drawCard(x: number, y: number, width: number, height: number, hasHeader: boolean = false) {
-    // Card shadow effect (multiple rectangles with decreasing opacity)
-    this.doc.setFillColor('#e2e8f0'); // slate-200
-    this.doc.rect(x + 2, y + 2, width, height, 'F');
+  private drawRoundedRect(x: number, y: number, width: number, height: number, radius: number = 8, style: 'F' | 'S' | 'FS' = 'F') {
+    // Draw rounded rectangle using path operations
+    this.doc.roundedRect(x, y, width, height, radius, radius, style);
+  }
+
+  private drawNestedCard(x: number, y: number, width: number, height: number, options: {
+    hasHeader?: boolean;
+    headerHeight?: number;
+    shadow?: boolean;
+    innerPadding?: number;
+    borderColor?: string;
+    backgroundColor?: string;
+    headerColor?: string;
+  } = {}) {
+    const {
+      hasHeader = false,
+      headerHeight = 35,
+      shadow = true,
+      innerPadding = 12,
+      borderColor = '#e2e8f0',
+      backgroundColor = '#ffffff',
+      headerColor = '#f8fafc'
+    } = options;
+
+    // Outer card shadow (multiple layers for depth)
+    if (shadow) {
+      for (let i = 3; i >= 1; i--) {
+        const shadowOpacity = 0.1 * (4 - i);
+        const shadowColor = Math.floor(220 + (i * 8)); // Gradient from darker to lighter
+        this.doc.setFillColor(shadowColor, shadowColor, shadowColor);
+        this.drawRoundedRect(x + i, y + i, width, height, 8, 'F');
+      }
+    }
     
     // Main card background
-    this.doc.setFillColor('#ffffff');
-    this.doc.rect(x, y, width, height, 'F');
+    this.doc.setFillColor(backgroundColor);
+    this.drawRoundedRect(x, y, width, height, 8, 'F');
     
     // Card border
-    this.doc.setDrawColor('#e2e8f0'); // slate-200
+    this.doc.setDrawColor(borderColor);
     this.doc.setLineWidth(0.5);
-    this.doc.rect(x, y, width, height, 'S');
+    this.drawRoundedRect(x, y, width, height, 8, 'S');
     
-    // Header section if needed
+    // Header section with rounded top corners
     if (hasHeader) {
-      this.doc.setFillColor('#f8fafc'); // slate-50
-      this.doc.rect(x, y, width, 30, 'F');
+      this.doc.setFillColor(headerColor);
+      this.drawRoundedRect(x, y, width, headerHeight, 8, 'F');
       
-      // Header border
-      this.doc.setDrawColor('#e2e8f0');
-      this.doc.line(x, y + 30, x + width, y + 30);
+      // Fill the bottom corners of header to make them square
+      this.doc.rect(x, y + headerHeight - 8, width, 8, 'F');
+      
+      // Header bottom border
+      this.doc.setDrawColor(borderColor);
+      this.doc.setLineWidth(0.5);
+      this.doc.line(x + 8, y + headerHeight, x + width - 8, y + headerHeight);
     }
+
+    return { contentStartY: y + (hasHeader ? headerHeight : 0) + innerPadding };
+  }
+
+  private drawInnerCard(x: number, y: number, width: number, height: number, color: string = '#f1f5f9') {
+    // Inner nested card with subtle styling
+    this.doc.setFillColor(color);
+    this.drawRoundedRect(x, y, width, height, 6, 'F');
+    
+    this.doc.setDrawColor('#e2e8f0');
+    this.doc.setLineWidth(0.3);
+    this.drawRoundedRect(x, y, width, height, 6, 'S');
   }
 
   private addIconPlaceholder(x: number, y: number, size: number, iconType: string) {
-    // Create icon-like shapes using geometric forms
+    // Create modern icon placeholders with rounded backgrounds
+    const iconBgSize = size + 8;
+    
+    // Icon background circle
     this.doc.setFillColor(this.customization.colors.accent);
+    this.doc.circle(x + iconBgSize/2, y + iconBgSize/2, iconBgSize/2, 'F');
+    
+    // White icon shape
+    this.doc.setFillColor('#ffffff');
     
     switch (iconType) {
       case 'calendar':
-        // Calendar icon
-        this.doc.rect(x, y, size, size, 'F');
-        this.doc.setFillColor('#ffffff');
-        this.doc.rect(x + 2, y + 6, size - 4, size - 8, 'F');
+        // Modern calendar icon
+        this.drawRoundedRect(x + 4, y + 6, size, size - 4, 2, 'F');
         this.doc.setFillColor(this.customization.colors.accent);
-        this.doc.rect(x + 4, y + 2, 2, 4, 'F');
-        this.doc.rect(x + size - 6, y + 2, 2, 4, 'F');
+        this.drawRoundedRect(x + 6, y + 2, 2, 6, 1, 'F');
+        this.drawRoundedRect(x + size - 2, y + 2, 2, 6, 1, 'F');
+        this.doc.setFillColor('#ffffff');
+        // Calendar grid
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            this.doc.circle(x + 7 + j * 3, y + 12 + i * 3, 0.8, 'F');
+          }
+        }
         break;
+        
       case 'location':
-        // Location pin icon
-        this.doc.circle(x + size/2, y + size/2, size/2, 'F');
+        // Modern location pin
+        const pinX = x + iconBgSize/2;
+        const pinY = y + 6;
+        this.doc.circle(pinX, pinY + 4, 6, 'F');
+        this.doc.circle(pinX, pinY + 4, 3, 'F');
+        this.doc.setFillColor(this.customization.colors.accent);
+        this.doc.circle(pinX, pinY + 4, 2, 'F');
+        // Pin point
         this.doc.setFillColor('#ffffff');
-        this.doc.circle(x + size/2, y + size/2, size/4, 'F');
+        const points = [[pinX, pinY + 10], [pinX - 3, pinY + 6], [pinX + 3, pinY + 6]];
+        this.doc.triangle(points[0][0], points[0][1], points[1][0], points[1][1], points[2][0], points[2][1], 'F');
         break;
+        
       case 'users':
-        // Users icon
-        this.doc.circle(x + size/3, y + size/3, size/6, 'F');
-        this.doc.circle(x + 2*size/3, y + size/3, size/6, 'F');
-        this.doc.rect(x, y + 2*size/3, size, size/3, 'F');
+        // Modern users icon
+        this.doc.circle(x + 6, y + 7, 3, 'F');
+        this.doc.circle(x + 12, y + 7, 3, 'F');
+        this.drawRoundedRect(x + 4, y + 12, 12, 6, 3, 'F');
         break;
+        
       case 'clock':
-        // Clock icon
-        this.doc.circle(x + size/2, y + size/2, size/2, 'F');
+        // Modern clock icon
+        this.doc.circle(x + iconBgSize/2, y + iconBgSize/2, size/2 - 1, 'F');
+        this.doc.setFillColor(this.customization.colors.accent);
+        this.doc.circle(x + iconBgSize/2, y + iconBgSize/2, size/2 - 3, 'F');
         this.doc.setFillColor('#ffffff');
-        this.doc.circle(x + size/2, y + size/2, size/2 - 2, 'F');
-        this.doc.setDrawColor(this.customization.colors.accent);
+        // Clock hands
         this.doc.setLineWidth(2);
-        this.doc.line(x + size/2, y + size/2, x + size/2, y + size/4);
-        this.doc.line(x + size/2, y + size/2, x + 3*size/4, y + size/2);
+        this.doc.setDrawColor('#ffffff');
+        this.doc.line(x + iconBgSize/2, y + iconBgSize/2, x + iconBgSize/2, y + 6);
+        this.doc.line(x + iconBgSize/2, y + iconBgSize/2, x + iconBgSize/2 + 4, y + iconBgSize/2);
         break;
     }
   }
 
   private addGradientHeader(y: number): number {
-    // Create gradient effect using multiple rectangles
-    const headerHeight = 80;
-    const steps = 20;
+    // Modern gradient header with multiple color stops
+    const headerHeight = 100;
+    const steps = 30;
     
     for (let i = 0; i < steps; i++) {
-      const opacity = 1 - (i / steps) * 0.8;
-      const gray = Math.floor(248 - (i / steps) * 30); // From slate-50 to darker
-      this.doc.setFillColor(gray, gray, gray);
-      this.doc.rect(0, y + (i * headerHeight / steps), this.pageWidth, headerHeight / steps, 'F');
+      const progress = i / (steps - 1);
+      // Create a sand-to-white gradient
+      const r = Math.floor(248 - (progress * 20)); // Start from light sand
+      const g = Math.floor(250 - (progress * 15));
+      const b = Math.floor(252 - (progress * 10));
+      
+      this.doc.setFillColor(r, g, b);
+      this.doc.rect(0, y + (i * headerHeight / steps), this.pageWidth, Math.ceil(headerHeight / steps) + 1, 'F');
     }
     
     return y + headerHeight;
@@ -117,7 +190,7 @@ export class PDFCustomizationService {
     let y = this.customization.layout.margins.top;
 
     // Add gradient header background
-    const headerY = y - 20;
+    const headerY = y - 30;
     this.addGradientHeader(headerY);
 
     // Add logo if configured
@@ -125,48 +198,61 @@ export class PDFCustomizationService {
       y = await this.addLogo(y);
     }
 
-    // Company name with enhanced styling
+    // Company name in a subtle card
     if (this.customization.branding.companyName) {
+      const companyCardWidth = 200;
+      const companyCardX = this.customization.layout.headerStyle === 'centered' 
+        ? (this.pageWidth - companyCardWidth) / 2 
+        : this.customization.layout.margins.left;
+      
+      this.drawInnerCard(companyCardX, y - 5, companyCardWidth, 25, '#ffffff');
+      
       this.setFont('small');
       this.setColor('secondary');
       
       const textAlign = this.customization.layout.headerStyle === 'centered' ? 'center' : 'left';
-      const x = textAlign === 'center' ? this.pageWidth / 2 : this.customization.layout.margins.left;
+      const textX = textAlign === 'center' ? this.pageWidth / 2 : companyCardX + 10;
       
-      this.doc.text(this.customization.branding.companyName, x, y, { align: textAlign });
-      y += 25;
+      this.doc.text(this.customization.branding.companyName, textX, y + 8, { align: textAlign });
+      y += 35;
     }
 
-    // Main title with enhanced styling and background
-    this.setFont('title');
-    this.setColor('primary');
-    
+    // Main title with enhanced card background
     const titleAlign = this.customization.layout.headerStyle === 'centered' ? 'center' : 'left';
     const titleX = titleAlign === 'center' ? this.pageWidth / 2 : this.customization.layout.margins.left;
     
-    // Title background highlight
-    const titleWidth = this.doc.getTextWidth('CALL SHEET');
-    const titleBgX = titleAlign === 'center' ? titleX - titleWidth/2 - 10 : titleX - 5;
-    this.doc.setFillColor(this.customization.colors.accent);
-    this.doc.rect(titleBgX, y - this.customization.typography.fontSize.title - 5, titleWidth + 20, this.customization.typography.fontSize.title + 10, 'F');
+    // Title card background
+    const titleWidth = this.doc.getTextWidth('CALL SHEET') * 1.2;
+    const titleCardX = titleAlign === 'center' ? titleX - titleWidth/2 - 20 : titleX - 15;
     
+    // Outer title card with shadow
+    this.drawNestedCard(
+      titleCardX, 
+      y - 10, 
+      titleWidth + 40, 
+      this.customization.typography.fontSize.title + 25,
+      { shadow: true, backgroundColor: this.customization.colors.accent }
+    );
+    
+    this.setFont('title');
     this.doc.setTextColor('#ffffff');
-    this.doc.text('CALL SHEET', titleX, y, { align: titleAlign });
-    y += this.customization.typography.fontSize.title + 10;
+    this.doc.text('CALL SHEET', titleX, y + this.customization.typography.fontSize.title - 5, { align: titleAlign });
+    y += this.customization.typography.fontSize.title + 25;
 
-    // Project title with card background
-    const projectCardY = y;
-    this.drawCard(
-      this.customization.layout.margins.left - 10, 
-      projectCardY - 5, 
-      this.pageWidth - 2 * this.customization.layout.margins.left + 20, 
-      35
+    // Project title in elegant card
+    const projectCardWidth = this.pageWidth - 2 * this.customization.layout.margins.left;
+    const { contentStartY } = this.drawNestedCard(
+      this.customization.layout.margins.left, 
+      y, 
+      projectCardWidth, 
+      50,
+      { hasHeader: false, shadow: true, backgroundColor: '#ffffff' }
     );
     
     this.setFont('header');
     this.setColor('primary');
-    this.doc.text(callsheet.projectTitle, titleX, y + 15, { align: titleAlign });
-    y += 50;
+    this.doc.text(callsheet.projectTitle, titleX, contentStartY + 8, { align: titleAlign });
+    y += 70;
     
     return y + this.customization.layout.spacing.sectionGap;
   }
@@ -174,89 +260,110 @@ export class PDFCustomizationService {
   private addBasicInfo(callsheet: CallsheetData, startY: number): number {
     let y = startY;
     const margin = this.customization.layout.margins.left;
-    const cardWidth = (this.pageWidth - 2 * margin - 20) / 2;
+    const cardWidth = (this.pageWidth - 2 * margin - 30) / 2;
     
-    // Left card - Date and Call Time
-    this.drawCard(margin, y, cardWidth, 120, true);
+    // Left card - Date and Call Time with nested design
+    const leftCard = this.drawNestedCard(margin, y, cardWidth, 140, {
+      hasHeader: true,
+      headerHeight: 40,
+      shadow: true,
+      backgroundColor: '#ffffff',
+      headerColor: '#f8fafc'
+    });
     
-    // Calendar icon
-    this.addIconPlaceholder(margin + 15, y + 8, 14, 'calendar');
+    // Calendar icon in header
+    this.addIconPlaceholder(margin + 15, y + 8, 16, 'calendar');
     
     this.setFont('header');
     this.setColor('accent');
-    this.doc.text('SHOOT DETAILS', margin + 35, y + 20);
+    this.doc.text('SHOOT DETAILS', margin + 45, y + 25);
     
-    y += 45;
+    // Date in inner card
+    this.drawInnerCard(margin + 15, leftCard.contentStartY + 5, cardWidth - 30, 30, '#fef7ed');
     this.setFont('body');
     this.setColor('secondary');
-    this.doc.text('Date:', margin + 15, y);
+    this.doc.text('Date:', margin + 25, leftCard.contentStartY + 18);
     
     this.setFont('body');
     this.setColor('text');
     this.doc.text(new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    }), margin + 15, y + 15);
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric'
+    }), margin + 25, leftCard.contentStartY + 28);
     
-    y += 35;
+    // Call time in inner card
+    this.drawInnerCard(margin + 15, leftCard.contentStartY + 45, cardWidth - 30, 30, '#f0f9ff');
     this.setFont('body');
     this.setColor('secondary');
-    this.doc.text('General Call:', margin + 15, y);
+    this.doc.text('General Call:', margin + 25, leftCard.contentStartY + 58);
     
     this.setFont('body');
     this.setColor('text');
-    this.doc.text(callsheet.generalCallTime, margin + 15, y + 15);
+    this.doc.text(callsheet.generalCallTime, margin + 25, leftCard.contentStartY + 68);
 
-    // Right card - Location
-    const rightCardX = margin + cardWidth + 20;
-    this.drawCard(rightCardX, startY, cardWidth, 120, true);
+    // Right card - Location with enhanced styling
+    const rightCardX = margin + cardWidth + 30;
+    const rightCard = this.drawNestedCard(rightCardX, y, cardWidth, 140, {
+      hasHeader: true,
+      headerHeight: 40,
+      shadow: true,
+      backgroundColor: '#ffffff', 
+      headerColor: '#f8fafc'
+    });
     
-    // Location icon
-    this.addIconPlaceholder(rightCardX + 15, startY + 8, 14, 'location');
+    // Location icon in header
+    this.addIconPlaceholder(rightCardX + 15, y + 8, 16, 'location');
     
     this.setFont('header');
     this.setColor('accent');
-    this.doc.text('LOCATION', rightCardX + 35, startY + 20);
+    this.doc.text('LOCATION', rightCardX + 45, y + 25);
     
-    let locationY = startY + 45;
+    // Location text in styled inner card
+    this.drawInnerCard(rightCardX + 15, rightCard.contentStartY + 5, cardWidth - 30, 80, '#f0fdf4');
     this.setFont('body');
     this.setColor('text');
-    const locationLines = this.doc.splitTextToSize(callsheet.location, cardWidth - 30);
-    this.doc.text(locationLines, rightCardX + 15, locationY);
+    const locationLines = this.doc.splitTextToSize(callsheet.location, cardWidth - 50);
+    this.doc.text(locationLines, rightCardX + 25, rightCard.contentStartY + 20);
     
-    return startY + 140 + this.customization.layout.spacing.sectionGap;
+    return y + 160 + this.customization.layout.spacing.sectionGap;
   }
 
   private addLocationDetails(callsheet: CallsheetData, startY: number): number {
     let y = startY;
     const margin = this.customization.layout.margins.left;
     
-    // Location details card
+    // Location details card with nested style
     const cardHeight = 150;
-    this.drawCard(margin, y, this.pageWidth - 2 * margin, cardHeight, true);
+    const card = this.drawNestedCard(margin, y, this.pageWidth - 2 * margin, cardHeight, {
+      hasHeader: true,
+      headerHeight: 40,
+      shadow: true,
+      backgroundColor: '#ffffff',
+      headerColor: '#f8fafc'
+    });
     
-    // Location icon
-    this.addIconPlaceholder(margin + 15, y + 8, 14, 'location');
+    // Location icon in header
+    this.addIconPlaceholder(margin + 15, y + 8, 16, 'location');
     
     this.setFont('header');
     this.setColor('accent');
-    this.doc.text('LOCATION DETAILS', margin + 35, y + 20);
+    this.doc.text('LOCATION DETAILS', margin + 45, y + 25);
     
-    y += 45;
+    y = card.contentStartY;
     
-    // Address with improved formatting
+    // Address with improved formatting in inner card
+    this.drawInnerCard(margin + 15, y, this.pageWidth - 2 * margin - 30, 40, '#fef7ed');
     this.setFont('body');
     this.setColor('secondary');
-    this.doc.text('Address:', margin + 15, y);
+    this.doc.text('Address:', margin + 25, y + 15);
     
     this.setFont('body');
     this.setColor('text');
     const addressLines = this.doc.splitTextToSize(callsheet.locationAddress, this.pageWidth - 2 * margin - 80);
-    this.doc.text(addressLines, margin + 80, y);
+    this.doc.text(addressLines, margin + 80, y + 15);
     
-    y += Math.max(addressLines.length * 12, 15) + 10;
+    y += 50;
     
     // Weather in styled box (if enabled)
     if (this.customization.sections.visibility.weather && callsheet.weather) {
@@ -314,16 +421,22 @@ export class PDFCustomizationService {
     const contactHeight = this.customization.sections.formatting.contactLayout === 'table' ? 18 : 35;
     const cardHeight = Math.max(baseHeight + (contacts.length * contactHeight), 100);
     
-    this.drawCard(margin, y, this.pageWidth - 2 * margin, cardHeight, true);
+    const card = this.drawNestedCard(margin, y, this.pageWidth - 2 * margin, cardHeight, {
+      hasHeader: true,
+      headerHeight: 40,
+      shadow: true,
+      backgroundColor: '#ffffff',
+      headerColor: '#f8fafc'
+    });
     
-    // Users icon
-    this.addIconPlaceholder(margin + 15, y + 8, 14, 'users');
+    // Users icon in header
+    this.addIconPlaceholder(margin + 15, y + 8, 16, 'users');
     
     this.setFont('header');
     this.setColor('accent');
-    this.doc.text(title, margin + 35, y + 20);
+    this.doc.text(title, margin + 45, y + 25);
     
-    y += 45;
+    y = card.contentStartY;
     
     if (contacts.length === 0) {
       this.setFont('body');
@@ -369,10 +482,10 @@ export class PDFCustomizationService {
 
         // Individual contact card
         this.doc.setFillColor('#ffffff');
-        this.doc.rect(margin + 15, y - 5, this.pageWidth - 2 * margin - 30, 30, 'F');
+        this.drawRoundedRect(margin + 15, y - 5, this.pageWidth - 2 * margin - 30, 30, 6, 'F');
         this.doc.setDrawColor('#e2e8f0');
         this.doc.setLineWidth(0.5);
-        this.doc.rect(margin + 15, y - 5, this.pageWidth - 2 * margin - 30, 30, 'S');
+        this.drawRoundedRect(margin + 15, y - 5, this.pageWidth - 2 * margin - 30, 30, 6, 'S');
 
         this.setColor('text');
         this.setFont('body');
@@ -399,16 +512,22 @@ export class PDFCustomizationService {
     const scheduleHeight = this.customization.sections.formatting.scheduleCompact ? 25 : 50;
     const cardHeight = Math.max(baseHeight + (callsheet.schedule.length * scheduleHeight), 100);
     
-    this.drawCard(margin, y, this.pageWidth - 2 * margin, cardHeight, true);
+    const card = this.drawNestedCard(margin, y, this.pageWidth - 2 * margin, cardHeight, {
+      hasHeader: true,
+      headerHeight: 40,
+      shadow: true,
+      backgroundColor: '#ffffff',
+      headerColor: '#f8fafc'
+    });
     
-    // Clock icon
-    this.addIconPlaceholder(margin + 15, y + 8, 14, 'clock');
+    // Clock icon in header
+    this.addIconPlaceholder(margin + 15, y + 8, 16, 'clock');
     
     this.setFont('header');
     this.setColor('accent');
-    this.doc.text('SHOOTING SCHEDULE', margin + 35, y + 20);
+    this.doc.text('SHOOTING SCHEDULE', margin + 45, y + 25);
     
-    y += 45;
+    y = card.contentStartY;
     
     if (callsheet.schedule.length === 0) {
       this.setFont('body');
@@ -427,7 +546,7 @@ export class PDFCustomizationService {
 
       // Scene number highlight
       this.doc.setFillColor(this.customization.colors.accent);
-      this.doc.rect(margin + 15, y - 8, 50, 16, 'F');
+      this.drawRoundedRect(margin + 15, y - 8, 50, 16, 4, 'F');
       this.setFont('body');
       this.doc.setTextColor('#ffffff');
       this.doc.text(`${item.sceneNumber}`, margin + 25, y);
@@ -481,13 +600,19 @@ export class PDFCustomizationService {
     const notesLines = this.doc.splitTextToSize(callsheet.specialNotes, this.pageWidth - 2 * margin - 30);
     const cardHeight = Math.max(80 + notesLines.length * 12, 100);
     
-    this.drawCard(margin, y, this.pageWidth - 2 * margin, cardHeight, true);
+    const card = this.drawNestedCard(margin, y, this.pageWidth - 2 * margin, cardHeight, {
+      hasHeader: true,
+      headerHeight: 40,
+      shadow: true,
+      backgroundColor: '#ffffff',
+      headerColor: '#f8fafc'
+    });
     
     this.setFont('header');
     this.setColor('accent');
-    this.doc.text('SPECIAL NOTES', margin + 15, y + 20);
+    this.doc.text('SPECIAL NOTES', margin + 15, y + 25);
     
-    y += 40;
+    y = card.contentStartY;
     
     // Notes background highlight
     this.doc.setFillColor('#fef3c7'); // amber-100
