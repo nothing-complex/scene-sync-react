@@ -76,13 +76,13 @@ export interface PDFSectionConfig {
 export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
   layout: {
     headerStyle: 'centered',
-    margins: { top: 30, bottom: 30, left: 30, right: 30 },
-    spacing: { sectionGap: 25, itemGap: 12 },
+    margins: { top: 40, bottom: 40, left: 40, right: 40 },
+    spacing: { sectionGap: 30, itemGap: 15 },
     pageOrientation: 'portrait'
   },
   typography: {
     fontFamily: 'helvetica',
-    fontSize: { title: 24, header: 13, body: 11, small: 9 },
+    fontSize: { title: 28, header: 14, body: 11, small: 9 },
     fontWeight: { title: 'bold', header: 'bold', body: 'normal' }
   },
   branding: {
@@ -90,11 +90,11 @@ export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
     footer: { text: '', position: 'center' }
   },
   colors: {
-    primary: '#2c1810',
-    secondary: '#8b6f47',
-    text: '#2c1810',
-    accent: '#d4a574',
-    background: '#ffffff'
+    primary: '#0f172a',      // Website's slate-900
+    secondary: '#64748b',    // Website's slate-500  
+    text: '#334155',         // Website's slate-700
+    accent: '#f59e0b',       // Website's amber-500
+    background: '#f8fafc'    // Website's slate-50
   },
   sections: {
     order: ['basic', 'location', 'cast', 'crew', 'schedule', 'emergency', 'notes'],
