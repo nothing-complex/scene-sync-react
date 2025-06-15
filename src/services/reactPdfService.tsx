@@ -106,10 +106,9 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     marginLeft: 8,
   },
 
-  // Table layout styles
+  // Table layout styles - removed invalid borderStyle
   table: {
     width: '100%',
-    borderStyle: 'none',
   },
   
   tableRow: {
@@ -210,10 +209,9 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     lineHeight: 1.2,
   },
 
-  // Schedule styling with table layout
+  // Schedule styling with table layout - removed invalid borderStyle
   scheduleTable: {
     width: '100%',
-    borderStyle: 'none',
   },
   
   scheduleHeaderRow: {
