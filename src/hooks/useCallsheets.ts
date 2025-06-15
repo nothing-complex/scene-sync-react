@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -72,10 +73,10 @@ export const useCallsheets = () => {
         location_address: callsheetData.locationAddress,
         parking_instructions: callsheetData.parkingInstructions,
         basecamp_location: callsheetData.basecampLocation,
-        cast_members: callsheetData.cast,
-        crew_members: callsheetData.crew,
-        schedule: callsheetData.schedule,
-        emergency_contacts: callsheetData.emergencyContacts,
+        cast_members: callsheetData.cast as any,
+        crew_members: callsheetData.crew as any,
+        schedule: callsheetData.schedule as any,
+        emergency_contacts: callsheetData.emergencyContacts as any,
         weather: callsheetData.weather,
         special_notes: callsheetData.specialNotes,
         project_id: callsheetData.projectId,
