@@ -41,48 +41,51 @@ export const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      {/* Enhanced Header */}
+      <header className="border-b border-border/40 bg-background/95 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 gradient-sand rounded-xl flex items-center justify-center">
-              <Film className="w-6 h-6 text-primary-foreground" />
+            <div className="w-12 h-12 gradient-sand rounded-2xl flex items-center justify-center shadow-lg">
+              <Film className="w-7 h-7 text-primary-foreground" />
             </div>
-            <span className="text-xl font-semibold text-foreground">CallTime</span>
+            <span className="text-2xl font-bold text-foreground tracking-tight">CallTime</span>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate('/auth')}>
+            <Button variant="ghost" onClick={() => navigate('/auth')} className="font-medium">
               Sign in
             </Button>
-            <Button onClick={() => navigate('/auth')} className="bg-primary hover:bg-primary/90">
+            <Button onClick={() => navigate('/auth')} className="btn-primary">
               Start for free
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-light text-foreground mb-6 leading-tight">
-            Professional callsheets that <span className="text-primary font-medium underline decoration-primary/30">crews actually want</span> to use
+      {/* Enhanced Hero Section */}
+      <section className="max-w-7xl mx-auto px-6 py-24 text-center">
+        <div className="max-w-5xl mx-auto animate-fade-in-up">
+          <h1 className="hero-text mb-8">
+            Professional callsheets that{' '}
+            <span className="text-primary interactive-underline">crews actually want</span>{' '}
+            to use
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto font-light">
+          <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
             Create beautiful callsheets in minutes. Manage your contacts, customize your PDFs, and deliver professional-looking callsheets that crews can rely on.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button 
               size="lg" 
               onClick={() => navigate('/auth')}
-              className="bg-foreground text-background hover:bg-foreground/90 px-8 py-3 text-lg"
+              className="btn-primary text-lg animate-bounce-subtle"
             >
               Create your first callsheet
+              <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
               onClick={() => navigate('/auth')}
-              className="px-8 py-3 text-lg border-2"
+              className="btn-secondary text-lg"
             >
               See how it works
             </Button>
@@ -90,78 +93,78 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-light text-foreground mb-4">
+      {/* Enhanced Features Section */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="text-center mb-20">
+          <h2 className="section-heading mb-6">
             Everything you need for professional callsheets
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             From project setup to PDF generation, CallTime streamlines your callsheet creation process.
           </p>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <Card key={index} className="glass-effect border-0 card-hover">
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <feature.icon className="w-8 h-8 text-primary" />
+            <Card key={index} className="feature-card border-0">
+              <CardContent className="p-10">
+                <div className="w-20 h-20 bg-primary/15 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                  <feature.icon className="w-10 h-10 text-primary" />
                 </div>
-                <h3 className="text-xl font-medium text-foreground mb-4">{feature.title}</h3>
-                <p className="text-muted-foreground font-light">{feature.description}</p>
+                <h3 className="text-2xl font-bold text-foreground mb-6">{feature.title}</h3>
+                <p className="text-muted-foreground text-lg leading-relaxed">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
 
-      {/* Demo Preview */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="glass-effect rounded-3xl p-12 text-center">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex items-center justify-center space-x-2 mb-6">
+      {/* Enhanced Demo Preview */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="glass-effect rounded-3xl p-16 text-center">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-center space-x-3 mb-8">
               <div className="flex space-x-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-primary text-primary" />
+                  <Star key={i} className="w-6 h-6 fill-primary text-primary" />
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground">Used by production teams</span>
+              <span className="text-muted-foreground font-medium">Used by production teams</span>
             </div>
             
-            <h2 className="text-3xl md:text-4xl font-light text-foreground mb-6">
+            <h2 className="section-heading mb-8">
               Simple. Professional. Reliable.
             </h2>
-            <p className="text-lg text-muted-foreground mb-8 font-light">
+            <p className="text-xl text-muted-foreground mb-12 leading-relaxed">
               CallTime brings order to your production workflow. Create callsheets with project details, location information, and cast & crew contacts. Generate beautiful PDFs that your team can depend on, shoot after shoot.
             </p>
             
-            <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-              <CheckCircle className="w-4 h-4 text-green-500" />
-              <span>Ready to use in minutes</span>
+            <div className="flex items-center justify-center space-x-3 text-muted-foreground">
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <span className="font-medium">Ready to use in minutes</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
+      {/* Enhanced Testimonials */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
         <div className="grid md:grid-cols-2 gap-12">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="glass-effect border-0">
-              <CardContent className="p-8">
-                <p className="text-lg text-foreground mb-6 font-light italic">
+            <Card key={index} className="testimonial-card border-0">
+              <CardContent className="p-10">
+                <p className="text-xl text-foreground mb-8 italic leading-relaxed">
                   "{testimonial.quote}"
                 </p>
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="text-primary font-medium text-sm">
+                  <div className="w-14 h-14 bg-primary/20 rounded-full flex items-center justify-center">
+                    <span className="text-primary font-bold">
                       {testimonial.author.split(' ').map(n => n[0]).join('')}
                     </span>
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">{testimonial.author}</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    <p className="font-bold text-foreground text-lg">{testimonial.author}</p>
+                    <p className="text-muted-foreground">{testimonial.role}</p>
                   </div>
                 </div>
               </CardContent>
@@ -170,19 +173,19 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
+      {/* Enhanced CTA Section */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
         <div className="text-center">
-          <h2 className="text-3xl md:text-4xl font-light text-foreground mb-6">
+          <h2 className="section-heading mb-8">
             Ready to create professional callsheets?
           </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto font-light">
+          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
             Join filmmakers who have streamlined their callsheet process with CallTime.
           </p>
           <Button 
             size="lg" 
             onClick={() => navigate('/auth')}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg group"
+            className="btn-primary text-lg group"
           >
             Start creating callsheets
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -190,17 +193,17 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border/50 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-6 py-12">
+      {/* Enhanced Footer */}
+      <footer className="border-t border-border/40 bg-muted/50">
+        <div className="max-w-7xl mx-auto px-6 py-16">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 gradient-sand rounded-lg flex items-center justify-center">
-                <Film className="w-5 h-5 text-primary-foreground" />
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 gradient-sand rounded-xl flex items-center justify-center shadow-md">
+                <Film className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="font-semibold text-foreground">CallTime</span>
+              <span className="font-bold text-foreground text-xl">CallTime</span>
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-muted-foreground font-medium">
               © 2024 CallTime Studio Tools
             </div>
           </div>
