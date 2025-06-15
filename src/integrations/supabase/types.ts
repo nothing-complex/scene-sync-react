@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      callsheet_shares: {
+        Row: {
+          accepted_at: string | null
+          callsheet_id: string
+          can_edit: boolean
+          created_at: string
+          id: string
+          shared_by: string
+          shared_with_email: string
+          shared_with_user: string | null
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          callsheet_id: string
+          can_edit?: boolean
+          created_at?: string
+          id?: string
+          shared_by: string
+          shared_with_email: string
+          shared_with_user?: string | null
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          callsheet_id?: string
+          can_edit?: boolean
+          created_at?: string
+          id?: string
+          shared_by?: string
+          shared_with_email?: string
+          shared_with_user?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "callsheet_shares_callsheet_id_fkey"
+            columns: ["callsheet_id"]
+            isOneToOne: false
+            referencedRelation: "callsheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       callsheets: {
         Row: {
           basecamp_location: string | null

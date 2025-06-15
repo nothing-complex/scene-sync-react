@@ -1,10 +1,12 @@
 
 import { useState } from 'react';
-import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, Users, Camera, AlertCircle, RefreshCw } from 'lucide-react';
+import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, Users, Camera, AlertCircle, RefreshCw, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCallsheet } from '@/contexts/CallsheetContext';
 import { CallsheetForm } from './CallsheetForm';
+import { ShareCallsheetDialog } from './ShareCallsheetDialog';
+import { ShareInvitations } from './ShareInvitations';
 import { generateCallsheetPDF } from '@/services/pdfService';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -21,6 +23,11 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
   const { user } = useAuth();
   const [editingCallsheet, setEditingCallsheet] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [shareDialog, setShareDialog] = useState<{ isOpen: boolean; callsheetId: string; title: string }>({
+    isOpen: false,
+    callsheetId: '',
+    title: ''
+  });
 
   if (editingCallsheet) {
     return (
@@ -63,6 +70,14 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
     }
   };
 
+  const handleShare = (callsheetId: string, title: string) => {
+    setShareDialog({
+      isOpen: true,
+      callsheetId,
+      title
+    });
+  };
+
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
   
@@ -100,6 +115,9 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                 New Callsheet
               </Button>
             </div>
+
+            {/* Share Invitations */}
+            <ShareInvitations />
 
             {/* Error Alert */}
             {error && (
@@ -313,6 +331,15 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                                 variant="ghost"
                                 size="sm"
                                 className="h-9 w-9 p-0 hover:bg-accent"
+                                onClick={() => handleShare(callsheet.id, callsheet.projectTitle)}
+                                disabled={actionLoading !== null}
+                              >
+                                <Share2 className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 w-9 p-0 hover:bg-accent"
                                 onClick={() => handleDuplicate(callsheet.id)}
                                 disabled={actionLoading !== null}
                               >
@@ -355,6 +382,14 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
             )}
           </div>
         </div>
+
+        {/* Share Dialog */}
+        <ShareCallsheetDialog
+          callsheetId={shareDialog.callsheetId}
+          callsheetTitle={shareDialog.title}
+          isOpen={shareDialog.isOpen}
+          onClose={() => setShareDialog({ isOpen: false, callsheetId: '', title: '' })}
+        />
       </div>
     </ErrorBoundary>
   );
