@@ -107,9 +107,9 @@ export class EmergencyService {
   ): Promise<EmergencyService[]> {
     try {
       const radiusMeters = radiusKm * 1000;
-      const hospitalRadiusMeters = 5000; // 5km for hospitals
+      const hospitalRadiusMeters = 10000; // 10km for hospitals
       
-      // Updated Overpass QL query with separate queries for hospitals (5km) and others (default radius)
+      // Updated Overpass QL query with separate queries for hospitals (10km) and others (default radius)
       const query = `
         [out:json][timeout:25];
         (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2, AlertTriangle, Phone } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useCallsheet, Contact, CallsheetData, ScheduleItem } from '@/contexts/CallsheetContext';
 import { ContactSelector } from './ContactSelector';
 import { LocationInput } from './LocationInput';
+import { EmergencyNumbers } from './EmergencyNumbers';
 import { WeatherService, WeatherData } from '@/services/weatherService';
 import { EmergencyService } from '@/services/emergencyService';
 
@@ -103,7 +104,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
       }
     }
 
-    // Auto-fetch emergency services
+    // Auto-fetch emergency services with 10km radius
     setEmergencyServicesLoading(true);
     try {
       const services = await EmergencyService.getNearbyEmergencyServices(
@@ -328,6 +329,11 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
           </CardContent>
         </Card>
 
+        {/* Emergency Numbers - Prominent Display */}
+        {emergencyNumbers && (
+          <EmergencyNumbers emergencyNumbers={emergencyNumbers} />
+        )}
+
         {/* Location Information */}
         <Card>
           <CardHeader>
@@ -406,34 +412,6 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 )}
               </div>
             </div>
-
-            {/* Emergency Numbers Section */}
-            {emergencyNumbers && (
-              <div className="mt-6">
-                <Label className="text-base font-medium flex items-center mb-3">
-                  <Phone className="w-4 h-4 mr-2" />
-                  Emergency Phone Numbers
-                </Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="text-center">
-                    <div className="font-medium text-red-700">General</div>
-                    <div className="text-lg font-bold text-red-800">{emergencyNumbers.general}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium text-red-700">Police</div>
-                    <div className="text-lg font-bold text-red-800">{emergencyNumbers.police}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium text-red-700">Fire</div>
-                    <div className="text-lg font-bold text-red-800">{emergencyNumbers.fire}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium text-red-700">Medical</div>
-                    <div className="text-lg font-bold text-red-800">{emergencyNumbers.medical}</div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Emergency Services Section */}
             {emergencyServices.length > 0 && (
