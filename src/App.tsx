@@ -30,7 +30,7 @@ const App = () => (
             } />
             <Route path="/" element={
               <ProtectedRoute fallback={<LandingPage />}>
-                <Index />
+                <Navigate to="/dashboard" replace />
               </ProtectedRoute>
             } />
             {/* Redirect /index to / to fix navigation issues */}
