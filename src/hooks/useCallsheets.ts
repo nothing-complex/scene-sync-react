@@ -64,25 +64,27 @@ export const useCallsheets = () => {
     try {
       setError(null);
       
+      const insertData = {
+        project_title: callsheetData.projectTitle,
+        shoot_date: callsheetData.shootDate,
+        general_call_time: callsheetData.generalCallTime,
+        location: callsheetData.location,
+        location_address: callsheetData.locationAddress,
+        parking_instructions: callsheetData.parkingInstructions,
+        basecamp_location: callsheetData.basecampLocation,
+        cast_members: callsheetData.cast,
+        crew_members: callsheetData.crew,
+        schedule: callsheetData.schedule,
+        emergency_contacts: callsheetData.emergencyContacts,
+        weather: callsheetData.weather,
+        special_notes: callsheetData.specialNotes,
+        project_id: callsheetData.projectId,
+        user_id: user.id,
+      };
+
       const { data, error: insertError } = await supabase
         .from('callsheets')
-        .insert({
-          project_title: callsheetData.projectTitle,
-          shoot_date: callsheetData.shootDate,
-          general_call_time: callsheetData.generalCallTime,
-          location: callsheetData.location,
-          location_address: callsheetData.locationAddress,
-          parking_instructions: callsheetData.parkingInstructions,
-          basecamp_location: callsheetData.basecampLocation,
-          cast_members: callsheetData.cast,
-          crew_members: callsheetData.crew,
-          schedule: callsheetData.schedule,
-          emergency_contacts: callsheetData.emergencyContacts,
-          weather: callsheetData.weather,
-          special_notes: callsheetData.specialNotes,
-          project_id: callsheetData.projectId,
-          user_id: user.id,
-        })
+        .insert(insertData)
         .select()
         .single();
 
