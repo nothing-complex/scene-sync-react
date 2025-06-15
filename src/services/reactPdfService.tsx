@@ -17,30 +17,30 @@ interface ReactPDFServiceProps {
 const createStyles = (customization: PDFCustomization) => StyleSheet.create({
   page: {
     backgroundColor: '#fefdfb',  // Warm sand background
-    padding: 20, // Reduced from margins.top
+    padding: 20,
     fontFamily: 'Helvetica',
-    fontSize: 9, // Reduced from customization.typography.fontSize.body
+    fontSize: 9,
     color: '#2c3e50',  // Darker, sophisticated text
   },
   
   // Header styles - more compact
   headerContainer: {
-    marginBottom: 20, // Reduced from 35
+    marginBottom: 20,
     alignItems: customization.layout.headerStyle === 'centered' ? 'center' : 'flex-start',
   },
   
   companyCard: {
     backgroundColor: '#ffffff',
-    padding: 8, // Reduced from 12
-    borderRadius: 12, // Reduced from 16
-    marginBottom: 12, // Reduced from 20
+    padding: 8,
+    borderRadius: 12,
+    marginBottom: 12,
     alignSelf: customization.layout.headerStyle === 'centered' ? 'center' : 'flex-start',
     borderWidth: 1,
     borderColor: '#e8e6e3',
   },
   
   companyName: {
-    fontSize: 10, // Reduced
+    fontSize: 10,
     color: '#6b7280',
     textAlign: customization.layout.headerStyle === 'centered' ? 'center' : 'left',
     fontWeight: 500,
@@ -48,14 +48,14 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
   
   titleCard: {
     backgroundColor: customization.colors.accent,
-    padding: 12, // Reduced from 20
-    borderRadius: 14, // Reduced from 20
-    marginBottom: 15, // Reduced from 25
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 15,
     alignSelf: customization.layout.headerStyle === 'centered' ? 'center' : 'flex-start',
   },
   
   title: {
-    fontSize: 18, // Reduced from customization.typography.fontSize.title
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#ffffff',
     textAlign: customization.layout.headerStyle === 'centered' ? 'center' : 'left',
@@ -63,32 +63,32 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
   
   projectTitleCard: {
     backgroundColor: '#ffffff',
-    padding: 12, // Reduced from 18
-    borderRadius: 12, // Reduced from 16
-    marginBottom: 18, // Reduced from 30
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 18,
     borderWidth: 1,
     borderColor: '#f3f2f0',
   },
   
   projectTitle: {
-    fontSize: 14, // Reduced
+    fontSize: 14,
     fontWeight: 'bold',
     color: customization.colors.primary,
     textAlign: customization.layout.headerStyle === 'centered' ? 'center' : 'left',
   },
 
-  // More compact card styles
+  // Table-based card styles
   sectionCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 12, // Reduced from 18
-    marginBottom: 16, // Reduced from 24
+    borderRadius: 12,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#f0efec',
   },
   
   cardHeader: {
     backgroundColor: '#fafaf9',
-    padding: 12, // Reduced from 18
+    padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0efec',
     flexDirection: 'row',
@@ -96,147 +96,228 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
   },
   
   cardContent: {
-    padding: 12, // Reduced from 20
+    padding: 12,
   },
   
   sectionTitle: {
-    fontSize: 11, // Reduced
+    fontSize: 11,
     fontWeight: 'bold',
     color: customization.colors.primary,
-    marginLeft: 8, // Reduced from 12
+    marginLeft: 8,
   },
 
-  // Tighter grid layouts
+  // Table layout styles
+  table: {
+    width: '100%',
+    borderStyle: 'none',
+  },
+  
+  tableRow: {
+    flexDirection: 'row',
+  },
+  
+  tableCell: {
+    flex: 1,
+    padding: 4,
+  },
+  
+  tableCellHalf: {
+    width: '50%',
+    padding: 4,
+  },
+  
+  tableCellThird: {
+    width: '33.33%',
+    padding: 4,
+  },
+  
+  tableCellTwoThirds: {
+    width: '66.67%',
+    padding: 4,
+  },
+
+  // Two column grid for contacts
   twoColumnGrid: {
     flexDirection: 'row',
-    gap: 12, // Reduced from 24
+    gap: 8,
   },
   
   column: {
     flex: 1,
   },
 
-  // More compact inner cards
+  // Compact inner cards
   innerCard: {
     backgroundColor: '#f8f7f5',
-    padding: 8, // Reduced from 14
-    borderRadius: 8, // Reduced from 12
-    marginBottom: 8, // Reduced from 12
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#ebe9e6',
   },
   
   innerCardAccent: {
     backgroundColor: '#fef9f3',
-    padding: 8, // Reduced from 14
-    borderRadius: 8, // Reduced from 12
-    marginBottom: 8, // Reduced from 12
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#fed7aa',
   },
 
   // Smaller typography
   label: {
-    fontSize: 8, // Reduced
+    fontSize: 8,
     color: '#6b7280',
-    marginBottom: 3, // Reduced from 5
+    marginBottom: 3,
     fontWeight: 600,
   },
   
   value: {
-    fontSize: 9, // Reduced
+    fontSize: 9,
     color: '#374151',
-    lineHeight: 1.3, // Reduced from 1.5
+    lineHeight: 1.3,
     fontWeight: 400,
   },
 
-  // Compact contact styles
+  // Compact contact styles for two-column layout
   contactItem: {
     backgroundColor: '#ffffff',
-    padding: 10, // Reduced from 16
-    borderRadius: 8, // Reduced from 12
-    marginBottom: 6, // Reduced from 10
+    padding: 8,
+    borderRadius: 6,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#f0efec',
   },
   
   contactName: {
-    fontSize: 9, // Reduced
+    fontSize: 8,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginBottom: 3, // Reduced from 6
+    marginBottom: 2,
+  },
+  
+  contactRole: {
+    fontSize: 7,
+    color: '#6b7280',
+    marginBottom: 2,
+    fontStyle: 'italic',
   },
   
   contactDetails: {
-    fontSize: 8, // Reduced
+    fontSize: 7,
     color: '#6b7280',
-    lineHeight: 1.2, // Reduced from 1.4
+    lineHeight: 1.2,
   },
 
-  // Tighter schedule styling
-  scheduleItem: {
+  // Schedule styling with table layout
+  scheduleTable: {
+    width: '100%',
+    borderStyle: 'none',
+  },
+  
+  scheduleHeaderRow: {
+    flexDirection: 'row',
+    backgroundColor: '#f8f7f5',
+    padding: 6,
+    borderRadius: 6,
+    marginBottom: 4,
+  },
+  
+  scheduleHeaderCell: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  
+  scheduleRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 10, // Reduced from 18
-    padding: 10, // Reduced from 16
+    marginBottom: 8,
+    padding: 8,
     backgroundColor: '#fafaf9',
-    borderRadius: 10, // Reduced from 14
-    borderLeftWidth: 3, // Reduced from 4
+    borderRadius: 8,
+    borderLeftWidth: 3,
     borderLeftColor: customization.colors.accent,
   },
   
   sceneNumber: {
     backgroundColor: customization.colors.accent,
     color: '#ffffff',
-    padding: 6, // Reduced from 8
-    borderRadius: 8, // Reduced from 10
-    fontSize: 8, // Reduced
+    padding: 4,
+    borderRadius: 6,
+    fontSize: 7,
     fontWeight: 'bold',
-    minWidth: 35, // Reduced from 45
+    minWidth: 30,
     textAlign: 'center',
-    marginRight: 10, // Reduced from 15
+    marginRight: 8,
   },
   
   scheduleContent: {
     flex: 1,
   },
   
-  scheduleHeader: {
-    flexDirection: 'row',
-    marginBottom: 4, // Reduced from 6
-    gap: 12, // Reduced from 18
-  },
-  
   scheduleText: {
-    fontSize: 8, // Reduced
+    fontSize: 7,
     color: '#6b7280',
     fontWeight: 500,
   },
+  
+  scheduleDescription: {
+    fontSize: 8,
+    color: '#374151',
+    marginBottom: 2,
+  },
 
-  // Compact notes styling
-  notesCard: {
-    backgroundColor: '#fffbeb',
-    padding: 12, // Reduced from 18
-    borderRadius: 8, // Reduced from 12
+  // Info grid styles
+  infoGrid: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  
+  infoCell: {
+    flex: 1,
+    backgroundColor: '#f8f7f5',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ebe9e6',
+  },
+  
+  infoCellAccent: {
+    flex: 1,
+    backgroundColor: '#fef9f3',
+    padding: 8,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#fed7aa',
   },
 
-  // Smaller footer
+  // Notes styling
+  notesCard: {
+    backgroundColor: '#fffbeb',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fed7aa',
+  },
+
+  // Footer
   footer: {
     position: 'absolute',
-    bottom: 15, // Reduced from 25
+    bottom: 15,
     left: 0,
     right: 0,
     backgroundColor: '#f8f7f5',
-    padding: 8, // Reduced from 10
+    padding: 8,
     textAlign: 'center',
-    borderRadius: 6, // Reduced from 8
-    marginHorizontal: 30, // Reduced from 40
+    borderRadius: 6,
+    marginHorizontal: 30,
   },
   
   footerText: {
-    fontSize: 8, // Reduced
+    fontSize: 8,
     color: '#9ca3af',
   },
 });
@@ -244,10 +325,10 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
 // Smaller icon component
 const IconPlaceholder: React.FC<{ type: string }> = ({ type }) => (
   <View style={{
-    width: 18, // Reduced from 24
-    height: 18, // Reduced from 24
+    width: 18,
+    height: 18,
     backgroundColor: '#f59e0b',
-    borderRadius: 9, // Reduced from 12
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
   }}>
@@ -286,28 +367,24 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
         <Text style={styles.sectionTitle}>SHOOT DETAILS</Text>
       </View>
       <View style={styles.cardContent}>
-        <View style={styles.twoColumnGrid}>
-          <View style={styles.column}>
-            <View style={styles.innerCard}>
-              <Text style={styles.label}>Date</Text>
-              <Text style={styles.value}>
-                {new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
-                  weekday: 'short', 
-                  month: 'short', 
-                  day: 'numeric' 
-                })}
-              </Text>
-            </View>
-            <View style={styles.innerCard}>
-              <Text style={styles.label}>General Call</Text>
-              <Text style={styles.value}>{callsheet.generalCallTime}</Text>
-            </View>
+        <View style={styles.infoGrid}>
+          <View style={styles.infoCell}>
+            <Text style={styles.label}>Date</Text>
+            <Text style={styles.value}>
+              {new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric' 
+              })}
+            </Text>
           </View>
-          <View style={styles.column}>
-            <View style={styles.innerCardAccent}>
-              <Text style={styles.label}>Location</Text>
-              <Text style={styles.value}>{callsheet.location}</Text>
-            </View>
+          <View style={styles.infoCell}>
+            <Text style={styles.label}>General Call</Text>
+            <Text style={styles.value}>{callsheet.generalCallTime}</Text>
+          </View>
+          <View style={styles.infoCellAccent}>
+            <Text style={styles.label}>Location</Text>
+            <Text style={styles.value}>{callsheet.location}</Text>
           </View>
         </View>
       </View>
@@ -334,15 +411,15 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
         )}
         
         {(callsheet.parkingInstructions || callsheet.basecampLocation) && (
-          <View style={styles.twoColumnGrid}>
+          <View style={styles.infoGrid}>
             {callsheet.parkingInstructions && (
-              <View style={styles.column}>
+              <View style={styles.infoCell}>
                 <Text style={styles.label}>Parking</Text>
                 <Text style={styles.value}>{callsheet.parkingInstructions}</Text>
               </View>
             )}
             {callsheet.basecampLocation && (
-              <View style={styles.column}>
+              <View style={styles.infoCell}>
                 <Text style={styles.label}>Basecamp</Text>
                 <Text style={styles.value}>{callsheet.basecampLocation}</Text>
               </View>
@@ -363,18 +440,34 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
         {contacts.length === 0 ? (
           <Text style={[styles.value, { fontStyle: 'italic' }]}>No contacts added</Text>
         ) : (
-          contacts.map((contact, index) => (
-            <View key={index} style={styles.contactItem}>
-              <Text style={styles.contactName}>
-                {contact.name} • {contact.role}
-                {contact.character && ` (${contact.character})`}
-              </Text>
-              <Text style={styles.contactDetails}>
-                {contact.phone}
-                {contact.email && ` • ${contact.email}`}
-              </Text>
+          <View style={styles.twoColumnGrid}>
+            <View style={styles.column}>
+              {contacts.filter((_, index) => index % 2 === 0).map((contact, index) => (
+                <View key={contact.id || index} style={styles.contactItem}>
+                  <Text style={styles.contactName}>{contact.name}</Text>
+                  <Text style={styles.contactRole}>
+                    {contact.role}
+                    {contact.character && ` (${contact.character})`}
+                  </Text>
+                  <Text style={styles.contactDetails}>{contact.phone}</Text>
+                  {contact.email && <Text style={styles.contactDetails}>{contact.email}</Text>}
+                </View>
+              ))}
             </View>
-          ))
+            <View style={styles.column}>
+              {contacts.filter((_, index) => index % 2 === 1).map((contact, index) => (
+                <View key={contact.id || index} style={styles.contactItem}>
+                  <Text style={styles.contactName}>{contact.name}</Text>
+                  <Text style={styles.contactRole}>
+                    {contact.role}
+                    {contact.character && ` (${contact.character})`}
+                  </Text>
+                  <Text style={styles.contactDetails}>{contact.phone}</Text>
+                  {contact.email && <Text style={styles.contactDetails}>{contact.email}</Text>}
+                </View>
+              ))}
+            </View>
+          </View>
         )}
       </View>
     </View>
@@ -391,22 +484,43 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
           {callsheet.schedule.length === 0 ? (
             <Text style={[styles.value, { fontStyle: 'italic' }]}>No schedule items added</Text>
           ) : (
-            callsheet.schedule.map((item, index) => (
-              <View key={index} style={styles.scheduleItem}>
-                <Text style={styles.sceneNumber}>{item.sceneNumber}</Text>
-                <View style={styles.scheduleContent}>
-                  <View style={styles.scheduleHeader}>
-                    <Text style={styles.scheduleText}>{item.intExt}</Text>
-                    <Text style={styles.scheduleText}>{item.estimatedTime}</Text>
-                    <Text style={styles.scheduleText}>{item.pageCount} pages</Text>
-                  </View>
-                  <Text style={styles.value}>{item.description}</Text>
-                  {item.location && (
-                    <Text style={styles.scheduleText}>📍 {item.location}</Text>
-                  )}
+            <View style={styles.scheduleTable}>
+              {/* Schedule Header */}
+              <View style={styles.scheduleHeaderRow}>
+                <View style={[styles.tableCellThird, { alignItems: 'center' }]}>
+                  <Text style={styles.scheduleHeaderCell}>SCENE</Text>
+                </View>
+                <View style={[styles.tableCellThird, { alignItems: 'center' }]}>
+                  <Text style={styles.scheduleHeaderCell}>TIME</Text>
+                </View>
+                <View style={[styles.tableCellThird, { alignItems: 'center' }]}>
+                  <Text style={styles.scheduleHeaderCell}>PAGES</Text>
                 </View>
               </View>
-            ))
+              
+              {callsheet.schedule.map((item, index) => (
+                <View key={index} style={styles.scheduleRow}>
+                  <Text style={styles.sceneNumber}>{item.sceneNumber}</Text>
+                  <View style={styles.scheduleContent}>
+                    <View style={styles.tableRow}>
+                      <View style={styles.tableCellThird}>
+                        <Text style={styles.scheduleText}>{item.intExt}</Text>
+                      </View>
+                      <View style={styles.tableCellThird}>
+                        <Text style={styles.scheduleText}>{item.estimatedTime}</Text>
+                      </View>
+                      <View style={styles.tableCellThird}>
+                        <Text style={styles.scheduleText}>{item.pageCount}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.scheduleDescription}>{item.description}</Text>
+                    {item.location && (
+                      <Text style={styles.scheduleText}>📍 {item.location}</Text>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </View>
           )}
         </View>
       </View>
