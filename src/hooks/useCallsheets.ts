@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { CallsheetData } from '@/contexts/CallsheetContext';
+import { CallsheetData, Contact } from '@/contexts/CallsheetContext';
 
 export const useCallsheets = () => {
   const [callsheets, setCallsheets] = useState<CallsheetData[]>([]);
@@ -38,10 +38,10 @@ export const useCallsheets = () => {
         locationAddress: row.location_address,
         parkingInstructions: row.parking_instructions || '',
         basecampLocation: row.basecamp_location || '',
-        cast: row.cast_members || [],
-        crew: row.crew_members || [],
-        schedule: row.schedule || [],
-        emergencyContacts: row.emergency_contacts || [],
+        cast: Array.isArray(row.cast_members) ? row.cast_members as Contact[] : [],
+        crew: Array.isArray(row.crew_members) ? row.crew_members as Contact[] : [],
+        schedule: Array.isArray(row.schedule) ? row.schedule : [],
+        emergencyContacts: Array.isArray(row.emergency_contacts) ? row.emergency_contacts as Contact[] : [],
         weather: row.weather || '',
         specialNotes: row.special_notes || '',
         createdAt: row.created_at,

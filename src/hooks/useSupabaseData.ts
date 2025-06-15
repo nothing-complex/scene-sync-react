@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Enhanced hook for comprehensive Supabase data fetching with error handling
-export const useSupabaseData = <T = any>(
+// Simplified hook for Supabase data fetching with better error handling
+export const useSupabaseData = <T extends Record<string, any>>(
   table: string,
   options: {
     select?: string;
@@ -37,7 +37,7 @@ export const useSupabaseData = <T = any>(
         setLoading(true);
         setError(null);
         
-        let query = supabase.from(table).select(select);
+        let query = supabase.from(table as any).select(select);
         
         // Apply user filter by default
         query = query.eq('user_id', user.id);
@@ -83,7 +83,7 @@ export const useSupabaseData = <T = any>(
         const { data: result, error } = await query;
 
         if (error) throw error;
-        setData(result || []);
+        setData(result as T[] || []);
       } catch (err) {
         console.error(`Error fetching ${table}:`, err);
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -99,7 +99,7 @@ export const useSupabaseData = <T = any>(
     if (user) {
       setLoading(true);
       try {
-        let query = supabase.from(table).select(select);
+        let query = supabase.from(table as any).select(select);
         query = query.eq('user_id', user.id);
         
         if (filter) {
@@ -114,7 +114,7 @@ export const useSupabaseData = <T = any>(
         const { data: result, error } = await query;
 
         if (error) throw error;
-        setData(result || []);
+        setData(result as T[] || []);
         setError(null);
       } catch (err) {
         console.error(`Error refetching ${table}:`, err);
@@ -128,7 +128,7 @@ export const useSupabaseData = <T = any>(
   return { data, loading, error, refetch };
 };
 
-// Specialized hooks for specific tables
+// Specialized hooks for specific tables with proper typing
 export const useProjects = () => {
   return useSupabaseData('projects', {
     orderBy: { column: 'created_at', ascending: false }
