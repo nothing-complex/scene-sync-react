@@ -66,7 +66,7 @@ export const useCallsheets = () => {
       
       const { data, error: insertError } = await supabase
         .from('callsheets')
-        .insert([{
+        .insert({
           project_title: callsheetData.projectTitle,
           shoot_date: callsheetData.shootDate,
           general_call_time: callsheetData.generalCallTime,
@@ -82,7 +82,7 @@ export const useCallsheets = () => {
           special_notes: callsheetData.specialNotes,
           project_id: callsheetData.projectId,
           user_id: user.id,
-        }])
+        })
         .select()
         .single();
 
