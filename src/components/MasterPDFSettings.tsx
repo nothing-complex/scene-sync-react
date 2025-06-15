@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,8 +27,7 @@ const DUMMY_CALLSHEET: CallsheetData = {
       role: 'Lead Actor',
       character: 'Marcus Ipsum',
       phone: '(555) 123-4567',
-      email: 'john@lorem.com',
-      company: 'Lorem Talent Agency'
+      email: 'john@lorem.com'
     },
     {
       id: 'cast2',
@@ -37,8 +35,7 @@ const DUMMY_CALLSHEET: CallsheetData = {
       role: 'Supporting Actor',
       character: 'Sarah Amet',
       phone: '(555) 234-5678',
-      email: 'jane@dolor.com',
-      company: 'Dolor Entertainment'
+      email: 'jane@dolor.com'
     }
   ],
   crew: [
@@ -48,7 +45,6 @@ const DUMMY_CALLSHEET: CallsheetData = {
       role: 'Director of Photography',
       phone: '(555) 345-6789',
       email: 'mike@consectetur.com',
-      company: 'Adipiscing Films',
       character: ''
     },
     {
@@ -57,7 +53,6 @@ const DUMMY_CALLSHEET: CallsheetData = {
       role: 'Script Supervisor',
       phone: '(555) 456-7890',
       email: 'sarah@elit.com',
-      company: 'Sed Productions',
       character: ''
     }
   ],
@@ -88,7 +83,6 @@ const DUMMY_CALLSHEET: CallsheetData = {
       role: 'On-Set Medic',
       phone: '(555) 911-0000',
       email: 'emergency@lorem.com',
-      company: 'Lorem Medical Services',
       character: ''
     }
   ],
