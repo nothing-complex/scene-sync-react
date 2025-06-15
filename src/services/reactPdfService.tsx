@@ -35,11 +35,7 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     borderRadius: 16,  // More rounded like Airbnb
     marginBottom: 20,
     alignSelf: customization.layout.headerStyle === 'centered' ? 'center' : 'flex-start',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: '#e8e6e3',
   },
   
@@ -48,7 +44,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     color: '#6b7280',
     textAlign: customization.layout.headerStyle === 'centered' ? 'center' : 'left',
     fontWeight: 500,
-    letterSpacing: 0.5,
   },
   
   titleCard: {
@@ -57,10 +52,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     borderRadius: 20,  // More pronounced rounding
     marginBottom: 25,
     alignSelf: customization.layout.headerStyle === 'centered' ? 'center' : 'flex-start',
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
   },
   
   title: {
@@ -68,7 +59,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     textAlign: customization.layout.headerStyle === 'centered' ? 'center' : 'left',
-    letterSpacing: 1.2,
   },
   
   projectTitleCard: {
@@ -76,10 +66,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     padding: 18,
     borderRadius: 16,
     marginBottom: 30,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
     borderWidth: 1,
     borderColor: '#f3f2f0',
   },
@@ -89,7 +75,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     fontWeight: 'bold',
     color: customization.colors.primary,
     textAlign: customization.layout.headerStyle === 'centered' ? 'center' : 'left',
-    letterSpacing: 0.3,
   },
 
   // Enhanced card styles inspired by Airbnb
@@ -97,13 +82,8 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 18,  // Softer, more modern rounding
     marginBottom: 24,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: '#f0efec',
-    overflow: 'hidden',
   },
   
   cardHeader: {
@@ -124,7 +104,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     fontWeight: 'bold',
     color: customization.colors.primary,
     marginLeft: 12,
-    letterSpacing: 0.5,
   },
 
   // Grid layouts with better spacing
@@ -143,12 +122,8 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     marginBottom: 12,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: '#ebe9e6',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
   },
   
   innerCardAccent: {
@@ -158,10 +133,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#fed7aa',
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
   },
 
   // Enhanced typography
@@ -170,8 +141,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     color: '#6b7280',
     marginBottom: 5,
     fontWeight: 600,
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
   },
   
   value: {
@@ -187,12 +156,8 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 10,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: '#f0efec',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
   },
   
   contactName: {
@@ -200,7 +165,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     fontWeight: 'bold',
     color: '#1f2937',
     marginBottom: 6,
-    letterSpacing: 0.1,
   },
   
   contactDetails: {
@@ -219,10 +183,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     borderRadius: 14,
     borderLeftWidth: 4,
     borderLeftColor: customization.colors.accent,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
   },
   
   sceneNumber: {
@@ -235,10 +195,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     minWidth: 45,
     textAlign: 'center',
     marginRight: 15,
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
   },
   
   scheduleContent: {
@@ -264,10 +220,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#fed7aa',
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
   },
 
   // Refined footer
@@ -286,7 +238,6 @@ const createStyles = (customization: PDFCustomization) => StyleSheet.create({
   footerText: {
     fontSize: customization.typography.fontSize.small,
     color: '#9ca3af',
-    letterSpacing: 0.2,
   },
 });
 
@@ -299,10 +250,6 @@ const IconPlaceholder: React.FC<{ type: string }> = ({ type }) => (
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
   }}>
     <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: 'bold' }}>
       {type === 'calendar' ? '📅' : type === 'location' ? '📍' : type === 'users' ? '👥' : type === 'clock' ? '🕐' : '📄'}
