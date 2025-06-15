@@ -9,7 +9,217 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      callsheets: {
+        Row: {
+          basecamp_location: string | null
+          cast_members: Json | null
+          created_at: string
+          crew_members: Json | null
+          emergency_contacts: Json | null
+          general_call_time: string
+          id: string
+          location: string
+          location_address: string
+          parking_instructions: string | null
+          project_id: string | null
+          project_title: string
+          schedule: Json | null
+          shoot_date: string
+          special_notes: string | null
+          updated_at: string
+          user_id: string
+          weather: string | null
+        }
+        Insert: {
+          basecamp_location?: string | null
+          cast_members?: Json | null
+          created_at?: string
+          crew_members?: Json | null
+          emergency_contacts?: Json | null
+          general_call_time: string
+          id?: string
+          location: string
+          location_address: string
+          parking_instructions?: string | null
+          project_id?: string | null
+          project_title: string
+          schedule?: Json | null
+          shoot_date: string
+          special_notes?: string | null
+          updated_at?: string
+          user_id: string
+          weather?: string | null
+        }
+        Update: {
+          basecamp_location?: string | null
+          cast_members?: Json | null
+          created_at?: string
+          crew_members?: Json | null
+          emergency_contacts?: Json | null
+          general_call_time?: string
+          id?: string
+          location?: string
+          location_address?: string
+          parking_instructions?: string | null
+          project_id?: string | null
+          project_title?: string
+          schedule?: Json | null
+          shoot_date?: string
+          special_notes?: string | null
+          updated_at?: string
+          user_id?: string
+          weather?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "callsheets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          character: string | null
+          created_at: string
+          department: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          character?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          character?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          company: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_members: {
+        Row: {
+          id: string
+          invited_by: string | null
+          joined_at: string
+          project_id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          project_id: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          project_id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          id: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          start_date?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          start_date?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

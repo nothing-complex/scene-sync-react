@@ -1,4 +1,3 @@
-
 export interface EmergencyService {
   id: string;
   name: string;
@@ -160,7 +159,7 @@ export class EmergencyService {
             coordinates: { lat: element.lat, lon: element.lon }
           };
         })
-        .filter((service): service is EmergencyService => service !== null) // Remove null entries
+        .filter((service): service is EmergencyService => service !== null) // Fixed: Properly typed filter
         .sort((a, b) => a.distance - b.distance) // Sort by distance
         .slice(0, 20); // Limit to 20 results
 
