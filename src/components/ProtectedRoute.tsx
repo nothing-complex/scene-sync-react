@@ -20,9 +20,11 @@ const ProtectedRoute = ({ children, fallback }: ProtectedRouteProps) => {
   }
 
   if (!user) {
+    // If fallback is provided, show it instead of redirecting to auth
     if (fallback) {
       return <>{fallback}</>;
     }
+    // Only redirect to auth if no fallback is provided
     return <Navigate to="/auth" replace />;
   }
 
