@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,87 +11,120 @@ interface MasterPDFSettingsProps {
   onBack: () => void;
 }
 
-// Dummy lorem ipsum callsheet data for preview
+// Enhanced dummy callsheet data for preview with modern content
 const DUMMY_CALLSHEET: CallsheetData = {
   id: 'preview',
-  projectTitle: 'Lorem Ipsum Productions',
+  projectTitle: 'Midnight in Paris',
   shootDate: '2024-07-15',
-  generalCallTime: '06:00',
-  location: 'Dolor Sit Amet Studios',
-  locationAddress: '123 Lorem Street, Ipsum City, CA 90210',
-  parkingInstructions: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-  basecampLocation: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+  generalCallTime: '06:00 AM',
+  location: 'Historic Downtown Studio',
+  locationAddress: '123 Creative Boulevard, Los Angeles, CA 90028',
+  parkingInstructions: 'Crew parking available in Lot B behind main building. Cast parking in covered structure on Level 2.',
+  basecampLocation: 'Main lobby area. Craft services available from 5:30 AM.',
   cast: [
     {
       id: 'cast1',
-      name: 'John Lorem',
-      role: 'Lead Actor',
-      character: 'Marcus Ipsum',
+      name: 'Emma Thompson',
+      role: 'Lead Actress',
+      character: 'Charlotte Winters',
       phone: '(555) 123-4567',
-      email: 'john@lorem.com'
+      email: 'emma.thompson@talent.com'
     },
     {
       id: 'cast2',
-      name: 'Jane Dolor',
+      name: 'James Rodriguez',
       role: 'Supporting Actor',
-      character: 'Sarah Amet',
+      character: 'Detective Hayes',
       phone: '(555) 234-5678',
-      email: 'jane@dolor.com'
+      email: 'james.rodriguez@talent.com'
+    },
+    {
+      id: 'cast3',
+      name: 'Sarah Chen',
+      role: 'Day Player',
+      character: 'Cafe Owner',
+      phone: '(555) 345-6789',
+      email: 'sarah.chen@talent.com'
     }
   ],
   crew: [
     {
       id: 'crew1',
-      name: 'Mike Consectetur',
+      name: 'Michael Anderson',
       role: 'Director of Photography',
       phone: '(555) 345-6789',
-      email: 'mike@consectetur.com',
+      email: 'michael.anderson@crew.com',
       character: ''
     },
     {
       id: 'crew2',
-      name: 'Sarah Elit',
+      name: 'Lisa Parker',
       role: 'Script Supervisor',
       phone: '(555) 456-7890',
-      email: 'sarah@elit.com',
+      email: 'lisa.parker@crew.com',
+      character: ''
+    },
+    {
+      id: 'crew3',
+      name: 'David Kim',
+      role: 'Gaffer',
+      phone: '(555) 567-8901',
+      email: 'david.kim@crew.com',
       character: ''
     }
   ],
   schedule: [
     {
       id: 'scene1',
-      sceneNumber: '1A',
+      sceneNumber: '12A',
       intExt: 'INT',
-      description: 'Lorem ipsum dolor sit amet kitchen scene',
-      location: 'Kitchen Set - Stage 2',
-      pageCount: '2/8',
+      description: 'Charlotte discovers the hidden letter in the antique desk',
+      location: 'Apartment Set - Stage 1',
+      pageCount: '2 1/8',
       estimatedTime: '07:00 AM - 09:30 AM'
     },
     {
       id: 'scene2',
-      sceneNumber: '3B',
+      sceneNumber: '15B',
       intExt: 'EXT',
-      description: 'Consectetur adipiscing elit outdoor sequence',
-      location: 'Parking Lot - Back Lot',
-      pageCount: '1 1/8',
+      description: 'Detective Hayes arrives at the crime scene',
+      location: 'Alley - Back Lot',
+      pageCount: '1 3/8',
       estimatedTime: '10:00 AM - 12:00 PM'
+    },
+    {
+      id: 'scene3',
+      sceneNumber: '18C',
+      intExt: 'INT',
+      description: 'Confrontation scene in the cafe',
+      location: 'Cafe Set - Stage 2',
+      pageCount: '3 2/8',
+      estimatedTime: '02:00 PM - 05:00 PM'
     }
   ],
   emergencyContacts: [
     {
       id: 'emergency1',
-      name: 'Emergency Lorem',
+      name: 'Dr. Jennifer Walsh',
       role: 'On-Set Medic',
       phone: '(555) 911-0000',
-      email: 'emergency@lorem.com',
+      email: 'j.walsh@medics.com',
+      character: ''
+    },
+    {
+      id: 'emergency2',
+      name: 'Security Command',
+      role: 'Studio Security',
+      phone: '(555) 911-1111',
+      email: 'security@studio.com',
       character: ''
     }
   ],
-  weather: 'Sunny, 75°F, Light breeze from the west at 5 mph',
-  specialNotes: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+  weather: 'Partly cloudy, 72°F. Light breeze from the southwest at 8 mph. 15% chance of light rain in the afternoon.',
+  specialNotes: 'Please note: All cast and crew must check in at main security gate. COVID protocols in effect - masks required in all indoor locations. Lunch will be served at 12:30 PM in the commissary. Please be mindful of noise levels as adjacent stages are filming.',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
-  userId: 'preview-user' // Add the missing userId property
+  userId: 'preview-user'
 };
 
 export const MasterPDFSettings = ({ onBack }: MasterPDFSettingsProps) => {
@@ -126,7 +160,7 @@ export const MasterPDFSettings = ({ onBack }: MasterPDFSettingsProps) => {
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-medium tracking-tight">PDF Appearance Settings</CardTitle>
           <p className="text-sm text-muted-foreground font-normal">
-            These settings will be applied as defaults to all new callsheets. Preview uses sample data.
+            These settings will be applied as defaults to all new callsheets. Preview uses enhanced sample data.
           </p>
         </CardHeader>
         <CardContent>
