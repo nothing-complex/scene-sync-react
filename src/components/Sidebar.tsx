@@ -102,6 +102,13 @@ export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
             <FileText className="w-4 h-4 mr-3" />
             New Callsheet
           </Button>
+          {/* 
+            COMMENTED OUT: "Go to Landing Page" button due to routing issues
+            - ProtectedRoute with fallback prop causes redirects to /auth instead of showing landing page
+            - Root route (/) with ProtectedRoute fallback not working as expected
+            - Need to fix routing logic before re-enabling this functionality
+          */}
+          {/* 
           <Button 
             onClick={handleGoHome}
             variant="outline"
@@ -110,6 +117,7 @@ export const Sidebar = ({ activeView, setActiveView }: SidebarProps) => {
             <Home className="w-4 h-4 mr-3" />
             Go to Landing Page
           </Button>
+          */}
         </div>
 
         {/* Simplified Settings Section */}
