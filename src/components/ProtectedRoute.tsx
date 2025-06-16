@@ -11,6 +11,8 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, fallback }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
+  console.log('ProtectedRoute - Auth state:', { user: user?.email, loading, hasFallback: !!fallback });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -20,6 +22,7 @@ const ProtectedRoute = ({ children, fallback }: ProtectedRouteProps) => {
   }
 
   if (!user) {
+    console.log('ProtectedRoute - No user, using fallback:', !!fallback);
     // If fallback is provided, show it instead of redirecting to auth
     if (fallback) {
       return <>{fallback}</>;
@@ -28,6 +31,7 @@ const ProtectedRoute = ({ children, fallback }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
+  console.log('ProtectedRoute - User authenticated, showing children');
   return <>{children}</>;
 };
 
