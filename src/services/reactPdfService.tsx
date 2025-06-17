@@ -128,9 +128,10 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.visual.cornerRadius,
       marginBottom: customization.layout.spacing.sectionGap,
       overflow: 'hidden',
-      // Fixed: Always set border properties to valid values
+      // Fixed: Ensure all border properties are always numbers
       borderWidth: customization.visual.cardStyle === 'bordered' ? 1 : 0,
-      borderColor: customization.visual.cardStyle === 'bordered' ? customization.colors.border : 'transparent',
+      borderColor: customization.visual.cardStyle === 'bordered' ? customization.colors.border : customization.colors.border,
+      borderStyle: 'solid',
     },
     
     sectionHeader: {
@@ -191,9 +192,10 @@ const createStyles = (customization: PDFCustomization) => {
       backgroundColor: customization.colors.background,
       padding: 12,
       borderRadius: customization.visual.cornerRadius - 2,
-      // Fixed: Always set border properties to valid values
+      // Fixed: Always provide explicit border values
       borderWidth: customization.visual.cardStyle === 'bordered' ? 1 : 0,
-      borderColor: customization.visual.cardStyle === 'bordered' ? customization.colors.borderLight : 'transparent',
+      borderColor: customization.colors.borderLight,
+      borderStyle: 'solid',
     },
     
     infoCellAccent: {
@@ -203,10 +205,10 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.visual.cornerRadius - 2,
       borderLeftWidth: 3,
       borderLeftColor: customization.colors.accent,
-      // Fixed: Set other border properties to avoid undefined
       borderTopWidth: 0,
       borderRightWidth: 0,
       borderBottomWidth: 0,
+      borderStyle: 'solid',
     },
 
     contactGrid: {
@@ -223,10 +225,10 @@ const createStyles = (customization: PDFCustomization) => {
       marginBottom: 6,
       borderLeftWidth: 2,
       borderLeftColor: customization.colors.accent,
-      // Fixed: Set other border properties to avoid undefined
       borderTopWidth: 0,
       borderRightWidth: 0,
       borderBottomWidth: 0,
+      borderStyle: 'solid',
     },
     
     contactName: {
@@ -258,10 +260,10 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.visual.cornerRadius - 2,
       borderLeftWidth: 3,
       borderLeftColor: customization.colors.accent,
-      // Fixed: Set other border properties to avoid undefined
       borderTopWidth: 0,
       borderRightWidth: 0,
       borderBottomWidth: 0,
+      borderStyle: 'solid',
     },
     
     sceneNumber: {
@@ -299,10 +301,10 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.visual.cornerRadius,
       borderLeftWidth: 4,
       borderLeftColor: customization.colors.accent,
-      // Fixed: Set other border properties to avoid undefined
       borderTopWidth: 0,
       borderRightWidth: 0,
       borderBottomWidth: 0,
+      borderStyle: 'solid',
     },
 
     footer: {
@@ -318,11 +320,11 @@ const createStyles = (customization: PDFCustomization) => {
         ? customization.visual.cornerRadius 
         : 0,
       borderTopWidth: customization.branding.footer?.style === 'accent' ? 2 : 0,
-      borderTopColor: customization.branding.footer?.style === 'accent' ? customization.colors.accent : 'transparent',
-      // Fixed: Set other border properties to avoid undefined
+      borderTopColor: customization.branding.footer?.style === 'accent' ? customization.colors.accent : customization.colors.border,
       borderLeftWidth: 0,
       borderRightWidth: 0,
       borderBottomWidth: 0,
+      borderStyle: 'solid',
     },
     
     footerText: {
@@ -355,13 +357,13 @@ const SectionIcon: React.FC<{ type: string; color: string }> = ({ type, color })
   );
 };
 
-// Helper function to safely render text values
+// Enhanced SafeText component with better validation
 const SafeText: React.FC<{ children: string | undefined | null; style?: any }> = ({ children, style }) => {
-  // Only render if we have actual content
-  if (!children || children.trim() === '') {
+  // Only render if we have actual content and it's not empty
+  if (!children || typeof children !== 'string' || children.trim() === '') {
     return null;
   }
-  return <Text style={style}>{children}</Text>;
+  return <Text style={style}>{children.trim()}</Text>;
 };
 
 const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, customization = {} }) => {
@@ -505,8 +507,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
               <View key={contact.id || index} style={styles.contactCard}>
                 <SafeText style={styles.contactName}>{contact.name}</SafeText>
                 <Text style={styles.contactRole}>
-                  {contact.role || ''}
-                  {contact.character && ` • ${contact.character}`}
+                  {(contact.role || '') + (contact.character ? ` • ${contact.character}` : '')}
                 </Text>
                 <SafeText style={styles.contactDetails}>{contact.phone}</SafeText>
                 {contact.email && <SafeText style={styles.contactDetails}>{contact.email}</SafeText>}
@@ -538,13 +539,13 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
                 <SafeText style={styles.sceneNumber}>{item.sceneNumber}</SafeText>
                 <View style={styles.scheduleContent}>
                   <Text style={styles.scheduleDescription}>
-                    {item.intExt || ''} • {item.description || ''}
+                    {(item.intExt || '') + ' • ' + (item.description || '')}
                   </Text>
                   <Text style={styles.scheduleDetails}>
-                    {`${item.estimatedTime || ''} • ${item.pageCount || ''} pages`}
+                    {(item.estimatedTime || '') + ' • ' + (item.pageCount || '') + ' pages'}
                   </Text>
                   {item.location && (
-                    <SafeText style={styles.scheduleDetails}>{`📍 ${item.location}`}</SafeText>
+                    <SafeText style={styles.scheduleDetails}>{'📍 ' + item.location}</SafeText>
                   )}
                 </View>
               </View>
