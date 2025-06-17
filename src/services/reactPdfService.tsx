@@ -60,6 +60,26 @@ const getFontWeight = (weight: string): number => {
   }
 };
 
+// Helper function to ensure consistent border properties
+const createBorderStyle = (width: number = 0, color: string = '#000000', style: string = 'solid') => ({
+  borderWidth: width,
+  borderColor: color,
+  borderStyle: style,
+  borderTopWidth: width,
+  borderRightWidth: width,
+  borderBottomWidth: width,
+  borderLeftWidth: width,
+});
+
+const createPartialBorderStyle = (sides: { top?: number; right?: number; bottom?: number; left?: number }, color: string = '#000000') => ({
+  borderTopWidth: sides.top || 0,
+  borderRightWidth: sides.right || 0,
+  borderBottomWidth: sides.bottom || 0,
+  borderLeftWidth: sides.left || 0,
+  borderColor: color,
+  borderStyle: 'solid',
+});
+
 const createStyles = (customization: PDFCustomization) => {
   const fontFamily = getFontFamily(customization.typography.fontFamily);
   
@@ -128,10 +148,10 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.visual.cornerRadius,
       marginBottom: customization.layout.spacing.sectionGap,
       overflow: 'hidden',
-      // Fixed: Ensure all border properties are always numbers
-      borderWidth: customization.visual.cardStyle === 'bordered' ? 1 : 0,
-      borderColor: customization.visual.cardStyle === 'bordered' ? customization.colors.border : customization.colors.border,
-      borderStyle: 'solid',
+      ...createBorderStyle(
+        customization.visual.cardStyle === 'bordered' ? 1 : 0,
+        customization.colors.border
+      ),
     },
     
     sectionHeader: {
@@ -192,10 +212,10 @@ const createStyles = (customization: PDFCustomization) => {
       backgroundColor: customization.colors.background,
       padding: 12,
       borderRadius: customization.visual.cornerRadius - 2,
-      // Fixed: Always provide explicit border values
-      borderWidth: customization.visual.cardStyle === 'bordered' ? 1 : 0,
-      borderColor: customization.colors.borderLight,
-      borderStyle: 'solid',
+      ...createBorderStyle(
+        customization.visual.cardStyle === 'bordered' ? 1 : 0,
+        customization.colors.borderLight
+      ),
     },
     
     infoCellAccent: {
@@ -203,12 +223,7 @@ const createStyles = (customization: PDFCustomization) => {
       backgroundColor: customization.colors.accent + '10',
       padding: 12,
       borderRadius: customization.visual.cornerRadius - 2,
-      borderLeftWidth: 3,
-      borderLeftColor: customization.colors.accent,
-      borderTopWidth: 0,
-      borderRightWidth: 0,
-      borderBottomWidth: 0,
-      borderStyle: 'solid',
+      ...createPartialBorderStyle({ left: 3 }, customization.colors.accent),
     },
 
     contactGrid: {
@@ -223,12 +238,7 @@ const createStyles = (customization: PDFCustomization) => {
       padding: 10,
       borderRadius: customization.visual.cornerRadius - 2,
       marginBottom: 6,
-      borderLeftWidth: 2,
-      borderLeftColor: customization.colors.accent,
-      borderTopWidth: 0,
-      borderRightWidth: 0,
-      borderBottomWidth: 0,
-      borderStyle: 'solid',
+      ...createPartialBorderStyle({ left: 2 }, customization.colors.accent),
     },
     
     contactName: {
@@ -258,12 +268,7 @@ const createStyles = (customization: PDFCustomization) => {
       padding: 12,
       backgroundColor: customization.colors.background,
       borderRadius: customization.visual.cornerRadius - 2,
-      borderLeftWidth: 3,
-      borderLeftColor: customization.colors.accent,
-      borderTopWidth: 0,
-      borderRightWidth: 0,
-      borderBottomWidth: 0,
-      borderStyle: 'solid',
+      ...createPartialBorderStyle({ left: 3 }, customization.colors.accent),
     },
     
     sceneNumber: {
@@ -299,12 +304,7 @@ const createStyles = (customization: PDFCustomization) => {
       backgroundColor: customization.colors.accent + '08',
       padding: 16,
       borderRadius: customization.visual.cornerRadius,
-      borderLeftWidth: 4,
-      borderLeftColor: customization.colors.accent,
-      borderTopWidth: 0,
-      borderRightWidth: 0,
-      borderBottomWidth: 0,
-      borderStyle: 'solid',
+      ...createPartialBorderStyle({ left: 4 }, customization.colors.accent),
     },
 
     footer: {
@@ -319,12 +319,10 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.branding.footer?.style === 'bordered' 
         ? customization.visual.cornerRadius 
         : 0,
-      borderTopWidth: customization.branding.footer?.style === 'accent' ? 2 : 0,
-      borderTopColor: customization.branding.footer?.style === 'accent' ? customization.colors.accent : customization.colors.border,
-      borderLeftWidth: 0,
-      borderRightWidth: 0,
-      borderBottomWidth: 0,
-      borderStyle: 'solid',
+      ...createPartialBorderStyle(
+        { top: customization.branding.footer?.style === 'accent' ? 2 : 0 },
+        customization.branding.footer?.style === 'accent' ? customization.colors.accent : customization.colors.border
+      ),
     },
     
     footerText: {
@@ -357,13 +355,20 @@ const SectionIcon: React.FC<{ type: string; color: string }> = ({ type, color })
   );
 };
 
-// Enhanced SafeText component with better validation
+// Enhanced SafeText component with strict validation
 const SafeText: React.FC<{ children: string | undefined | null; style?: any }> = ({ children, style }) => {
-  // Only render if we have actual content and it's not empty
-  if (!children || typeof children !== 'string' || children.trim() === '') {
+  // Strict validation: only render if we have actual non-empty content
+  if (!children || typeof children !== 'string' || children.trim().length === 0) {
     return null;
   }
-  return <Text style={style}>{children.trim()}</Text>;
+  
+  const cleanText = children.trim();
+  // Additional check to ensure we don't pass empty strings
+  if (cleanText === '') {
+    return null;
+  }
+  
+  return <Text style={style}>{cleanText}</Text>;
 };
 
 const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, customization = {} }) => {
@@ -399,7 +404,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
 
   const Header = () => (
     <View style={styles.headerContainer}>
-      {config.branding.companyName && (
+      {config.branding.companyName && config.branding.companyName.trim() && (
         <View style={styles.brandingRow}>
           <SafeText style={styles.companyName}>{config.branding.companyName}</SafeText>
           <Text style={styles.companyName}>
@@ -457,22 +462,23 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
           <SafeText style={styles.value}>{callsheet.locationAddress}</SafeText>
         </View>
         
-        {config.sections.visibility.weather && callsheet.weather && (
+        {config.sections.visibility.weather && callsheet.weather && callsheet.weather.trim() && (
           <View style={[styles.infoCellAccent, { marginTop: 12 }]}>
             <Text style={styles.label}>Weather Forecast</Text>
             <SafeText style={styles.value}>{callsheet.weather}</SafeText>
           </View>
         )}
         
-        {(callsheet.parkingInstructions || callsheet.basecampLocation) && (
+        {((callsheet.parkingInstructions && callsheet.parkingInstructions.trim()) || 
+          (callsheet.basecampLocation && callsheet.basecampLocation.trim())) && (
           <View style={[styles.infoGrid, { marginTop: 12 }]}>
-            {callsheet.parkingInstructions && (
+            {callsheet.parkingInstructions && callsheet.parkingInstructions.trim() && (
               <View style={styles.infoCell}>
                 <Text style={styles.label}>Parking</Text>
                 <SafeText style={styles.value}>{callsheet.parkingInstructions}</SafeText>
               </View>
             )}
-            {callsheet.basecampLocation && (
+            {callsheet.basecampLocation && callsheet.basecampLocation.trim() && (
               <View style={styles.infoCell}>
                 <Text style={styles.label}>Basecamp</Text>
                 <SafeText style={styles.value}>{callsheet.basecampLocation}</SafeText>
@@ -506,11 +512,18 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
             {contacts.map((contact, index) => (
               <View key={contact.id || index} style={styles.contactCard}>
                 <SafeText style={styles.contactName}>{contact.name}</SafeText>
-                <Text style={styles.contactRole}>
-                  {(contact.role || '') + (contact.character ? ` • ${contact.character}` : '')}
-                </Text>
+                {((contact.role && contact.role.trim()) || (contact.character && contact.character.trim())) && (
+                  <Text style={styles.contactRole}>
+                    {[
+                      contact.role && contact.role.trim() ? contact.role.trim() : '',
+                      contact.character && contact.character.trim() ? contact.character.trim() : ''
+                    ].filter(Boolean).join(' • ')}
+                  </Text>
+                )}
                 <SafeText style={styles.contactDetails}>{contact.phone}</SafeText>
-                {contact.email && <SafeText style={styles.contactDetails}>{contact.email}</SafeText>}
+                {contact.email && contact.email.trim() && (
+                  <SafeText style={styles.contactDetails}>{contact.email}</SafeText>
+                )}
               </View>
             ))}
           </View>
@@ -539,13 +552,19 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
                 <SafeText style={styles.sceneNumber}>{item.sceneNumber}</SafeText>
                 <View style={styles.scheduleContent}>
                   <Text style={styles.scheduleDescription}>
-                    {(item.intExt || '') + ' • ' + (item.description || '')}
+                    {[
+                      item.intExt && item.intExt.trim() ? item.intExt.trim() : '',
+                      item.description && item.description.trim() ? item.description.trim() : ''
+                    ].filter(Boolean).join(' • ')}
                   </Text>
                   <Text style={styles.scheduleDetails}>
-                    {(item.estimatedTime || '') + ' • ' + (item.pageCount || '') + ' pages'}
+                    {[
+                      item.estimatedTime && item.estimatedTime.trim() ? item.estimatedTime.trim() : '',
+                      item.pageCount && item.pageCount.trim() ? `${item.pageCount.trim()} pages` : ''
+                    ].filter(Boolean).join(' • ')}
                   </Text>
-                  {item.location && (
-                    <SafeText style={styles.scheduleDetails}>{'📍 ' + item.location}</SafeText>
+                  {item.location && item.location.trim() && (
+                    <SafeText style={styles.scheduleDetails}>📍 {item.location}</SafeText>
                   )}
                 </View>
               </View>
@@ -575,7 +594,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
   );
 
   const Footer = () => (
-    config.branding.footer?.text && (
+    config.branding.footer?.text && config.branding.footer.text.trim() && (
       <View style={styles.footer}>
         <SafeText style={styles.footerText}>{config.branding.footer.text}</SafeText>
       </View>
