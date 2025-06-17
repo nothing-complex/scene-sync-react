@@ -76,7 +76,6 @@ const createStyles = (customization: PDFCustomization) => {
       lineHeight: customization.typography.lineHeight.body,
     },
     
-    // Modern header styles
     headerContainer: {
       marginBottom: customization.layout.spacing.sectionGap,
       alignItems: customization.layout.headerStyle === 'minimal' ? 'flex-start' : 'center',
@@ -124,7 +123,6 @@ const createStyles = (customization: PDFCustomization) => {
       lineHeight: customization.typography.lineHeight.header,
     },
 
-    // Modern section card styles
     sectionCard: {
       backgroundColor: customization.colors.surface,
       borderRadius: customization.visual.cornerRadius,
@@ -169,7 +167,6 @@ const createStyles = (customization: PDFCustomization) => {
       padding: 16,
     },
 
-    // Modern divider styles
     sectionDivider: {
       height: customization.visual.sectionDividers === 'line' ? 1 : 0,
       backgroundColor: customization.visual.sectionDividers === 'accent' 
@@ -180,7 +177,6 @@ const createStyles = (customization: PDFCustomization) => {
         : 0,
     },
 
-    // Enhanced typography
     label: {
       fontSize: customization.typography.fontSize.caption,
       color: customization.colors.textLight,
@@ -197,7 +193,6 @@ const createStyles = (customization: PDFCustomization) => {
       fontWeight: getFontWeight(customization.typography.fontWeight.body),
     },
 
-    // Modern grid layouts
     infoGrid: {
       flexDirection: 'row',
       gap: 12,
@@ -222,7 +217,6 @@ const createStyles = (customization: PDFCustomization) => {
       borderLeftColor: customization.colors.accent,
     },
 
-    // Enhanced contact styles
     contactGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -259,7 +253,6 @@ const createStyles = (customization: PDFCustomization) => {
       lineHeight: 1.3,
     },
 
-    // Modern schedule styles
     scheduleItem: {
       flexDirection: 'row',
       alignItems: 'flex-start',
@@ -300,7 +293,6 @@ const createStyles = (customization: PDFCustomization) => {
       lineHeight: 1.3,
     },
 
-    // Enhanced notes styling
     notesContainer: {
       backgroundColor: customization.colors.accent + '08',
       padding: 16,
@@ -309,7 +301,6 @@ const createStyles = (customization: PDFCustomization) => {
       borderLeftColor: customization.colors.accent,
     },
 
-    // Modern footer
     footer: {
       position: 'absolute',
       bottom: 20,
@@ -334,7 +325,6 @@ const createStyles = (customization: PDFCustomization) => {
   });
 };
 
-// Simple icon indicator component
 const SectionIcon: React.FC<{ type: string; color: string }> = ({ type, color }) => {
   const iconText = {
     calendar: '◯',
@@ -360,9 +350,6 @@ const SectionIcon: React.FC<{ type: string; color: string }> = ({ type, color })
 const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, customization = {} }) => {
   const config = { ...DEFAULT_PDF_CUSTOMIZATION, ...customization };
   const styles = createStyles(config);
-
-  console.log('Rendering PDF with config:', config);
-  console.log('Font family:', config.typography.fontFamily);
 
   const Header = () => (
     <View style={styles.headerContainer}>
@@ -582,24 +569,30 @@ export class ReactPDFService {
   }
 
   async generatePDF(callsheet: CallsheetData): Promise<Blob> {
-    console.log('Generating PDF blob...');
+    console.log('Generating PDF blob with full callsheet data:', callsheet);
+    console.log('Using customization:', this.customization);
+    
     try {
       const doc = <CallsheetPDFDocument callsheet={callsheet} customization={this.customization} />;
+      console.log('Created PDF document component');
+      
       const blob = await pdf(doc).toBlob();
-      console.log('PDF blob generated successfully');
+      console.log('PDF blob generated successfully, size:', blob.size);
       return blob;
     } catch (error) {
       console.error('Error generating PDF blob:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       throw error;
     }
   }
 
   async savePDF(callsheet: CallsheetData, filename?: string): Promise<void> {
-    console.log('Saving PDF...');
+    console.log('Saving PDF for callsheet:', callsheet.projectTitle);
     try {
       const blob = await this.generatePDF(callsheet);
       const fileName = filename || `${callsheet.projectTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_callsheet.pdf`;
       
+      console.log('Creating download link for:', fileName);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -608,7 +601,7 @@ export class ReactPDFService {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      console.log('PDF saved successfully');
+      console.log('PDF download initiated successfully');
     } catch (error) {
       console.error('Error saving PDF:', error);
       throw error;
@@ -616,11 +609,20 @@ export class ReactPDFService {
   }
 
   async previewPDF(callsheet: CallsheetData): Promise<void> {
-    console.log('Previewing PDF...');
+    console.log('Previewing PDF for callsheet:', callsheet.projectTitle);
     try {
       const blob = await this.generatePDF(callsheet);
+      console.log('Opening PDF preview in new window');
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
+      const newWindow = window.open(url, '_blank');
+      if (!newWindow) {
+        console.warn('Popup blocked, trying alternative method');
+        // Fallback: create a temporary link
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.click();
+      }
       console.log('PDF preview opened successfully');
     } catch (error) {
       console.error('Error previewing PDF:', error);

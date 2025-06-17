@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -33,72 +34,93 @@ export const PDFAppearanceTab = ({
   const updateCustomization = (updates: Partial<PDFCustomization>) => {
     const newCustomization = { ...customization, ...updates };
     onCustomizationChange(newCustomization);
+    console.log('Updated customization:', newCustomization);
   };
 
   const handleThemeChange = (themeKey: string) => {
     const theme = PDF_THEMES[themeKey];
     if (theme) {
+      console.log('Applying theme:', themeKey, theme);
       updateCustomization({
         theme,
         colors: theme.colors,
-        typography: { ...customization.typography, ...theme.typography },
+        typography: { 
+          ...customization.typography, 
+          fontFamily: theme.typography?.fontFamily || customization.typography.fontFamily,
+          fontWeight: { 
+            ...customization.typography.fontWeight, 
+            ...(theme.typography?.fontWeight || {})
+          }
+        },
         visual: theme.visual,
       });
     }
   };
 
   const handleLayoutChange = (field: string, value: any) => {
+    console.log('Layout change:', field, value);
     updateCustomization({
       layout: { ...customization.layout, [field]: value }
     });
   };
 
   const handleTypographyChange = (section: string, field: string, value: any) => {
+    console.log('Typography change:', section, field, value);
     if (section === '') {
       updateCustomization({
         typography: { ...customization.typography, [field]: value }
       });
     } else {
-      updateCustomization({
-        typography: { 
-          ...customization.typography, 
-          [section]: { 
-            ...customization.typography[section as keyof typeof customization.typography], 
-            [field]: value 
+      const currentSection = customization.typography[section as keyof typeof customization.typography];
+      if (typeof currentSection === 'object' && currentSection !== null) {
+        updateCustomization({
+          typography: { 
+            ...customization.typography, 
+            [section]: { 
+              ...currentSection, 
+              [field]: value 
+            }
           }
-        }
-      });
+        });
+      }
     }
   };
 
   const handleVisualChange = (field: string, value: any) => {
+    console.log('Visual change:', field, value);
     updateCustomization({
       visual: { ...customization.visual, [field]: value }
     });
   };
 
   const handleBrandingChange = (field: string, value: any) => {
+    console.log('Branding change:', field, value);
     updateCustomization({
       branding: { ...customization.branding, [field]: value }
     });
   };
 
   const handleColorsChange = (field: string, value: string) => {
+    console.log('Colors change:', field, value);
     updateCustomization({
       colors: { ...customization.colors, [field]: value }
     });
   };
 
   const handleSectionsChange = (section: string, field: string, value: any) => {
-    updateCustomization({
-      sections: { 
-        ...customization.sections, 
-        [section]: { 
-          ...customization.sections[section as keyof typeof customization.sections], 
-          [field]: value 
+    console.log('Sections change:', section, field, value);
+    const currentSection = customization.sections[section as keyof typeof customization.sections];
+    if (typeof currentSection === 'object' && currentSection !== null) {
+      updateCustomization({
+        sections: { 
+          ...customization.sections, 
+          [section]: { 
+            ...currentSection, 
+            [field]: value 
+          }
         }
-      }
-    });
+      });
+    }
   };
 
   const handlePreviewPDF = async () => {
