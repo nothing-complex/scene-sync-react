@@ -45,6 +45,7 @@ const getFontFamily = (family: string) => {
     case 'inter': return 'Inter';
     case 'poppins': return 'Poppins';
     case 'montserrat': return 'Montserrat';
+    case 'helvetica':
     default: return 'Helvetica';
   }
 };
@@ -333,14 +334,10 @@ const createStyles = (customization: PDFCustomization) => {
   });
 };
 
-// Modern geometric icon component
-const GeometricIcon: React.FC<{ type: string; color: string; size?: number }> = ({ 
-  type, 
-  color, 
-  size = 16 
-}) => {
-  const iconContent = {
-    calendar: '●',
+// Simple icon indicator component
+const SectionIcon: React.FC<{ type: string; color: string }> = ({ type, color }) => {
+  const iconText = {
+    calendar: '◯',
     location: '◆',
     users: '▲',
     clock: '◐',
@@ -349,29 +346,23 @@ const GeometricIcon: React.FC<{ type: string; color: string; size?: number }> = 
   }[type] || '●';
 
   return (
-    <View style={{
-      width: size,
-      height: size,
-      backgroundColor: color,
-      borderRadius: size / 2,
-      alignItems: 'center',
-      justifyContent: 'center',
+    <Text style={{ 
+      color: color, 
+      fontSize: 12,
+      marginRight: 8,
+      fontWeight: 600 
     }}>
-      <Text style={{ 
-        color: '#ffffff', 
-        fontSize: size * 0.6, 
-        fontWeight: 600,
-        lineHeight: size * 0.8
-      }}>
-        {iconContent}
-      </Text>
-    </View>
+      {iconText}
+    </Text>
   );
 };
 
 const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, customization = {} }) => {
   const config = { ...DEFAULT_PDF_CUSTOMIZATION, ...customization };
   const styles = createStyles(config);
+
+  console.log('Rendering PDF with config:', config);
+  console.log('Font family:', config.typography.fontFamily);
 
   const Header = () => (
     <View style={styles.headerContainer}>
@@ -400,7 +391,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
     <View style={styles.sectionCard}>
       <View style={styles.sectionHeader}>
         {config.sections.formatting.showSectionIcons && (
-          <GeometricIcon type="calendar" color={config.colors.accent} />
+          <SectionIcon type="calendar" color={config.colors.accent} />
         )}
         <Text style={styles.sectionTitle}>PRODUCTION DETAILS</Text>
       </View>
@@ -423,7 +414,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
     <View style={styles.sectionCard}>
       <View style={styles.sectionHeader}>
         {config.sections.formatting.showSectionIcons && (
-          <GeometricIcon type="location" color={config.colors.accent} />
+          <SectionIcon type="location" color={config.colors.accent} />
         )}
         <Text style={styles.sectionTitle}>LOCATION & LOGISTICS</Text>
       </View>
@@ -468,7 +459,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
     <View style={styles.sectionCard}>
       <View style={styles.sectionHeader}>
         {config.sections.formatting.showSectionIcons && (
-          <GeometricIcon type={iconType} color={config.colors.accent} />
+          <SectionIcon type={iconType} color={config.colors.accent} />
         )}
         <Text style={styles.sectionTitle}>{title}</Text>
       </View>
@@ -501,7 +492,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           {config.sections.formatting.showSectionIcons && (
-            <GeometricIcon type="clock" color={config.colors.accent} />
+            <SectionIcon type="clock" color={config.colors.accent} />
           )}
           <Text style={styles.sectionTitle}>SHOOTING SCHEDULE</Text>
         </View>
@@ -538,7 +529,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           {config.sections.formatting.showSectionIcons && (
-            <GeometricIcon type="notes" color={config.colors.accent} />
+            <SectionIcon type="notes" color={config.colors.accent} />
           )}
           <Text style={styles.sectionTitle}>SPECIAL NOTES</Text>
         </View>
@@ -587,31 +578,54 @@ export class ReactPDFService {
 
   constructor(customization: Partial<PDFCustomization> = {}) {
     this.customization = { ...DEFAULT_PDF_CUSTOMIZATION, ...customization };
+    console.log('ReactPDFService initialized with customization:', this.customization);
   }
 
   async generatePDF(callsheet: CallsheetData): Promise<Blob> {
-    const doc = <CallsheetPDFDocument callsheet={callsheet} customization={this.customization} />;
-    return await pdf(doc).toBlob();
+    console.log('Generating PDF blob...');
+    try {
+      const doc = <CallsheetPDFDocument callsheet={callsheet} customization={this.customization} />;
+      const blob = await pdf(doc).toBlob();
+      console.log('PDF blob generated successfully');
+      return blob;
+    } catch (error) {
+      console.error('Error generating PDF blob:', error);
+      throw error;
+    }
   }
 
   async savePDF(callsheet: CallsheetData, filename?: string): Promise<void> {
-    const blob = await this.generatePDF(callsheet);
-    const fileName = filename || `${callsheet.projectTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_callsheet.pdf`;
-    
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    console.log('Saving PDF...');
+    try {
+      const blob = await this.generatePDF(callsheet);
+      const fileName = filename || `${callsheet.projectTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_callsheet.pdf`;
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      console.log('PDF saved successfully');
+    } catch (error) {
+      console.error('Error saving PDF:', error);
+      throw error;
+    }
   }
 
   async previewPDF(callsheet: CallsheetData): Promise<void> {
-    const blob = await this.generatePDF(callsheet);
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    console.log('Previewing PDF...');
+    try {
+      const blob = await this.generatePDF(callsheet);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      console.log('PDF preview opened successfully');
+    } catch (error) {
+      console.error('Error previewing PDF:', error);
+      throw error;
+    }
   }
 }
 

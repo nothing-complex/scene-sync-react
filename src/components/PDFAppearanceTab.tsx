@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -14,6 +13,7 @@ import { Eye, Palette, Type, Layout, Settings, Download, Sparkles, Image } from 
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION, PDF_THEMES } from '@/types/pdfTypes';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { ReactPDFService } from '@/services/reactPdfService';
+import { useToast } from '@/hooks/use-toast';
 
 interface PDFAppearanceTabProps {
   callsheet: CallsheetData;
@@ -27,9 +27,12 @@ export const PDFAppearanceTab = ({
   onCustomizationChange 
 }: PDFAppearanceTabProps) => {
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState(false);
+  const { toast } = useToast();
 
   const updateCustomization = (updates: Partial<PDFCustomization>) => {
-    onCustomizationChange({ ...customization, ...updates });
+    const newCustomization = { ...customization, ...updates };
+    onCustomizationChange(newCustomization);
   };
 
   const handleThemeChange = (themeKey: string) => {
@@ -39,7 +42,7 @@ export const PDFAppearanceTab = ({
         theme,
         colors: theme.colors,
         typography: { ...customization.typography, ...theme.typography },
-        visual: { ...customization.visual, ...theme.visual },
+        visual: theme.visual,
       });
     }
   };
@@ -51,12 +54,21 @@ export const PDFAppearanceTab = ({
   };
 
   const handleTypographyChange = (section: string, field: string, value: any) => {
-    updateCustomization({
-      typography: { 
-        ...customization.typography, 
-        [section]: { ...customization.typography[section as keyof typeof customization.typography], [field]: value }
-      }
-    });
+    if (section === '') {
+      updateCustomization({
+        typography: { ...customization.typography, [field]: value }
+      });
+    } else {
+      updateCustomization({
+        typography: { 
+          ...customization.typography, 
+          [section]: { 
+            ...customization.typography[section as keyof typeof customization.typography], 
+            [field]: value 
+          }
+        }
+      });
+    }
   };
 
   const handleVisualChange = (field: string, value: any) => {
@@ -81,7 +93,10 @@ export const PDFAppearanceTab = ({
     updateCustomization({
       sections: { 
         ...customization.sections, 
-        [section]: { ...customization.sections[section as keyof typeof customization.sections], [field]: value }
+        [section]: { 
+          ...customization.sections[section as keyof typeof customization.sections], 
+          [field]: value 
+        }
       }
     });
   };
@@ -89,22 +104,53 @@ export const PDFAppearanceTab = ({
   const handlePreviewPDF = async () => {
     setPreviewLoading(true);
     try {
+      console.log('Generating PDF preview with customization:', customization);
       const pdfService = new ReactPDFService(customization);
       await pdfService.previewPDF(callsheet);
+      toast({
+        title: "PDF Preview Generated",
+        description: "Opening PDF in new tab...",
+      });
     } catch (error) {
       console.error('Failed to generate PDF preview:', error);
+      toast({
+        title: "Preview Failed",
+        description: "Unable to generate PDF preview. Please check console for details.",
+        variant: "destructive",
+      });
     } finally {
       setPreviewLoading(false);
     }
   };
 
   const handleDownloadPDF = async () => {
-    const pdfService = new ReactPDFService(customization);
-    await pdfService.savePDF(callsheet);
+    setDownloadLoading(true);
+    try {
+      console.log('Downloading PDF with customization:', customization);
+      const pdfService = new ReactPDFService(customization);
+      await pdfService.savePDF(callsheet);
+      toast({
+        title: "PDF Downloaded",
+        description: "Your callsheet PDF has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      toast({
+        title: "Download Failed",
+        description: "Unable to download PDF. Please check console for details.",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadLoading(false);
+    }
   };
 
   const resetToDefaults = () => {
     onCustomizationChange(DEFAULT_PDF_CUSTOMIZATION);
+    toast({
+      title: "Settings Reset",
+      description: "PDF appearance settings have been reset to defaults.",
+    });
   };
 
   return (
@@ -134,10 +180,11 @@ export const PDFAppearanceTab = ({
           <Button
             size="sm"
             onClick={handleDownloadPDF}
+            disabled={downloadLoading}
             className="font-normal"
           >
             <Download className="w-4 h-4 mr-2" />
-            Download PDF
+            {downloadLoading ? 'Downloading...' : 'Download PDF'}
           </Button>
         </div>
       </div>

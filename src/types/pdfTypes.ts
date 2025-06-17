@@ -89,7 +89,7 @@ export interface PDFTheme {
   name: string;
   colors: PDFColors;
   typography: Partial<PDFTypography>;
-  visual: Partial<PDFVisualStyle>;
+  visual: PDFVisualStyle;
 }
 
 export interface PDFVisualStyle {
@@ -252,7 +252,7 @@ export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
   },
   colors: PDF_THEMES.minimal.colors,
   theme: PDF_THEMES.minimal,
-  visual: PDF_THEMES.minimal.visual!,
+  visual: PDF_THEMES.minimal.visual,
   sections: {
     order: ['basic', 'location', 'cast', 'crew', 'schedule', 'emergency', 'notes'],
     visibility: {
