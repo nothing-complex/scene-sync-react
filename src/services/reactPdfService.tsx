@@ -365,7 +365,7 @@ const SafeText: React.FC<{ children: string | undefined | null; style?: any }> =
 };
 
 const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, customization = {} }) => {
-  // Ensure complete customization object
+  // Ensure complete customization object with safe defaults
   const config: PDFCustomization = {
     ...DEFAULT_PDF_CUSTOMIZATION,
     ...customization,
@@ -495,7 +495,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
         <Text style={styles.sectionTitle}>{title}</Text>
       </View>
       <View style={styles.sectionContent}>
-        {contacts.length === 0 ? (
+        {(!contacts || contacts.length === 0) ? (
           <Text style={[styles.value, { fontStyle: 'italic', color: config.colors.textLight }]}>
             No contacts added
           </Text>
@@ -528,7 +528,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
           <Text style={styles.sectionTitle}>SHOOTING SCHEDULE</Text>
         </View>
         <View style={styles.sectionContent}>
-          {callsheet.schedule.length === 0 ? (
+          {(!callsheet.schedule || callsheet.schedule.length === 0) ? (
             <Text style={[styles.value, { fontStyle: 'italic', color: config.colors.textLight }]}>
               No schedule items added
             </Text>
@@ -541,10 +541,10 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
                     {item.intExt || ''} • {item.description || ''}
                   </Text>
                   <Text style={styles.scheduleDetails}>
-                    {item.estimatedTime || ''} • {item.pageCount || ''} pages
+                    {`${item.estimatedTime || ''} • ${item.pageCount || ''} pages`}
                   </Text>
                   {item.location && (
-                    <SafeText style={styles.scheduleDetails}>📍 {item.location}</SafeText>
+                    <SafeText style={styles.scheduleDetails}>{`📍 ${item.location}`}</SafeText>
                   )}
                 </View>
               </View>
