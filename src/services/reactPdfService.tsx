@@ -128,22 +128,9 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.visual.cornerRadius,
       marginBottom: customization.layout.spacing.sectionGap,
       overflow: 'hidden',
-      ...(customization.visual.shadowIntensity === 'subtle' && {
-        shadowColor: customization.colors.primary,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-      }),
-      ...(customization.visual.shadowIntensity === 'medium' && {
-        shadowColor: customization.colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-      }),
-      ...(customization.visual.cardStyle === 'bordered' && {
-        borderWidth: 1,
-        borderColor: customization.colors.border,
-      }),
+      // Fixed: Always set border properties to valid values
+      borderWidth: customization.visual.cardStyle === 'bordered' ? 1 : 0,
+      borderColor: customization.visual.cardStyle === 'bordered' ? customization.colors.border : 'transparent',
     },
     
     sectionHeader: {
@@ -204,8 +191,9 @@ const createStyles = (customization: PDFCustomization) => {
       backgroundColor: customization.colors.background,
       padding: 12,
       borderRadius: customization.visual.cornerRadius - 2,
+      // Fixed: Always set border properties to valid values
       borderWidth: customization.visual.cardStyle === 'bordered' ? 1 : 0,
-      borderColor: customization.colors.borderLight,
+      borderColor: customization.visual.cardStyle === 'bordered' ? customization.colors.borderLight : 'transparent',
     },
     
     infoCellAccent: {
@@ -215,6 +203,10 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.visual.cornerRadius - 2,
       borderLeftWidth: 3,
       borderLeftColor: customization.colors.accent,
+      // Fixed: Set other border properties to avoid undefined
+      borderTopWidth: 0,
+      borderRightWidth: 0,
+      borderBottomWidth: 0,
     },
 
     contactGrid: {
@@ -231,6 +223,10 @@ const createStyles = (customization: PDFCustomization) => {
       marginBottom: 6,
       borderLeftWidth: 2,
       borderLeftColor: customization.colors.accent,
+      // Fixed: Set other border properties to avoid undefined
+      borderTopWidth: 0,
+      borderRightWidth: 0,
+      borderBottomWidth: 0,
     },
     
     contactName: {
@@ -262,6 +258,10 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.visual.cornerRadius - 2,
       borderLeftWidth: 3,
       borderLeftColor: customization.colors.accent,
+      // Fixed: Set other border properties to avoid undefined
+      borderTopWidth: 0,
+      borderRightWidth: 0,
+      borderBottomWidth: 0,
     },
     
     sceneNumber: {
@@ -299,6 +299,10 @@ const createStyles = (customization: PDFCustomization) => {
       borderRadius: customization.visual.cornerRadius,
       borderLeftWidth: 4,
       borderLeftColor: customization.colors.accent,
+      // Fixed: Set other border properties to avoid undefined
+      borderTopWidth: 0,
+      borderRightWidth: 0,
+      borderBottomWidth: 0,
     },
 
     footer: {
@@ -314,7 +318,11 @@ const createStyles = (customization: PDFCustomization) => {
         ? customization.visual.cornerRadius 
         : 0,
       borderTopWidth: customization.branding.footer?.style === 'accent' ? 2 : 0,
-      borderTopColor: customization.colors.accent,
+      borderTopColor: customization.branding.footer?.style === 'accent' ? customization.colors.accent : 'transparent',
+      // Fixed: Set other border properties to avoid undefined
+      borderLeftWidth: 0,
+      borderRightWidth: 0,
+      borderBottomWidth: 0,
     },
     
     footerText: {
@@ -347,15 +355,51 @@ const SectionIcon: React.FC<{ type: string; color: string }> = ({ type, color })
   );
 };
 
+// Helper function to safely render text values
+const SafeText: React.FC<{ children: string | undefined | null; style?: any }> = ({ children, style }) => {
+  // Only render if we have actual content
+  if (!children || children.trim() === '') {
+    return null;
+  }
+  return <Text style={style}>{children}</Text>;
+};
+
 const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, customization = {} }) => {
-  const config = { ...DEFAULT_PDF_CUSTOMIZATION, ...customization };
+  // Ensure complete customization object
+  const config: PDFCustomization = {
+    ...DEFAULT_PDF_CUSTOMIZATION,
+    ...customization,
+    colors: { ...DEFAULT_PDF_CUSTOMIZATION.colors, ...customization.colors },
+    typography: { 
+      ...DEFAULT_PDF_CUSTOMIZATION.typography, 
+      ...customization.typography,
+      fontSize: { ...DEFAULT_PDF_CUSTOMIZATION.typography.fontSize, ...customization.typography?.fontSize },
+      fontWeight: { ...DEFAULT_PDF_CUSTOMIZATION.typography.fontWeight, ...customization.typography?.fontWeight },
+      lineHeight: { ...DEFAULT_PDF_CUSTOMIZATION.typography.lineHeight, ...customization.typography?.lineHeight }
+    },
+    layout: { 
+      ...DEFAULT_PDF_CUSTOMIZATION.layout, 
+      ...customization.layout,
+      margins: { ...DEFAULT_PDF_CUSTOMIZATION.layout.margins, ...customization.layout?.margins },
+      spacing: { ...DEFAULT_PDF_CUSTOMIZATION.layout.spacing, ...customization.layout?.spacing }
+    },
+    visual: { ...DEFAULT_PDF_CUSTOMIZATION.visual, ...customization.visual },
+    sections: { 
+      ...DEFAULT_PDF_CUSTOMIZATION.sections, 
+      ...customization.sections,
+      visibility: { ...DEFAULT_PDF_CUSTOMIZATION.sections.visibility, ...customization.sections?.visibility },
+      formatting: { ...DEFAULT_PDF_CUSTOMIZATION.sections.formatting, ...customization.sections?.formatting }
+    },
+    branding: { ...DEFAULT_PDF_CUSTOMIZATION.branding, ...customization.branding }
+  };
+  
   const styles = createStyles(config);
 
   const Header = () => (
     <View style={styles.headerContainer}>
       {config.branding.companyName && (
         <View style={styles.brandingRow}>
-          <Text style={styles.companyName}>{config.branding.companyName}</Text>
+          <SafeText style={styles.companyName}>{config.branding.companyName}</SafeText>
           <Text style={styles.companyName}>
             {new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
               weekday: 'short', 
@@ -369,7 +413,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
       
       <View style={styles.titleSection}>
         <Text style={styles.title}>CALL SHEET</Text>
-        <Text style={styles.projectTitle}>{callsheet.projectTitle}</Text>
+        <SafeText style={styles.projectTitle}>{callsheet.projectTitle}</SafeText>
       </View>
     </View>
   );
@@ -386,11 +430,11 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
         <View style={styles.infoGrid}>
           <View style={styles.infoCell}>
             <Text style={styles.label}>Call Time</Text>
-            <Text style={styles.value}>{callsheet.generalCallTime}</Text>
+            <SafeText style={styles.value}>{callsheet.generalCallTime}</SafeText>
           </View>
           <View style={styles.infoCellAccent}>
             <Text style={styles.label}>Location</Text>
-            <Text style={styles.value}>{callsheet.location}</Text>
+            <SafeText style={styles.value}>{callsheet.location}</SafeText>
           </View>
         </View>
       </View>
@@ -408,13 +452,13 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
       <View style={styles.sectionContent}>
         <View style={styles.infoCell}>
           <Text style={styles.label}>Address</Text>
-          <Text style={styles.value}>{callsheet.locationAddress}</Text>
+          <SafeText style={styles.value}>{callsheet.locationAddress}</SafeText>
         </View>
         
         {config.sections.visibility.weather && callsheet.weather && (
           <View style={[styles.infoCellAccent, { marginTop: 12 }]}>
             <Text style={styles.label}>Weather Forecast</Text>
-            <Text style={styles.value}>{callsheet.weather}</Text>
+            <SafeText style={styles.value}>{callsheet.weather}</SafeText>
           </View>
         )}
         
@@ -423,13 +467,13 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
             {callsheet.parkingInstructions && (
               <View style={styles.infoCell}>
                 <Text style={styles.label}>Parking</Text>
-                <Text style={styles.value}>{callsheet.parkingInstructions}</Text>
+                <SafeText style={styles.value}>{callsheet.parkingInstructions}</SafeText>
               </View>
             )}
             {callsheet.basecampLocation && (
               <View style={styles.infoCell}>
                 <Text style={styles.label}>Basecamp</Text>
-                <Text style={styles.value}>{callsheet.basecampLocation}</Text>
+                <SafeText style={styles.value}>{callsheet.basecampLocation}</SafeText>
               </View>
             )}
           </View>
@@ -459,13 +503,13 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
           <View style={config.sections.formatting.contactLayout === 'cards' ? styles.contactGrid : {}}>
             {contacts.map((contact, index) => (
               <View key={contact.id || index} style={styles.contactCard}>
-                <Text style={styles.contactName}>{contact.name}</Text>
+                <SafeText style={styles.contactName}>{contact.name}</SafeText>
                 <Text style={styles.contactRole}>
-                  {contact.role}
+                  {contact.role || ''}
                   {contact.character && ` • ${contact.character}`}
                 </Text>
-                <Text style={styles.contactDetails}>{contact.phone}</Text>
-                {contact.email && <Text style={styles.contactDetails}>{contact.email}</Text>}
+                <SafeText style={styles.contactDetails}>{contact.phone}</SafeText>
+                {contact.email && <SafeText style={styles.contactDetails}>{contact.email}</SafeText>}
               </View>
             ))}
           </View>
@@ -491,16 +535,16 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
           ) : (
             callsheet.schedule.map((item, index) => (
               <View key={index} style={styles.scheduleItem}>
-                <Text style={styles.sceneNumber}>{item.sceneNumber}</Text>
+                <SafeText style={styles.sceneNumber}>{item.sceneNumber}</SafeText>
                 <View style={styles.scheduleContent}>
                   <Text style={styles.scheduleDescription}>
-                    {item.intExt} • {item.description}
+                    {item.intExt || ''} • {item.description || ''}
                   </Text>
                   <Text style={styles.scheduleDetails}>
-                    {item.estimatedTime} • {item.pageCount} pages
+                    {item.estimatedTime || ''} • {item.pageCount || ''} pages
                   </Text>
                   {item.location && (
-                    <Text style={styles.scheduleDetails}>📍 {item.location}</Text>
+                    <SafeText style={styles.scheduleDetails}>📍 {item.location}</SafeText>
                   )}
                 </View>
               </View>
@@ -512,7 +556,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
   );
 
   const Notes = () => (
-    config.sections.visibility.notes && callsheet.specialNotes.trim() && (
+    config.sections.visibility.notes && callsheet.specialNotes && callsheet.specialNotes.trim() && (
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           {config.sections.formatting.showSectionIcons && (
@@ -522,7 +566,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
         </View>
         <View style={styles.sectionContent}>
           <View style={styles.notesContainer}>
-            <Text style={styles.value}>{callsheet.specialNotes}</Text>
+            <SafeText style={styles.value}>{callsheet.specialNotes}</SafeText>
           </View>
         </View>
       </View>
@@ -532,7 +576,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
   const Footer = () => (
     config.branding.footer?.text && (
       <View style={styles.footer}>
-        <Text style={styles.footerText}>{config.branding.footer.text}</Text>
+        <SafeText style={styles.footerText}>{config.branding.footer.text}</SafeText>
       </View>
     )
   );
@@ -543,12 +587,12 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
         <Header />
         <BasicInfo />
         <LocationDetails />
-        <ContactSection title="CAST" contacts={callsheet.cast} iconType="users" />
-        <ContactSection title="CREW" contacts={callsheet.crew} iconType="users" />
+        <ContactSection title="CAST" contacts={callsheet.cast || []} iconType="users" />
+        <ContactSection title="CREW" contacts={callsheet.crew || []} iconType="users" />
         {config.sections.visibility.emergencyContacts && (
           <ContactSection 
             title="EMERGENCY CONTACTS" 
-            contacts={callsheet.emergencyContacts} 
+            contacts={callsheet.emergencyContacts || []} 
             iconType="emergency"
           />
         )}
@@ -581,8 +625,8 @@ export class ReactPDFService {
       return blob;
     } catch (error) {
       console.error('Error generating PDF blob:', error);
-      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-      throw error;
+      console.error('Error details:', error);
+      throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -590,7 +634,7 @@ export class ReactPDFService {
     console.log('Saving PDF for callsheet:', callsheet.projectTitle);
     try {
       const blob = await this.generatePDF(callsheet);
-      const fileName = filename || `${callsheet.projectTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_callsheet.pdf`;
+      const fileName = filename || `${(callsheet.projectTitle || 'callsheet').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_callsheet.pdf`;
       
       console.log('Creating download link for:', fileName);
       const url = URL.createObjectURL(blob);
@@ -617,7 +661,6 @@ export class ReactPDFService {
       const newWindow = window.open(url, '_blank');
       if (!newWindow) {
         console.warn('Popup blocked, trying alternative method');
-        // Fallback: create a temporary link
         const link = document.createElement('a');
         link.href = url;
         link.target = '_blank';
