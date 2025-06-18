@@ -204,7 +204,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
                     ].filter(Boolean).join(' • ')}
                   </SafeText>
                   {item.location && item.location.trim() && (
-                    <SafeText style={styles.scheduleDetails}>📍 {item.location}</SafeText>
+                    <SafeText style={styles.scheduleDetails}>{`📍 ${item.location}`}</SafeText>
                   )}
                 </View>
               </View>
