@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font, pdf } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -61,24 +60,25 @@ const getFontWeight = (weight: string): number => {
 };
 
 // Helper function to ensure consistent border properties
-const createBorderStyle = (width: number = 0, color: string = '#000000', style: string = 'solid') => ({
-  borderWidth: width,
-  borderColor: color,
-  borderStyle: style,
-  borderTopWidth: width,
-  borderRightWidth: width,
-  borderBottomWidth: width,
-  borderLeftWidth: width,
-});
+const createBorderStyle = (width: number = 0, color: string = '#000000') => {
+  if (width === 0) {
+    return {};
+  }
+  return {
+    borderWidth: width,
+    borderColor: color,
+  };
+};
 
-const createPartialBorderStyle = (sides: { top?: number; right?: number; bottom?: number; left?: number }, color: string = '#000000') => ({
-  borderTopWidth: sides.top || 0,
-  borderRightWidth: sides.right || 0,
-  borderBottomWidth: sides.bottom || 0,
-  borderLeftWidth: sides.left || 0,
-  borderColor: color,
-  borderStyle: 'solid',
-});
+const createPartialBorderStyle = (sides: { top?: number; right?: number; bottom?: number; left?: number }, color: string = '#000000') => {
+  return {
+    borderTopWidth: sides.top || 0,
+    borderRightWidth: sides.right || 0,
+    borderBottomWidth: sides.bottom || 0,
+    borderLeftWidth: sides.left || 0,
+    borderColor: color,
+  };
+};
 
 const createStyles = (customization: PDFCustomization) => {
   const fontFamily = getFontFamily(customization.typography.fontFamily);
@@ -513,7 +513,7 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
               <View key={contact.id || index} style={styles.contactCard}>
                 <SafeText style={styles.contactName}>{contact.name}</SafeText>
                 {((contact.role && contact.role.trim()) || (contact.character && contact.character.trim())) && (
-                  <Text style={styles.contactRole}>
+                  <SafeText style={styles.contactRole}>
                     {[
                       contact.role && contact.role.trim() ? contact.role.trim() : '',
                       contact.character && contact.character.trim() ? contact.character.trim() : ''
@@ -551,18 +551,18 @@ const CallsheetPDFDocument: React.FC<ReactPDFServiceProps> = ({ callsheet, custo
               <View key={index} style={styles.scheduleItem}>
                 <SafeText style={styles.sceneNumber}>{item.sceneNumber}</SafeText>
                 <View style={styles.scheduleContent}>
-                  <Text style={styles.scheduleDescription}>
+                  <SafeText style={styles.scheduleDescription}>
                     {[
                       item.intExt && item.intExt.trim() ? item.intExt.trim() : '',
                       item.description && item.description.trim() ? item.description.trim() : ''
                     ].filter(Boolean).join(' • ')}
-                  </Text>
-                  <Text style={styles.scheduleDetails}>
+                  </SafeText>
+                  <SafeText style={styles.scheduleDetails}>
                     {[
                       item.estimatedTime && item.estimatedTime.trim() ? item.estimatedTime.trim() : '',
                       item.pageCount && item.pageCount.trim() ? `${item.pageCount.trim()} pages` : ''
                     ].filter(Boolean).join(' • ')}
-                  </Text>
+                  </SafeText>
                   {item.location && item.location.trim() && (
                     <SafeText style={styles.scheduleDetails}>📍 {item.location}</SafeText>
                   )}
