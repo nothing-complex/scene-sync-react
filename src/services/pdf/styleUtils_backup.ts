@@ -1,7 +1,6 @@
-
 import { StyleSheet } from '@react-pdf/renderer';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { getFontFamily, getFontWeight } from './fontUtils';
+import { getFontFamily, getFontWeight } from './fontUtils_backup';
 
 // Helper function to ensure consistent border properties
 export const createBorderStyle = (width: number = 0, color: string = '#000000') => {

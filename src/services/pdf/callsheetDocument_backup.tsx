@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Document, Page, Text, View } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
-import { createStyles } from './styleUtils';
-import { SafeText, SectionIcon } from './components';
+import { createStyles } from './styleUtils_backup';
+import { SafeText, SectionIcon } from './components_backup';
 
 interface CallsheetPDFDocumentProps {
   callsheet: CallsheetData;

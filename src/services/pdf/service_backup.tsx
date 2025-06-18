@@ -2,8 +2,8 @@ import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
-import { CallsheetPDFDocument } from './callsheetDocument';
-import { registerPDFFonts } from './fontUtils';
+import { CallsheetPDFDocument } from './callsheetDocument_backup';
+import { registerPDFFonts } from './fontUtils_backup';
 
 export class ReactPDFService {
   private customization: PDFCustomization;
