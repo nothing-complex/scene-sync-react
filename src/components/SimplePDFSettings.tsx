@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -7,7 +8,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { LogoUpload } from './LogoUpload';
-import { generateCustomCallsheetPDF } from '@/services/pdfService';
+import { generateCustomCallsheetPDF, previewCallsheetPDF } from '@/services/pdfService';
+import { PDFPreviewDialog } from './pdf/PDFPreviewDialog';
+import { Eye, Download } from 'lucide-react';
 
 interface SimplePDFSettingsProps {
   callsheet: CallsheetData;
@@ -20,9 +23,29 @@ export const SimplePDFSettings = ({
   customization, 
   onCustomizationChange 
 }: SimplePDFSettingsProps) => {
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   
-  const handleDownloadPDF = () => {
-    generateCustomCallsheetPDF(callsheet, customization);
+  const handleDownloadPDF = async () => {
+    setIsGenerating(true);
+    try {
+      await generateCustomCallsheetPDF(callsheet, customization);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handlePreviewPDF = async () => {
+    setIsGenerating(true);
+    try {
+      await previewCallsheetPDF(callsheet, customization);
+    } catch (error) {
+      console.error('Error previewing PDF:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const updateCustomization = (section: keyof PDFCustomization, updates: any) => {
@@ -125,18 +148,41 @@ export const SimplePDFSettings = ({
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-medium tracking-tight">Generate PDF</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Button 
-            onClick={handleDownloadPDF}
-            className="w-full font-normal"
-          >
-            Download Customized PDF
-          </Button>
-          <p className="text-sm text-muted-foreground mt-3 font-normal">
-            Uses your current settings to generate the callsheet PDF
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button 
+              variant="outline"
+              onClick={() => setIsPreviewOpen(true)}
+              disabled={isGenerating}
+              className="w-full font-normal"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Preview PDF
+            </Button>
+            
+            <Button 
+              onClick={handleDownloadPDF}
+              disabled={isGenerating}
+              className="w-full font-normal"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {isGenerating ? 'Generating...' : 'Download PDF'}
+            </Button>
+          </div>
+          
+          <p className="text-sm text-muted-foreground font-normal">
+            Preview your PDF before downloading, or download directly with your current settings
           </p>
         </CardContent>
       </Card>
+
+      {/* PDF Preview Dialog */}
+      <PDFPreviewDialog
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        callsheet={callsheet}
+        customization={customization}
+      />
     </div>
   );
 };

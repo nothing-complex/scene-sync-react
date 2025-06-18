@@ -1,27 +1,32 @@
 
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
+import { HTMLToPDFService } from './htmlToPdfService';
 
-// Temporary placeholder class
+// Service class that now uses HTML-to-PDF under the hood
 export class ReactPDFService {
+  private htmlToPdfService: HTMLToPDFService;
+
   constructor(customization: Partial<PDFCustomization> = {}) {
-    console.warn('ReactPDFService temporarily disabled - being rebuilt');
+    this.htmlToPdfService = new HTMLToPDFService(customization);
+    console.log('ReactPDFService initialized (using HTML-to-PDF)');
   }
 
   async generatePDF(callsheet: CallsheetData): Promise<Blob> {
-    throw new Error('PDF generation temporarily disabled - service being rebuilt');
+    return this.htmlToPdfService.generatePDF(callsheet);
   }
 
   async savePDF(callsheet: CallsheetData, filename?: string): Promise<void> {
-    alert('PDF generation is currently being rebuilt. Please check back soon!');
+    return this.htmlToPdfService.savePDF(callsheet, filename);
   }
 
   async previewPDF(callsheet: CallsheetData): Promise<void> {
-    alert('PDF generation is currently being rebuilt. Please check back soon!');
+    return this.htmlToPdfService.previewPDF(callsheet);
   }
 }
 
-export const generateReactPDF = (callsheet: CallsheetData) => {
-  console.warn('PDF generation temporarily disabled - service being rebuilt');
-  alert('PDF generation is currently being rebuilt. Please check back soon!');
+// Helper function for backward compatibility
+export const generateReactPDF = async (callsheet: CallsheetData) => {
+  const service = new ReactPDFService();
+  return service.savePDF(callsheet);
 };
