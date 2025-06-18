@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -45,10 +44,12 @@ export class ReactPDFService {
       }
 
       console.log('Creating PDF document...');
-      const pdfDocument = React.createElement(CallsheetPDFDocument, {
-        callsheet: callsheet,
-        customization: this.customization
-      });
+      const pdfDocument = (
+        <CallsheetPDFDocument 
+          callsheet={callsheet}
+          customization={this.customization}
+        />
+      );
 
       console.log('Generating PDF blob...');
       const blob = await pdf(pdfDocument).toBlob();
