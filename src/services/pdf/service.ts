@@ -22,13 +22,12 @@ export class ReactPDFService {
     console.log('Using customization:', this.customization);
     
     try {
-      const doc = React.createElement(CallsheetPDFDocument, { 
-        callsheet, 
-        customization: this.customization 
-      });
-      console.log('Created PDF document component');
-      
-      const blob = await pdf(doc).toBlob();
+      const blob = await pdf(
+        <CallsheetPDFDocument 
+          callsheet={callsheet} 
+          customization={this.customization} 
+        />
+      ).toBlob();
       console.log('PDF blob generated successfully, size:', blob.size);
       return blob;
     } catch (error) {
