@@ -24,18 +24,29 @@ export const SectionIcon: React.FC<{ type: string; color: string }> = ({ type, c
   );
 };
 
-// Enhanced SafeText component with strict validation
+// Enhanced SafeText component with better validation and error handling
 export const SafeText: React.FC<{ children: string | undefined | null; style?: any }> = ({ children, style }) => {
-  // Strict validation: only render if we have actual non-empty content
-  if (!children || typeof children !== 'string' || children.trim().length === 0) {
+  // Strict validation: only render if we have actual content
+  if (children === null || children === undefined) {
+    console.log('SafeText: Received null/undefined children');
+    return null;
+  }
+  
+  if (typeof children !== 'string') {
+    console.warn('SafeText: Received non-string children:', typeof children, children);
     return null;
   }
   
   const cleanText = children.trim();
-  // Additional check to ensure we don't pass empty strings
   if (cleanText === '') {
+    console.log('SafeText: Received empty string after trim');
     return null;
   }
   
-  return <Text style={style}>{cleanText}</Text>;
+  try {
+    return <Text style={style}>{cleanText}</Text>;
+  } catch (error) {
+    console.error('SafeText: Error rendering text:', error, 'Content:', cleanText);
+    return null;
+  }
 };

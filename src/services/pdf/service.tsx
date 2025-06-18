@@ -1,20 +1,34 @@
 
+import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
 import { CallsheetPDFDocument } from './callsheetDocument';
 import { registerPDFFonts } from './fontUtils';
-import React from 'react';
 
 export class ReactPDFService {
   private customization: PDFCustomization;
+  private fontsRegistered: boolean = false;
 
   constructor(customization: Partial<PDFCustomization> = {}) {
     this.customization = { ...DEFAULT_PDF_CUSTOMIZATION, ...customization };
     console.log('ReactPDFService initialized with customization:', this.customization);
-    
-    // Register fonts when service is created
-    registerPDFFonts();
+  }
+
+  private async ensureFontsRegistered(): Promise<void> {
+    if (!this.fontsRegistered) {
+      try {
+        console.log('Registering PDF fonts...');
+        registerPDFFonts();
+        this.fontsRegistered = true;
+        console.log('PDF fonts registered successfully');
+        // Give fonts a moment to register
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.warn('Font registration failed:', error);
+        // Continue without custom fonts
+      }
+    }
   }
 
   async generatePDF(callsheet: CallsheetData): Promise<Blob> {
@@ -22,17 +36,27 @@ export class ReactPDFService {
     console.log('Using customization:', this.customization);
     
     try {
-      const blob = await pdf(
-        <CallsheetPDFDocument 
-          callsheet={callsheet} 
-          customization={this.customization} 
-        />
-      ).toBlob();
+      // Ensure fonts are registered before generating PDF
+      await this.ensureFontsRegistered();
+
+      // Validate callsheet data
+      if (!callsheet || !callsheet.projectTitle) {
+        throw new Error('Invalid callsheet data provided');
+      }
+
+      console.log('Creating PDF document...');
+      const pdfDocument = React.createElement(CallsheetPDFDocument, {
+        callsheet: callsheet,
+        customization: this.customization
+      });
+
+      console.log('Generating PDF blob...');
+      const blob = await pdf(pdfDocument).toBlob();
       console.log('PDF blob generated successfully, size:', blob.size);
       return blob;
     } catch (error) {
       console.error('Error generating PDF blob:', error);
-      console.error('Error details:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -48,10 +72,16 @@ export class ReactPDFService {
       const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      
+      // Clean up the URL after a short delay
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 1000);
+      
       console.log('PDF download initiated successfully');
     } catch (error) {
       console.error('Error saving PDF:', error);
@@ -71,8 +101,15 @@ export class ReactPDFService {
         const link = document.createElement('a');
         link.href = url;
         link.target = '_blank';
+        link.rel = 'noopener noreferrer';
         link.click();
       }
+      
+      // Clean up the URL after a delay to allow the browser to load it
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 5000);
+      
       console.log('PDF preview opened successfully');
     } catch (error) {
       console.error('Error previewing PDF:', error);
