@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, Users, Camera, AlertCircle, RefreshCw, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,11 +37,19 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
     );
   }
 
-  const handleExportPDF = (callsheetId: string) => {
+  const handleExportPDF = async (callsheetId: string) => {
     const callsheet = callsheets.find(cs => cs.id === callsheetId);
     if (callsheet) {
       console.log('Generating PDF for callsheet:', callsheetId);
-      generateCallsheetPDF(callsheet);
+      setActionLoading(`pdf-${callsheetId}`);
+      try {
+        await generateCallsheetPDF(callsheet);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Failed to generate PDF. Please try again.');
+      } finally {
+        setActionLoading(null);
+      }
     }
   };
 
@@ -356,7 +363,11 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                                 onClick={() => handleExportPDF(callsheet.id)}
                                 disabled={actionLoading !== null}
                               >
-                                <FileText className="w-4 h-4" />
+                                {actionLoading === `pdf-${callsheet.id}` ? (
+                                  <LoadingSpinner size="sm" />
+                                ) : (
+                                  <FileText className="w-4 h-4" />
+                                )}
                               </Button>
                               <Button
                                 variant="ghost"
