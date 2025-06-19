@@ -1,3 +1,4 @@
+
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -394,18 +395,21 @@ export class HTMLToPDFService {
         format: 'a4'
       });
 
-      // Calculate dimensions to fit the page
+      // Calculate dimensions to fit the page with proper margins
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasAspectRatio = canvas.height / canvas.width;
+      const margin = 10; // 10mm margin on all sides
+      const contentWidth = pdfWidth - (margin * 2);
+      const contentHeight = pdfHeight - (margin * 2);
       
-      let imgWidth = pdfWidth;
-      let imgHeight = pdfWidth * canvasAspectRatio;
+      const canvasAspectRatio = canvas.height / canvas.width;
+      let imgWidth = contentWidth;
+      let imgHeight = contentWidth * canvasAspectRatio;
 
-      // If the image is taller than the page, we might need multiple pages
-      if (imgHeight > pdfHeight) {
-        const pages = Math.ceil(imgHeight / pdfHeight);
-        const pageHeight = imgHeight / pages;
+      // If the image is taller than the available content area, split into pages
+      if (imgHeight > contentHeight) {
+        const pages = Math.ceil(imgHeight / contentHeight);
+        const pageContentHeight = imgHeight / pages;
         
         for (let i = 0; i < pages; i++) {
           if (i > 0) {
@@ -429,12 +433,13 @@ export class HTMLToPDFService {
             );
             
             const pageImgData = pageCanvas.toDataURL('image/png');
-            pdf.addImage(pageImgData, 'PNG', 0, 0, imgWidth, pageHeight);
+            // Add image with margins
+            pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, pageContentHeight);
           }
         }
       } else {
-        // Single page
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        // Single page with margins
+        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
       }
 
       // Clean up the temporary element
