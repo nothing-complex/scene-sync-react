@@ -25,9 +25,11 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   // CSS variables for customization
   const cssVariables = {
     '--pdf-font-family': typography.fontFamily === 'helvetica' ? 'Arial, sans-serif' : 
-                        typography.fontFamily === 'times' ? 'Times New Roman, serif' : 
+                        typography.fontFamily === 'inter' ? 'Inter, sans-serif' : 
+                        typography.fontFamily === 'poppins' ? 'Poppins, sans-serif' :
+                        typography.fontFamily === 'montserrat' ? 'Montserrat, sans-serif' :
                         'Arial, sans-serif',
-    '--pdf-font-size': `${typography.fontSize}px`,
+    '--pdf-font-size': `${typography.fontSize.body}px`,
     '--pdf-primary-color': colors.primary,
     '--pdf-secondary-color': colors.secondary,
     '--pdf-text-color': colors.text,
@@ -43,6 +45,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     });
   };
 
+  const isHeaderCentered = layout.headerStyle === 'minimal' || layout.headerStyle === 'creative';
+
   return (
     <div 
       className={`bg-white text-black min-h-[11in] w-[8.5in] mx-auto p-8 ${className}`}
@@ -50,16 +54,29 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       id="pdf-content"
     >
       {/* Header */}
-      <div className={`mb-8 ${layout.headerStyle === 'centered' ? 'text-center' : 'text-left'}`}>
-        {branding.logo && (
+      <div className={`mb-8 ${isHeaderCentered ? 'text-center' : 'text-left'}`}>
+        {branding.logo && typeof branding.logo === 'object' && branding.logo.url && (
+          <div className="mb-4">
+            <img 
+              src={branding.logo.url} 
+              alt="Company Logo" 
+              className="h-16 w-auto"
+              style={{ 
+                margin: isHeaderCentered ? '0 auto' : '0',
+                display: isHeaderCentered ? 'block' : 'inline-block'
+              }}
+            />
+          </div>
+        )}
+        {branding.logo && typeof branding.logo === 'string' && (
           <div className="mb-4">
             <img 
               src={branding.logo} 
               alt="Company Logo" 
               className="h-16 w-auto"
               style={{ 
-                margin: layout.headerStyle === 'centered' ? '0 auto' : '0',
-                display: layout.headerStyle === 'centered' ? 'block' : 'inline-block'
+                margin: isHeaderCentered ? '0 auto' : '0',
+                display: isHeaderCentered ? 'block' : 'inline-block'
               }}
             />
           </div>
