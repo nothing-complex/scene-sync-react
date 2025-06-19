@@ -1,4 +1,3 @@
-
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -458,12 +457,7 @@ export class HTMLToPDFService {
       
       console.log('Creating download link for:', fileName);
       const url = URL.createObjectURL(blob);
-      const link =
-
-
-
-
-.createElement('a');
+      const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
       link.style.display = 'none';
