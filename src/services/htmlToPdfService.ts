@@ -1,3 +1,4 @@
+
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -28,15 +29,19 @@ export class HTMLToPDFService {
   }
 
   private getCardStyles(): string {
-    const { cardStyle } = this.customization.visual;
-    const { cornerRadius, shadowIntensity } = this.customization.visual;
+    const { cardStyle, cornerRadius, shadowIntensity } = this.customization.visual;
     
     let styles = `border-radius: ${cornerRadius}px;`;
     
     switch (cardStyle) {
       case 'elevated':
-        styles += shadowIntensity === 'subtle' ? 'box-shadow: 0 1px 3px rgba(0,0,0,0.1);' :
-                 shadowIntensity === 'medium' ? 'box-shadow: 0 4px 6px rgba(0,0,0,0.1);' : '';
+        if (shadowIntensity === 'subtle') {
+          styles += 'box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
+        } else if (shadowIntensity === 'medium') {
+          styles += 'box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+        } else if (shadowIntensity === 'strong') {
+          styles += 'box-shadow: 0 10px 15px rgba(0,0,0,0.1);';
+        }
         break;
       case 'bordered':
         styles += `border: 1px solid ${this.customization.colors.border};`;
@@ -90,6 +95,16 @@ export class HTMLToPDFService {
     }
   }
 
+  private getFontWeight(weight: string): string {
+    switch (weight) {
+      case 'normal': return '400';
+      case 'medium': return '500';
+      case 'semibold': return '600';
+      case 'bold': return '700';
+      default: return '400';
+    }
+  }
+
   private async renderPDFContent(callsheet: CallsheetData): Promise<HTMLElement> {
     console.log('Rendering PDF content for:', callsheet.projectTitle);
     
@@ -98,8 +113,8 @@ export class HTMLToPDFService {
     container.style.position = 'absolute';
     container.style.left = '-9999px';
     container.style.top = '0';
-    container.style.width = '8.5in';
-    container.style.minHeight = '11in';
+    container.style.width = this.customization.layout.pageOrientation === 'landscape' ? '11in' : '8.5in';
+    container.style.minHeight = this.customization.layout.pageOrientation === 'landscape' ? '8.5in' : '11in';
     container.style.backgroundColor = this.customization.colors.background;
     container.style.color = this.customization.colors.text;
     container.style.padding = `${this.customization.layout.margins.top}px`;
@@ -150,6 +165,7 @@ export class HTMLToPDFService {
     const headerBackgroundStyles = this.getHeaderBackgroundStyles();
     const cardStyles = this.getCardStyles();
     const sectionDividerStyles = this.getSectionDividerStyles();
+    const isHeaderWithBackground = headerBackgroundStyles.includes('background');
 
     return `
       <div style="font-family: ${this.getFontFamily()}; font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; line-height: ${this.customization.typography.lineHeight.body};">
@@ -165,10 +181,10 @@ export class HTMLToPDFService {
                    : '64px'}; width: auto; ${isHeaderCentered ? 'display: block; margin: 0 auto;' : 'display: inline-block;'}" />
             </div>
           ` : ''}
-          <h1 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.customization.typography.fontWeight.title === 'normal' ? '400' : this.customization.typography.fontWeight.title === 'medium' ? '500' : this.customization.typography.fontWeight.title === 'semibold' ? '600' : '700'}; margin-bottom: 8px; color: ${headerBackgroundStyles.includes('gradient') || headerBackgroundStyles.includes('solid') ? this.customization.colors.background : this.customization.colors.primary}; line-height: ${this.customization.typography.lineHeight.title};">
+          <h1 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.title)}; margin-bottom: 8px; color: ${isHeaderWithBackground ? this.customization.colors.background : this.customization.colors.primary}; line-height: ${this.customization.typography.lineHeight.title};">
             ${callsheet.projectTitle}
           </h1>
-          <h2 style="font-size: ${this.customization.typography.fontSize.header}px; font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; color: ${headerBackgroundStyles.includes('gradient') || headerBackgroundStyles.includes('solid') ? this.customization.colors.background : this.customization.colors.secondary}; line-height: ${this.customization.typography.lineHeight.header};">
+          <h2 style="font-size: ${this.customization.typography.fontSize.header}px; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; color: ${isHeaderWithBackground ? this.customization.colors.background : this.customization.colors.secondary}; line-height: ${this.customization.typography.lineHeight.header};">
             CALL SHEET
           </h2>
         </div>
@@ -179,14 +195,14 @@ export class HTMLToPDFService {
             <div style="display: flex; align-items: center; margin-bottom: 16px; ${cardStyles} padding: 12px;">
               ${this.customization.sections.formatting.showSectionIcons ? '<div style="margin-right: 8px;">📅</div>' : ''}
               <div>
-                <div style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; font-size: ${this.customization.typography.fontSize.header}px;">Shoot Date</div>
+                <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.header}px;">Shoot Date</div>
                 <div style="font-size: ${this.customization.typography.fontSize.body}px;">${formatDate(callsheet.shootDate)}</div>
               </div>
             </div>
             <div style="display: flex; align-items: center; ${cardStyles} padding: 12px;">
               ${this.customization.sections.formatting.showSectionIcons ? '<div style="margin-right: 8px;">🕐</div>' : ''}
               <div>
-                <div style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; font-size: ${this.customization.typography.fontSize.header}px;">General Call Time</div>
+                <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.header}px;">General Call Time</div>
                 <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.generalCallTime}</div>
               </div>
             </div>
@@ -195,7 +211,7 @@ export class HTMLToPDFService {
             <div style="display: flex; align-items: center; ${cardStyles} padding: 12px;">
               ${this.customization.sections.formatting.showSectionIcons ? '<div style="margin-right: 8px;">📍</div>' : ''}
               <div>
-                <div style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; font-size: ${this.customization.typography.fontSize.header}px;">Location</div>
+                <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.header}px;">Location</div>
                 <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.location}</div>
                 ${callsheet.locationAddress ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight};">${callsheet.locationAddress}</div>` : ''}
               </div>
@@ -206,18 +222,18 @@ export class HTMLToPDFService {
         ${callsheet.schedule.length > 0 && this.customization.sections.visibility.schedule ? `
         <!-- Schedule -->
         <div style="${sectionDividerStyles}">
-          <h3 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.customization.typography.fontWeight.title === 'normal' ? '400' : this.customization.typography.fontWeight.title === 'medium' ? '500' : this.customization.typography.fontWeight.title === 'semibold' ? '600' : '700'}; margin-bottom: 16px; color: ${this.customization.colors.primary}; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
+          <h3 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.title)}; margin-bottom: 16px; color: ${this.customization.colors.primary}; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
             ${this.customization.sections.formatting.showSectionIcons ? '<span style="margin-right: 8px;">📋</span>' : ''}
             SCHEDULE
           </h3>
           <table style="width: 100%; border-collapse: collapse; border: 1px solid ${this.customization.colors.border}; ${cardStyles}">
             <thead>
               <tr style="background-color: ${this.customization.colors.surface};">
-                <th style="padding: 8px; border-right: 1px solid ${this.customization.colors.border}; font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Scene</th>
-                <th style="padding: 8px; border-right: 1px solid ${this.customization.colors.border}; font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Int/Ext</th>
-                <th style="padding: 8px; border-right: 1px solid ${this.customization.colors.border}; font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Description</th>
-                <th style="padding: 8px; border-right: 1px solid ${this.customization.colors.border}; font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' : '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Location</th>
-                <th style="padding: 8px; font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Time</th>
+                <th style="padding: 8px; border-right: 1px solid ${this.customization.colors.border}; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Scene</th>
+                <th style="padding: 8px; border-right: 1px solid ${this.customization.colors.border}; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Int/Ext</th>
+                <th style="padding: 8px; border-right: 1px solid ${this.customization.colors.border}; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Description</th>
+                <th style="padding: 8px; border-right: 1px solid ${this.customization.colors.border}; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Location</th>
+                <th style="padding: 8px; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; text-align: left; font-size: ${this.customization.typography.fontSize.header}px;">Time</th>
               </tr>
             </thead>
             <tbody>
@@ -240,14 +256,14 @@ export class HTMLToPDFService {
         ${callsheet.cast.length > 0 ? `
         <!-- Cast -->
         <div style="${sectionDividerStyles}">
-          <h3 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.customization.typography.fontWeight.title === 'normal' ? '400' : this.customization.typography.fontWeight.title === 'medium' ? '500' : this.customization.typography.fontWeight.title === 'semibold' ? '600' : '700'}; margin-bottom: 16px; color: ${this.customization.colors.primary}; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
+          <h3 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.title)}; margin-bottom: 16px; color: ${this.customization.colors.primary}; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
             ${this.customization.sections.formatting.showSectionIcons ? '<span style="margin-right: 8px;">🎭</span>' : ''}
             CAST
           </h3>
           <div style="display: grid; grid-template-columns: ${this.customization.sections.formatting.contactLayout === 'compact' ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 16px;">
             ${callsheet.cast.map(member => `
               <div style="${cardStyles} padding: 12px; border: 1px solid ${this.customization.colors.border};">
-                <div style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; font-size: ${this.customization.typography.fontSize.body}px;">${member.name}</div>
+                <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.body}px;">${member.name}</div>
                 ${member.character ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; margin-bottom: 4px;">as ${member.character}</div>` : ''}
                 <div style="font-size: ${this.customization.typography.fontSize.small}px; margin-bottom: 4px;">${this.customization.sections.formatting.showSectionIcons ? '📞 ' : ''}${member.phone}</div>
                 <div style="font-size: ${this.customization.typography.fontSize.small}px;">${this.customization.sections.formatting.showSectionIcons ? '📧 ' : ''}${member.email}</div>
@@ -260,14 +276,14 @@ export class HTMLToPDFService {
         ${callsheet.crew.length > 0 ? `
         <!-- Crew -->
         <div style="${sectionDividerStyles}">
-          <h3 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.customization.typography.fontWeight.title === 'normal' ? '400' : this.customization.typography.fontWeight.title === 'medium' ? '500' : this.customization.typography.fontWeight.title === 'semibold' ? '600' : '700'}; margin-bottom: 16px; color: ${this.customization.colors.primary}; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
+          <h3 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.title)}; margin-bottom: 16px; color: ${this.customization.colors.primary}; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
             ${this.customization.sections.formatting.showSectionIcons ? '<span style="margin-right: 8px;">🎬</span>' : ''}
             CREW
           </h3>
           <div style="display: grid; grid-template-columns: ${this.customization.sections.formatting.contactLayout === 'compact' ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 16px;">
             ${callsheet.crew.map(member => `
               <div style="${cardStyles} padding: 12px; border: 1px solid ${this.customization.colors.border};">
-                <div style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; font-size: ${this.customization.typography.fontSize.body}px;">${member.name}</div>
+                <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.body}px;">${member.name}</div>
                 <div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; margin-bottom: 4px;">${member.role}</div>
                 <div style="font-size: ${this.customization.typography.fontSize.small}px; margin-bottom: 4px;">${this.customization.sections.formatting.showSectionIcons ? '📞 ' : ''}${member.phone}</div>
                 <div style="font-size: ${this.customization.typography.fontSize.small}px;">${this.customization.sections.formatting.showSectionIcons ? '📧 ' : ''}${member.email}</div>
@@ -280,14 +296,14 @@ export class HTMLToPDFService {
         ${callsheet.emergencyContacts.length > 0 && this.customization.sections.visibility.emergencyContacts ? `
         <!-- Emergency Contacts -->
         <div style="${sectionDividerStyles}">
-          <h3 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.customization.typography.fontWeight.title === 'normal' ? '400' : this.customization.typography.fontWeight.title === 'medium' ? '500' : this.customization.typography.fontWeight.title === 'semibold' ? '600' : '700'}; margin-bottom: 16px; color: ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.primary}; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
+          <h3 style="font-size: ${this.customization.typography.fontSize.title}px; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.title)}; margin-bottom: 16px; color: ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.primary}; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
             ${this.customization.sections.formatting.showSectionIcons ? '<span style="margin-right: 8px;">⚠️</span>' : ''}
             EMERGENCY CONTACTS
           </h3>
           <div style="display: grid; grid-template-columns: ${this.customization.sections.formatting.contactLayout === 'compact' ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 16px;">
             ${callsheet.emergencyContacts.map(contact => `
               <div style="${cardStyles} padding: 12px; border: ${this.customization.sections.formatting.emergencyProminent ? '2px solid #fca5a5' : `1px solid ${this.customization.colors.border}`}; background-color: ${this.customization.sections.formatting.emergencyProminent ? '#fef2f2' : this.customization.colors.surface};">
-                <div style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; font-size: ${this.customization.typography.fontSize.body}px;">${contact.name}</div>
+                <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.body}px;">${contact.name}</div>
                 <div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; margin-bottom: 4px;">${contact.role}</div>
                 <div style="font-size: ${this.customization.typography.fontSize.small}px; font-weight: 500;">${this.customization.sections.formatting.showSectionIcons ? '📞 ' : ''}${contact.phone}</div>
               </div>
@@ -300,7 +316,7 @@ export class HTMLToPDFService {
         <div>
           ${callsheet.parkingInstructions ? `
             <div style="margin-bottom: 16px; ${cardStyles} padding: 12px;">
-              <h4 style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; margin-bottom: 8px; font-size: ${this.customization.typography.fontSize.header}px; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
+              <h4 style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; margin-bottom: 8px; font-size: ${this.customization.typography.fontSize.header}px; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
                 ${this.customization.sections.formatting.showSectionIcons ? '<span style="margin-right: 8px;">🅿️</span>' : ''}
                 Parking Instructions
               </h4>
@@ -310,7 +326,7 @@ export class HTMLToPDFService {
           
           ${callsheet.basecampLocation ? `
             <div style="margin-bottom: 16px; ${cardStyles} padding: 12px;">
-              <h4 style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; margin-bottom: 8px; font-size: ${this.customization.typography.fontSize.header}px; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
+              <h4 style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; margin-bottom: 8px; font-size: ${this.customization.typography.fontSize.header}px; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
                 ${this.customization.sections.formatting.showSectionIcons ? '<span style="margin-right: 8px;">🏕️</span>' : ''}
                 Basecamp Location
               </h4>
@@ -320,7 +336,7 @@ export class HTMLToPDFService {
           
           ${callsheet.weather && this.customization.sections.visibility.weather ? `
             <div style="margin-bottom: 16px; ${cardStyles} padding: 12px;">
-              <h4 style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; margin-bottom: 8px; font-size: ${this.customization.typography.fontSize.header}px; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
+              <h4 style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; margin-bottom: 8px; font-size: ${this.customization.typography.fontSize.header}px; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
                 ${this.customization.sections.formatting.showSectionIcons ? '<span style="margin-right: 8px;">🌤️</span>' : ''}
                 Weather
               </h4>
@@ -330,7 +346,7 @@ export class HTMLToPDFService {
           
           ${callsheet.specialNotes && this.customization.sections.visibility.notes ? `
             <div style="margin-bottom: 16px; ${cardStyles} padding: 12px;">
-              <h4 style="font-weight: ${this.customization.typography.fontWeight.header === 'normal' ? '400' : this.customization.typography.fontWeight.header === 'medium' ? '500' : this.customization.typography.fontWeight.header === 'semibold' ? '600' : '700'}; margin-bottom: 8px; font-size: ${this.customization.typography.fontSize.header}px; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
+              <h4 style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; margin-bottom: 8px; font-size: ${this.customization.typography.fontSize.header}px; ${this.customization.sections.formatting.showSectionIcons ? 'display: flex; align-items: center;' : ''}">
                 ${this.customization.sections.formatting.showSectionIcons ? '<span style="margin-right: 8px;">📝</span>' : ''}
                 Special Notes
               </h4>
@@ -442,7 +458,12 @@ export class HTMLToPDFService {
       
       console.log('Creating download link for:', fileName);
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link =
+
+
+
+
+.createElement('a');
       link.href = url;
       link.download = fileName;
       link.style.display = 'none';
