@@ -141,17 +141,11 @@ export class HTMLToPDFService {
     container.style.left = '-9999px';
     container.style.top = '0';
     
-    // Set proper dimensions for A4 page
-    const isLandscape = this.customization.layout.pageOrientation === 'landscape';
-    const pageWidth = isLandscape ? '297mm' : '210mm';
-    const pageHeight = isLandscape ? '210mm' : '297mm';
-    
-    container.style.width = pageWidth;
-    container.style.minHeight = pageHeight;
-    container.style.maxWidth = pageWidth;
+    // Simple fixed width container
+    container.style.width = '794px'; // A4 width at 96dpi
     container.style.backgroundColor = this.customization.colors.background;
     container.style.color = this.customization.colors.text;
-    container.style.padding = '20mm';
+    container.style.padding = '40px';
     container.style.boxSizing = 'border-box';
     container.style.fontFamily = this.getFontFamily();
     container.style.fontSize = `${this.customization.typography.fontSize.body}px`;
@@ -426,93 +420,52 @@ export class HTMLToPDFService {
       
       console.log('Capturing PDF content as canvas...');
       
-      // Configure html2canvas for better quality
+      // Simple html2canvas configuration
       const canvas = await html2canvas(element, {
-        scale: 1.5, // Reduced scale to prevent quality issues
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: this.customization.colors.background,
-        logging: false,
-        width: element.offsetWidth,
-        height: element.scrollHeight
+        logging: false
       });
 
       console.log('Canvas captured successfully, dimensions:', canvas.width, 'x', canvas.height);
 
-      // Create PDF with proper dimensions
+      // Create PDF with simple approach
       const pdf = new jsPDF({
         orientation: this.customization.layout.pageOrientation,
-        unit: 'mm',
+        unit: 'pt',
         format: 'a4'
       });
 
-      // Get PDF dimensions
+      // Get PDF dimensions in points
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      // Calculate content area with margins
-      const margin = 15; // 15mm margin
-      const contentWidth = pdfWidth - (margin * 2);
-      const contentHeight = pdfHeight - (margin * 2);
-      
-      // Calculate image dimensions to fit the page
-      const canvasAspectRatio = canvas.height / canvas.width;
-      const imgWidth = contentWidth;
-      const imgHeight = contentWidth * canvasAspectRatio;
+      // Calculate image dimensions to fit the page width
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
       console.log('PDF dimensions:', pdfWidth, 'x', pdfHeight);
-      console.log('Content area:', contentWidth, 'x', contentHeight);
       console.log('Image dimensions:', imgWidth, 'x', imgHeight);
 
-      // Check if content fits on one page
-      if (imgHeight <= contentHeight) {
-        // Single page - fits entirely
-        const imgData = canvas.toDataURL('image/png', 0.8);
-        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      // Simple approach: just add the image, let it flow naturally
+      const imgData = canvas.toDataURL('image/png', 0.9);
+      
+      if (imgHeight <= pdfHeight) {
+        // Fits on one page
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       } else {
-        // Multiple pages needed
-        const totalPages = Math.ceil(imgHeight / contentHeight);
-        console.log('Content needs', totalPages, 'pages');
+        // Multiple pages - simple split
+        const pagesNeeded = Math.ceil(imgHeight / pdfHeight);
         
-        // Calculate the actual pixel height per page
-        const pixelsPerPage = canvas.height / totalPages;
-        
-        for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
-          if (pageIndex > 0) {
+        for (let i = 0; i < pagesNeeded; i++) {
+          if (i > 0) {
             pdf.addPage();
           }
           
-          // Calculate the source area for this page
-          const sourceY = Math.floor(pixelsPerPage * pageIndex);
-          const sourceHeight = Math.min(
-            Math.floor(pixelsPerPage), 
-            canvas.height - sourceY
-          );
-          
-          // Create a temporary canvas for this page portion
-          const pageCanvas = document.createElement('canvas');
-          const ctx = pageCanvas.getContext('2d');
-          
-          if (ctx) {
-            // Set canvas size proportionally
-            pageCanvas.width = canvas.width;
-            pageCanvas.height = sourceHeight;
-            
-            // Fill with background color
-            ctx.fillStyle = this.customization.colors.background;
-            ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-            
-            // Draw the portion of the original canvas
-            ctx.drawImage(
-              canvas,
-              0, sourceY, canvas.width, sourceHeight,
-              0, 0, canvas.width, sourceHeight
-            );
-            
-            // Convert to image and add to PDF
-            const pageImgData = pageCanvas.toDataURL('image/png', 0.8);
-            pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, contentHeight);
-          }
+          const yOffset = -i * pdfHeight;
+          pdf.addImage(imgData, 'PNG', 0, yOffset, imgWidth, imgHeight);
         }
       }
 
