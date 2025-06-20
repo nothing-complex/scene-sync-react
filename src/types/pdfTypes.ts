@@ -266,7 +266,7 @@ export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
       contactLayout: 'list',
       scheduleCompact: false,
       emergencyProminent: true,
-      showSectionIcons: true,
+      showSectionIcons: false, // Changed default to false (no emojis by default)
       alternateRowColors: false
     }
   }
