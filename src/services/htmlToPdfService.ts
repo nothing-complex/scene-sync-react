@@ -140,55 +140,26 @@ export class HTMLToPDFService {
   private async renderPDFContent(callsheet: CallsheetData): Promise<HTMLElement> {
     console.log('Rendering PDF content for:', callsheet.projectTitle);
     
-    // Create a temporary container with proper page dimensions and margins
+    // Create a temporary container
     const container = document.createElement('div');
     container.style.position = 'absolute';
     container.style.left = '-9999px';
     container.style.top = '0';
     
-    // Set proper page dimensions with consistent margins
+    // Set proper dimensions for consistent rendering
     const pageWidth = this.customization.layout.pageOrientation === 'landscape' ? '11in' : '8.5in';
     const pageHeight = this.customization.layout.pageOrientation === 'landscape' ? '8.5in' : '11in';
-    const marginSize = `${this.customization.layout.margins.top}px`;
     
     container.style.width = pageWidth;
     container.style.minHeight = pageHeight;
     container.style.backgroundColor = this.customization.colors.background;
     container.style.color = this.customization.colors.text;
-    container.style.padding = marginSize;
+    container.style.padding = `${this.customization.layout.margins.top}px`;
     container.style.boxSizing = 'border-box';
     container.style.fontFamily = this.getFontFamily();
     container.style.fontSize = `${this.customization.typography.fontSize.body}px`;
     container.style.lineHeight = this.customization.typography.lineHeight.body.toString();
     container.id = 'temp-pdf-content';
-    
-    // Add CSS for page breaks and consistent margins across all pages
-    const style = document.createElement('style');
-    style.textContent = `
-      #temp-pdf-content {
-        page-break-inside: avoid;
-      }
-      #temp-pdf-content .page-break {
-        page-break-before: always;
-        margin-top: ${marginSize};
-        padding-top: ${marginSize};
-      }
-      #temp-pdf-content .section-break {
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      @media print {
-        #temp-pdf-content {
-          margin: ${marginSize};
-          padding: ${marginSize};
-        }
-        #temp-pdf-content .page-content {
-          margin-top: ${marginSize};
-          margin-bottom: ${marginSize};
-        }
-      }
-    `;
-    document.head.appendChild(style);
     
     // Generate the HTML content
     container.innerHTML = this.generateHTMLContent(callsheet);
@@ -458,98 +429,86 @@ export class HTMLToPDFService {
       
       console.log('Capturing PDF content as canvas...');
       
-      // Configure html2canvas options for better quality and consistent margins
+      // Configure html2canvas for better quality
       const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: this.customization.colors.background,
         logging: false,
         width: element.scrollWidth,
-        height: element.scrollHeight,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        height: element.scrollHeight
       });
 
       console.log('Canvas captured successfully');
 
-      // Create PDF with proper dimensions and margins
+      // Create PDF with proper dimensions
       const pdf = new jsPDF({
         orientation: this.customization.layout.pageOrientation,
         unit: 'mm',
         format: 'a4'
       });
 
-      // Calculate dimensions to fit the page with proper margins
+      // Get PDF dimensions
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15; // Increased margin to 15mm for better spacing
+      
+      // Calculate image dimensions to fit the page with margins
+      const margin = 10; // 10mm margin
       const contentWidth = pdfWidth - (margin * 2);
       const contentHeight = pdfHeight - (margin * 2);
       
       const canvasAspectRatio = canvas.height / canvas.width;
-      let imgWidth = contentWidth;
-      let imgHeight = contentWidth * canvasAspectRatio;
+      const imgWidth = contentWidth;
+      const imgHeight = contentWidth * canvasAspectRatio;
 
-      // If the image is taller than the available content area, split into pages
+      // If content is taller than one page, we need multiple pages
       if (imgHeight > contentHeight) {
-        const pages = Math.ceil(imgHeight / contentHeight);
-        const pageContentHeight = contentHeight; // Use full content height per page
+        // Calculate how many pages we need
+        const totalPages = Math.ceil(imgHeight / contentHeight);
         
-        for (let i = 0; i < pages; i++) {
-          if (i > 0) {
+        for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+          if (pageIndex > 0) {
             pdf.addPage();
           }
           
-          // Calculate the portion of the canvas for this page
-          const sourceY = (canvas.height * i * contentHeight) / imgHeight;
-          const sourceHeight = Math.min(canvas.height * contentHeight / imgHeight, canvas.height - sourceY);
+          // Calculate the source area for this page
+          const sourceY = (canvas.height / totalPages) * pageIndex;
+          const sourceHeight = Math.min(canvas.height / totalPages, canvas.height - sourceY);
           
-          // Create a canvas for this page section
+          // Create a temporary canvas for this page portion
           const pageCanvas = document.createElement('canvas');
-          const pageCtx = pageCanvas.getContext('2d');
+          const ctx = pageCanvas.getContext('2d');
           
-          if (pageCtx) {
+          if (ctx) {
+            // Set canvas size to match the portion we want
             pageCanvas.width = canvas.width;
             pageCanvas.height = sourceHeight;
             
-            // Fill with background color first
-            pageCtx.fillStyle = this.customization.colors.background;
-            pageCtx.fillRect(0, 0, canvas.width, sourceHeight);
+            // Fill with background color
+            ctx.fillStyle = this.customization.colors.background;
+            ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
             
-            // Draw the content section
-            pageCtx.drawImage(
+            // Draw the portion of the original canvas
+            ctx.drawImage(
               canvas,
               0, sourceY, canvas.width, sourceHeight,
               0, 0, canvas.width, sourceHeight
             );
             
-            const pageImgData = pageCanvas.toDataURL('image/png');
-            // Add image with proper margins - use pageContentHeight for consistent spacing
-            pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, pageContentHeight);
+            // Convert to image and add to PDF
+            const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
+            pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, contentHeight);
           }
         }
       } else {
-        // Single page with margins
-        const imgData = canvas.toDataURL('image/png');
+        // Single page - fits entirely
+        const imgData = canvas.toDataURL('image/png', 1.0);
         pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
       }
 
-      // Clean up the temporary element
-      const tempElement = document.getElementById('temp-pdf-content');
-      if (tempElement) {
-        document.body.removeChild(tempElement);
-      }
-
-      // Clean up the style element
-      const styleElements = document.querySelectorAll('style');
-      styleElements.forEach(style => {
-        if (style.textContent?.includes('#temp-pdf-content')) {
-          document.head.removeChild(style);
-        }
-      });
+      // Clean up
+      document.body.removeChild(element);
 
       const blob = pdf.output('blob');
       console.log('PDF generated successfully');
