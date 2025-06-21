@@ -170,30 +170,66 @@ export class HTMLToPDFService {
     container.style.boxSizing = 'border-box';
     container.style.padding = '40px';
     
-    // Add CSS for better page breaking
+    // Enhanced CSS for better page breaking with more specific rules
     const style = document.createElement('style');
     style.textContent = `
+      .pdf-page-content {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
       .pdf-section {
         page-break-inside: avoid;
         break-inside: avoid;
-        margin-bottom: 24px;
+        margin-bottom: 32px;
+        position: relative;
       }
-      .pdf-contact-item {
+      .pdf-section-header {
+        page-break-after: avoid;
+        break-after: avoid;
+        margin-bottom: 16px;
+      }
+      .pdf-contact-item, .pdf-schedule-item, .pdf-info-card {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        margin-bottom: 16px;
+        position: relative;
+      }
+      .pdf-contact-grid {
+        display: block !important;
+      }
+      .pdf-contact-grid .pdf-contact-item {
+        display: block;
+        margin-bottom: 20px;
+        width: 100% !important;
+      }
+      .pdf-schedule-table {
         page-break-inside: avoid;
         break-inside: avoid;
       }
-      .pdf-schedule-item {
+      .pdf-schedule-row {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .pdf-basic-info {
+        display: block !important;
+      }
+      .pdf-basic-info > div {
+        margin-bottom: 20px;
         page-break-inside: avoid;
         break-inside: avoid;
       }
       .pdf-page-break {
         page-break-before: always;
         break-before: page;
+        height: 1px;
+        margin: 40px 0;
+        visibility: hidden;
       }
     `;
     document.head.appendChild(style);
     
     container.id = 'temp-pdf-content';
+    container.className = 'pdf-page-content';
     container.innerHTML = this.generateHTMLContent(callsheet);
     
     document.body.appendChild(container);
@@ -226,7 +262,7 @@ export class HTMLToPDFService {
     if (document.fonts) {
       try {
         await document.fonts.ready;
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300));
       } catch (error) {
         console.warn('Font loading failed:', error);
       }
@@ -249,11 +285,9 @@ export class HTMLToPDFService {
     const headerBackgroundStyles = this.getHeaderBackgroundStyles();
     const cardStyles = this.getCardStyles();
     const sectionDividerStyles = this.getSectionDividerStyles();
-    const contactLayoutStyles = this.getContactLayoutStyles();
-    const contactItemStyles = this.getContactItemStyles();
 
     return `
-      <div class="page-content" style="
+      <div class="pdf-page-content" style="
         font-family: ${this.getFontFamily()}; 
         font-size: ${this.customization.typography.fontSize.body}px; 
         color: ${this.customization.colors.text}; 
@@ -262,10 +296,12 @@ export class HTMLToPDFService {
         box-sizing: border-box;
       ">
         <!-- Header -->
-        <div class="pdf-section header-section" style="
-          margin-bottom: 32px; 
+        <div class="pdf-section pdf-section-header" style="
           text-align: ${isHeaderCentered ? 'center' : 'left'}; 
           ${headerBackgroundStyles}
+          padding: 24px;
+          margin-bottom: 40px;
+          border-radius: ${this.customization.visual.cornerRadius}px;
         ">
           ${this.customization.branding.logo ? `
             <div style="margin-bottom: 16px;">
@@ -285,7 +321,7 @@ export class HTMLToPDFService {
           <h1 style="
             font-size: ${this.customization.typography.fontSize.title}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.title)}; 
-            margin: 0 0 8px 0; 
+            margin: 0 0 12px 0; 
             color: ${this.getTitleColor()}; 
             line-height: ${this.customization.typography.lineHeight.title};
           ">
@@ -303,109 +339,145 @@ export class HTMLToPDFService {
         </div>
 
         <!-- Basic Information -->
-        <div class="pdf-section basic-info" style="
-          display: grid; 
-          grid-template-columns: 1fr 1fr; 
-          gap: 24px; 
-          ${sectionDividerStyles}
-        ">
-          <div style="${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
-            <div style="margin-bottom: 16px;">
+        <div class="pdf-section pdf-basic-info" style="margin-bottom: 40px;">
+          <div class="pdf-info-card" style="
+            ${cardStyles} 
+            padding: 20px; 
+            background-color: ${this.customization.colors.surface};
+            margin-bottom: 20px;
+            border-radius: ${this.customization.visual.cornerRadius}px;
+          ">
+            <div style="margin-bottom: 20px;">
               <div style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
                 font-size: ${this.customization.typography.fontSize.header}px;
                 color: ${this.customization.colors.primary};
-                margin-bottom: 4px;
+                margin-bottom: 8px;
               ">
                 ${this.renderEmoji('📅')}Shoot Date
               </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${formatDate(callsheet.shootDate)}</div>
+              <div style="font-size: ${this.customization.typography.fontSize.body}px; padding-left: 4px;">${formatDate(callsheet.shootDate)}</div>
+            </div>
+            <div style="margin-bottom: 20px;">
+              <div style="
+                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+                font-size: ${this.customization.typography.fontSize.header}px;
+                color: ${this.customization.colors.primary};
+                margin-bottom: 8px;
+              ">
+                ${this.renderEmoji('🕐')}Call Time
+              </div>
+              <div style="font-size: ${this.customization.typography.fontSize.body}px; padding-left: 4px;">${callsheet.generalCallTime}</div>
             </div>
             <div>
               <div style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
                 font-size: ${this.customization.typography.fontSize.header}px;
                 color: ${this.customization.colors.primary};
-                margin-bottom: 4px;
+                margin-bottom: 8px;
               ">
-                ${this.renderEmoji('🕐')}Call Time
+                ${this.renderEmoji('📍')}Location
               </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.generalCallTime}</div>
+              <div style="font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 6px; padding-left: 4px;">${callsheet.location}</div>
+              ${callsheet.locationAddress ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; padding-left: 4px;">${callsheet.locationAddress}</div>` : ''}
             </div>
-          </div>
-          <div style="${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
-            <div style="
-              font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-              font-size: ${this.customization.typography.fontSize.header}px;
-              color: ${this.customization.colors.primary};
-              margin-bottom: 4px;
-            ">
-              ${this.renderEmoji('📍')}Location
-            </div>
-            <div style="font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 4px;">${callsheet.location}</div>
-            ${callsheet.locationAddress ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight};">${callsheet.locationAddress}</div>` : ''}
           </div>
         </div>
 
         ${callsheet.schedule.length > 0 && this.customization.sections.visibility.schedule ? `
         <!-- Schedule -->
-        <div class="pdf-section schedule-section" style="${sectionDividerStyles}">
-          <h3 style="
-            font-size: ${this.customization.typography.fontSize.header + 2}px; 
+        <div class="pdf-section" style="margin-bottom: 40px;">
+          <h3 class="pdf-section-header" style="
+            font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 16px; 
+            margin-bottom: 20px; 
             color: ${this.customization.colors.primary};
           ">
             ${this.renderEmoji('📋')}SCHEDULE
           </h3>
-          <div style="${cardStyles} background-color: ${this.customization.colors.surface}; overflow: hidden;">
-            <table style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="background-color: ${this.customization.colors.surfaceHover};">
-                  <th style="padding: 12px; text-align: left; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.header}px; border-bottom: 1px solid ${this.customization.colors.border};">Scene</th>
-                  <th style="padding: 12px; text-align: left; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.header}px; border-bottom: 1px solid ${this.customization.colors.border};">Int/Ext</th>
-                  <th style="padding: 12px; text-align: left; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.header}px; border-bottom: 1px solid ${this.customization.colors.border};">Description</th>
-                  <th style="padding: 12px; text-align: left; font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.header}px; border-bottom: 1px solid ${this.customization.colors.border};">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${callsheet.schedule.map((item, index) => `
-                  <tr class="pdf-schedule-item" style="
-                    background-color: ${this.customization.sections.formatting.alternateRowColors ? 
-                      (index % 2 === 0 ? this.customization.colors.background : this.customization.colors.surface) : 
-                      this.customization.colors.background};
-                    page-break-inside: avoid;
-                  ">
-                    <td style="padding: 12px; font-weight: 500; font-size: ${this.customization.typography.fontSize.body}px; border-bottom: 1px solid ${this.customization.colors.borderLight};">${item.sceneNumber}</td>
-                    <td style="padding: 12px; font-size: ${this.customization.typography.fontSize.body}px; border-bottom: 1px solid ${this.customization.colors.borderLight};">${item.intExt}</td>
-                    <td style="padding: 12px; font-size: ${this.customization.typography.fontSize.body}px; border-bottom: 1px solid ${this.customization.colors.borderLight};">${item.description}</td>
-                    <td style="padding: 12px; font-size: ${this.customization.typography.fontSize.body}px; border-bottom: 1px solid ${this.customization.colors.borderLight};">${item.estimatedTime}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
+          <div class="pdf-schedule-table" style="
+            ${cardStyles} 
+            background-color: ${this.customization.colors.surface}; 
+            overflow: hidden;
+            border-radius: ${this.customization.visual.cornerRadius}px;
+            border: 1px solid ${this.customization.colors.border};
+          ">
+            <div class="pdf-schedule-row" style="
+              display: grid;
+              grid-template-columns: 80px 100px 1fr 120px;
+              gap: 0;
+              background-color: ${this.customization.colors.surfaceHover};
+              font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)};
+              font-size: ${this.customization.typography.fontSize.header}px;
+              border-bottom: 2px solid ${this.customization.colors.border};
+            ">
+              <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Scene</div>
+              <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Int/Ext</div>
+              <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Description</div>
+              <div style="padding: 16px 12px;">Time</div>
+            </div>
+            ${callsheet.schedule.map((item, index) => `
+              <div class="pdf-schedule-row" style="
+                display: grid;
+                grid-template-columns: 80px 100px 1fr 120px;
+                gap: 0;
+                background-color: ${this.customization.sections.formatting.alternateRowColors ? 
+                  (index % 2 === 0 ? this.customization.colors.background : this.customization.colors.surface) : 
+                  this.customization.colors.background};
+                border-bottom: 1px solid ${this.customization.colors.borderLight};
+              ">
+                <div style="padding: 14px 12px; font-weight: 500; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight};">${item.sceneNumber}</div>
+                <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight};">${item.intExt}</div>
+                <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight};">${item.description}</div>
+                <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px;">${item.estimatedTime}</div>
+              </div>
+            `).join('')}
           </div>
         </div>
         ` : ''}
 
         ${callsheet.cast.length > 0 ? `
         <!-- Cast -->
-        <div class="pdf-section cast-section" style="${sectionDividerStyles}">
-          <h3 style="
-            font-size: ${this.customization.typography.fontSize.header + 2}px; 
+        <div class="pdf-section" style="margin-bottom: 40px;">
+          <h3 class="pdf-section-header" style="
+            font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 16px; 
+            margin-bottom: 20px; 
             color: ${this.customization.colors.primary};
           ">
             ${this.renderEmoji('🎭')}CAST
           </h3>
-          <div style="${contactLayoutStyles}">
+          <div class="pdf-contact-grid">
             ${callsheet.cast.map(member => `
-              <div class="pdf-contact-item" style="${contactItemStyles}">
-                <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 4px;">${member.name}</div>
-                ${member.character ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; margin-bottom: 6px;">as ${member.character}</div>` : ''}
-                <div style="font-size: ${this.customization.typography.fontSize.small}px; margin-bottom: 2px;">${this.renderEmoji('📞')}${member.phone}</div>
-                <div style="font-size: ${this.customization.typography.fontSize.small}px;">${this.renderEmoji('📧')}${member.email}</div>
+              <div class="pdf-contact-item" style="
+                ${cardStyles}
+                padding: 18px;
+                background-color: ${this.customization.colors.surface};
+                border: 1px solid ${this.customization.colors.border};
+                border-radius: ${this.customization.visual.cornerRadius}px;
+                border-left: 4px solid ${this.customization.colors.accent};
+              ">
+                <div style="
+                  font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+                  font-size: ${this.customization.typography.fontSize.body}px; 
+                  margin-bottom: 6px;
+                  color: ${this.customization.colors.text};
+                ">${member.name}</div>
+                ${member.character ? `<div style="
+                  font-size: ${this.customization.typography.fontSize.small}px; 
+                  color: ${this.customization.colors.textLight}; 
+                  margin-bottom: 10px;
+                  font-style: italic;
+                ">as ${member.character}</div>` : ''}
+                <div style="
+                  font-size: ${this.customization.typography.fontSize.small}px; 
+                  margin-bottom: 4px;
+                  color: ${this.customization.colors.text};
+                ">${this.renderEmoji('📞')}${member.phone}</div>
+                <div style="
+                  font-size: ${this.customization.typography.fontSize.small}px;
+                  color: ${this.customization.colors.text};
+                ">${this.renderEmoji('📧')}${member.email}</div>
               </div>
             `).join('')}
           </div>
@@ -414,22 +486,46 @@ export class HTMLToPDFService {
 
         ${callsheet.crew.length > 0 ? `
         <!-- Crew -->
-        <div class="pdf-section crew-section" style="${sectionDividerStyles}">
-          <h3 style="
-            font-size: ${this.customization.typography.fontSize.header + 2}px; 
+        <div class="pdf-section" style="margin-bottom: 40px;">
+          <h3 class="pdf-section-header" style="
+            font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 16px; 
+            margin-bottom: 20px; 
             color: ${this.customization.colors.primary};
           ">
             ${this.renderEmoji('🎬')}CREW
           </h3>
-          <div style="${contactLayoutStyles}">
+          <div class="pdf-contact-grid">
             ${callsheet.crew.map(member => `
-              <div class="pdf-contact-item" style="${contactItemStyles}">
-                <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 4px;">${member.name}</div>
-                <div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; margin-bottom: 6px;">${member.role}</div>
-                <div style="font-size: ${this.customization.typography.fontSize.small}px; margin-bottom: 2px;">${this.renderEmoji('📞')}${member.phone}</div>
-                <div style="font-size: ${this.customization.typography.fontSize.small}px;">${this.renderEmoji('📧')}${member.email}</div>
+              <div class="pdf-contact-item" style="
+                ${cardStyles}
+                padding: 18px;
+                background-color: ${this.customization.colors.surface};
+                border: 1px solid ${this.customization.colors.border};
+                border-radius: ${this.customization.visual.cornerRadius}px;
+                border-left: 4px solid ${this.customization.colors.accent};
+              ">
+                <div style="
+                  font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+                  font-size: ${this.customization.typography.fontSize.body}px; 
+                  margin-bottom: 6px;
+                  color: ${this.customization.colors.text};
+                ">${member.name}</div>
+                <div style="
+                  font-size: ${this.customization.typography.fontSize.small}px; 
+                  color: ${this.customization.colors.textLight}; 
+                  margin-bottom: 10px;
+                  font-style: italic;
+                ">${member.role}</div>
+                <div style="
+                  font-size: ${this.customization.typography.fontSize.small}px; 
+                  margin-bottom: 4px;
+                  color: ${this.customization.colors.text};
+                ">${this.renderEmoji('📞')}${member.phone}</div>
+                <div style="
+                  font-size: ${this.customization.typography.fontSize.small}px;
+                  color: ${this.customization.colors.text};
+                ">${this.renderEmoji('📧')}${member.email}</div>
               </div>
             `).join('')}
           </div>
@@ -438,23 +534,42 @@ export class HTMLToPDFService {
 
         ${callsheet.emergencyContacts.length > 0 && this.customization.sections.visibility.emergencyContacts ? `
         <!-- Emergency Contacts -->
-        <div class="pdf-section emergency-section" style="${sectionDividerStyles}">
-          <h3 style="
-            font-size: ${this.customization.typography.fontSize.header + 2}px; 
+        <div class="pdf-section" style="margin-bottom: 40px;">
+          <h3 class="pdf-section-header" style="
+            font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 16px; 
+            margin-bottom: 20px; 
             color: ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.primary};
           ">
             ${this.renderEmoji('⚠️')}EMERGENCY CONTACTS
           </h3>
-          <div style="${contactLayoutStyles}">
+          <div class="pdf-contact-grid">
             ${callsheet.emergencyContacts.map(contact => `
-              <div class="pdf-contact-item" style="${contactItemStyles} ${this.customization.sections.formatting.emergencyProminent ? 
-                `border: 2px solid #fca5a5; background-color: #fef2f2;` : 
-                `border: 1px solid ${this.customization.colors.border};`}">
-                <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 4px;">${contact.name}</div>
-                <div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; margin-bottom: 6px;">${contact.role}</div>
-                <div style="font-size: ${this.customization.typography.fontSize.small}px; font-weight: 500;">${this.renderEmoji('📞')}${contact.phone}</div>
+              <div class="pdf-contact-item" style="
+                ${cardStyles}
+                padding: 18px;
+                background-color: ${this.customization.sections.formatting.emergencyProminent ? '#fef2f2' : this.customization.colors.surface};
+                border: ${this.customization.sections.formatting.emergencyProminent ? '2px solid #fca5a5' : `1px solid ${this.customization.colors.border}`};
+                border-radius: ${this.customization.visual.cornerRadius}px;
+                border-left: 4px solid ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.accent};
+              ">
+                <div style="
+                  font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+                  font-size: ${this.customization.typography.fontSize.body}px; 
+                  margin-bottom: 6px;
+                  color: ${this.customization.colors.text};
+                ">${contact.name}</div>
+                <div style="
+                  font-size: ${this.customization.typography.fontSize.small}px; 
+                  color: ${this.customization.colors.textLight}; 
+                  margin-bottom: 10px;
+                  font-style: italic;
+                ">${contact.role}</div>
+                <div style="
+                  font-size: ${this.customization.typography.fontSize.small}px; 
+                  font-weight: 500;
+                  color: ${this.customization.colors.text};
+                ">${this.renderEmoji('📞')}${contact.phone}</div>
               </div>
             `).join('')}
           </div>
@@ -462,60 +577,88 @@ export class HTMLToPDFService {
         ` : ''}
 
         <!-- Additional Information -->
-        <div class="pdf-section additional-info">
+        <div class="pdf-section">
           ${callsheet.parkingInstructions ? `
-            <div class="pdf-section" style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
+            <div class="pdf-info-card" style="
+              margin-bottom: 24px; 
+              ${cardStyles} 
+              padding: 18px; 
+              background-color: ${this.customization.colors.surface};
+              border-radius: ${this.customization.visual.cornerRadius}px;
+              border: 1px solid ${this.customization.colors.border};
+            ">
               <h4 style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                margin-bottom: 8px; 
+                margin-bottom: 12px; 
                 font-size: ${this.customization.typography.fontSize.header}px;
                 color: ${this.customization.colors.primary};
               ">
                 ${this.renderEmoji('🅿️')}Parking Instructions
               </h4>
-              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0;">${callsheet.parkingInstructions}</p>
+              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0; line-height: 1.5;">${callsheet.parkingInstructions}</p>
             </div>
           ` : ''}
           
           ${callsheet.basecampLocation ? `
-            <div class="pdf-section" style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
+            <div class="pdf-info-card" style="
+              margin-bottom: 24px; 
+              ${cardStyles} 
+              padding: 18px; 
+              background-color: ${this.customization.colors.surface};
+              border-radius: ${this.customization.visual.cornerRadius}px;
+              border: 1px solid ${this.customization.colors.border};
+            ">
               <h4 style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                margin-bottom: 8px; 
+                margin-bottom: 12px; 
                 font-size: ${this.customization.typography.fontSize.header}px;
                 color: ${this.customization.colors.primary};
               ">
                 ${this.renderEmoji('🏕️')}Basecamp Location
               </h4>
-              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0;">${callsheet.basecampLocation}</p>
+              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0; line-height: 1.5;">${callsheet.basecampLocation}</p>
             </div>
           ` : ''}
           
           ${callsheet.weather && this.customization.sections.visibility.weather ? `
-            <div class="pdf-section" style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
+            <div class="pdf-info-card" style="
+              margin-bottom: 24px; 
+              ${cardStyles} 
+              padding: 18px; 
+              background-color: ${this.customization.colors.surface};
+              border-radius: ${this.customization.visual.cornerRadius}px;
+              border: 1px solid ${this.customization.colors.border};
+            ">
               <h4 style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                margin-bottom: 8px; 
+                margin-bottom: 12px; 
                 font-size: ${this.customization.typography.fontSize.header}px;
                 color: ${this.customization.colors.primary};
               ">
                 ${this.renderEmoji('🌤️')}Weather
               </h4>
-              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0;">${callsheet.weather}</p>
+              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0; line-height: 1.5;">${callsheet.weather}</p>
             </div>
           ` : ''}
           
           ${callsheet.specialNotes && this.customization.sections.visibility.notes ? `
-            <div class="pdf-section" style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
+            <div class="pdf-info-card" style="
+              margin-bottom: 24px; 
+              ${cardStyles} 
+              padding: 18px; 
+              background-color: ${this.customization.colors.surface};
+              border-radius: ${this.customization.visual.cornerRadius}px;
+              border: 1px solid ${this.customization.colors.border};
+            ">
               <h4 style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                margin-bottom: 8px; 
+                margin-bottom: 12px; 
                 font-size: ${this.customization.typography.fontSize.header}px;
                 color: ${this.customization.colors.primary};
               ">
                 ${this.renderEmoji('📝')}Special Notes
               </h4>
-              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0;">${callsheet.specialNotes}</p>
+              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0; line-height: 1.5;">${callsheet.specialNotes}</p>
             </div>
           ` : ''}
         </div>
@@ -523,8 +666,8 @@ export class HTMLToPDFService {
         ${this.customization.branding.footer?.text ? `
         <!-- Footer -->
         <div class="pdf-section" style="
-          margin-top: 32px; 
-          padding-top: 16px; 
+          margin-top: 40px; 
+          padding-top: 20px; 
           border-top: 1px solid ${this.customization.colors.border}; 
           text-align: ${this.customization.branding.footer.position}; 
           font-size: ${this.customization.typography.fontSize.small}px; 
@@ -577,43 +720,11 @@ export class HTMLToPDFService {
       const imgData = canvas.toDataURL('image/png', 0.95);
       
       if (imgHeight <= pdfHeight) {
+        // Single page - simple case
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       } else {
-        // Better multi-page handling with consistent spacing
-        let remainingHeight = imgHeight;
-        let yPosition = 0;
-        let pageNumber = 0;
-        
-        while (remainingHeight > 0) {
-          if (pageNumber > 0) {
-            pdf.addPage();
-          }
-          
-          const currentPageHeight = Math.min(pdfHeight, remainingHeight);
-          const sourceY = pageNumber * pdfHeight * (canvas.height / imgHeight);
-          
-          // Create a temporary canvas for this page section
-          const pageCanvas = document.createElement('canvas');
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = Math.min(canvas.height - sourceY, pdfHeight * (canvas.height / imgHeight));
-          
-          const pageCtx = pageCanvas.getContext('2d');
-          if (pageCtx) {
-            pageCtx.drawImage(
-              canvas,
-              0, sourceY, canvas.width, pageCanvas.height,
-              0, 0, canvas.width, pageCanvas.height
-            );
-            
-            const pageImgData = pageCanvas.toDataURL('image/png', 0.95);
-            const pageImgHeight = (pageCanvas.height * pdfWidth) / canvas.width;
-            
-            pdf.addImage(pageImgData, 'PNG', 0, 0, imgWidth, pageImgHeight);
-          }
-          
-          remainingHeight -= currentPageHeight;
-          pageNumber++;
-        }
+        // Multi-page with smart content-aware breaking
+        await this.addContentAwarePages(pdf, canvas, pdfWidth, pdfHeight, element);
       }
 
       document.body.removeChild(element);
@@ -624,6 +735,93 @@ export class HTMLToPDFService {
     } catch (error) {
       console.error('Error generating PDF:', error);
       throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private async addContentAwarePages(
+    pdf: jsPDF, 
+    canvas: HTMLCanvasElement, 
+    pdfWidth: number, 
+    pdfHeight: number, 
+    element: HTMLElement
+  ): Promise<void> {
+    // Get all sections and their positions
+    const sections = element.querySelectorAll('.pdf-section, .pdf-contact-item, .pdf-info-card');
+    const sectionPositions: { element: Element; top: number; height: number; }[] = [];
+    
+    sections.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
+      sectionPositions.push({
+        element: section,
+        top: rect.top - elementRect.top,
+        height: rect.height
+      });
+    });
+
+    console.log('Found sections for smart page breaking:', sectionPositions.length);
+
+    // Calculate pages based on content positions
+    const pages: { startY: number; endY: number; }[] = [];
+    let currentPageStart = 0;
+    const pageContentHeight = pdfHeight - 80; // Leave margin for page breaks
+    
+    for (const section of sectionPositions) {
+      const sectionEnd = section.top + section.height;
+      const currentPageEnd = currentPageStart + pageContentHeight;
+      
+      // If this section would overflow the current page
+      if (sectionEnd > currentPageEnd && section.top > currentPageStart) {
+        // End current page at the previous section
+        pages.push({
+          startY: currentPageStart,
+          endY: Math.min(section.top, currentPageEnd)
+        });
+        currentPageStart = section.top;
+      }
+    }
+    
+    // Add the final page
+    pages.push({
+      startY: currentPageStart,
+      endY: canvas.height * (794 / canvas.width)
+    });
+
+    console.log('Generated smart page breaks:', pages.length, 'pages');
+
+    // Create pages
+    for (let i = 0; i < pages.length; i++) {
+      if (i > 0) {
+        pdf.addPage();
+      }
+      
+      const page = pages[i];
+      const sourceY = page.startY * (canvas.height / (canvas.height * (794 / canvas.width)));
+      const sourceHeight = (page.endY - page.startY) * (canvas.height / (canvas.height * (794 / canvas.width)));
+      
+      // Create canvas for this page section
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = Math.min(sourceHeight, canvas.height - sourceY);
+      
+      const pageCtx = pageCanvas.getContext('2d');
+      if (pageCtx) {
+        pageCtx.fillStyle = this.customization.colors.background;
+        pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        
+        pageCtx.drawImage(
+          canvas,
+          0, sourceY, canvas.width, pageCanvas.height,
+          0, 0, canvas.width, pageCanvas.height
+        );
+        
+        const pageImgData = pageCanvas.toDataURL('image/png', 0.95);
+        const pageImgHeight = (pageCanvas.height * pdfWidth) / canvas.width;
+        
+        // Add with top margin on subsequent pages
+        const yOffset = i > 0 ? 40 : 0;
+        pdf.addImage(pageImgData, 'PNG', 0, yOffset, pdfWidth, pageImgHeight);
+      }
     }
   }
 
