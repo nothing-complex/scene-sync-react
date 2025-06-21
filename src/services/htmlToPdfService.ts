@@ -68,19 +68,19 @@ export class HTMLToPDFService {
 
   private getHeaderBackgroundStyles(): string {
     const { headerBackground } = this.customization.visual;
-    const safeMargin = 24; // Safe internal padding instead of negative margins
+    const padding = 24;
     
     switch (headerBackground) {
       case 'subtle':
-        return `background-color: ${this.customization.colors.surface}; padding: ${safeMargin}px; margin-bottom: 32px; border-radius: ${this.customization.visual.cornerRadius}px;`;
+        return `background-color: ${this.customization.colors.surface}; padding: ${padding}px; margin-bottom: 32px; border-radius: ${this.customization.visual.cornerRadius}px;`;
       case 'solid':
-        return `background-color: ${this.customization.colors.primary}; color: ${this.customization.colors.background}; padding: ${safeMargin}px; margin-bottom: 32px; border-radius: ${this.customization.visual.cornerRadius}px;`;
+        return `background-color: ${this.customization.colors.primary}; color: ${this.customization.colors.background}; padding: ${padding}px; margin-bottom: 32px; border-radius: ${this.customization.visual.cornerRadius}px;`;
       case 'gradient':
         if (this.customization.colors.gradient) {
           const { from, to, direction } = this.customization.colors.gradient;
           const gradientDirection = direction === 'to-r' ? 'to right' :
                                   direction === 'to-br' ? 'to bottom right' : 'to bottom';
-          return `background: linear-gradient(${gradientDirection}, ${from}, ${to}); color: ${this.customization.colors.background}; padding: ${safeMargin}px; margin-bottom: 32px; border-radius: ${this.customization.visual.cornerRadius}px;`;
+          return `background: linear-gradient(${gradientDirection}, ${from}, ${to}); color: ${this.customization.colors.background}; padding: ${padding}px; margin-bottom: 32px; border-radius: ${this.customization.visual.cornerRadius}px;`;
         }
         return '';
       default:
@@ -116,7 +116,7 @@ export class HTMLToPDFService {
 
   private getContactItemStyles(): string {
     const { contactLayout } = this.customization.sections.formatting;
-    const baseStyles = `${this.getCardStyles()} padding: 12px; background-color: ${this.customization.colors.surface};`;
+    const baseStyles = `${this.getCardStyles()} padding: 12px; background-color: ${this.customization.colors.surface}; page-break-inside: avoid;`;
     
     switch (contactLayout) {
       case 'table':
@@ -137,7 +137,6 @@ export class HTMLToPDFService {
   private getTitleColor(): string {
     const isHeaderWithBackground = this.customization.visual.headerBackground !== 'none';
     
-    // Fix professional theme title color contrast issue
     if (this.customization.layout.headerStyle === 'professional' && isHeaderWithBackground) {
       return this.customization.colors.background;
     }
@@ -158,40 +157,55 @@ export class HTMLToPDFService {
   private async renderPDFContent(callsheet: CallsheetData): Promise<HTMLElement> {
     console.log('Rendering PDF content for:', callsheet.projectTitle);
     
-    // Create a temporary container with fixed dimensions for consistency
     const container = document.createElement('div');
     container.style.position = 'absolute';
     container.style.left = '-9999px';
     container.style.top = '0';
     container.style.width = '794px'; // A4 width at 96dpi
-    container.style.minHeight = '1123px'; // A4 height at 96dpi
     container.style.backgroundColor = this.customization.colors.background;
     container.style.color = this.customization.colors.text;
     container.style.fontFamily = this.getFontFamily();
     container.style.fontSize = `${this.customization.typography.fontSize.body}px`;
     container.style.lineHeight = this.customization.typography.lineHeight.body.toString();
     container.style.boxSizing = 'border-box';
+    container.style.padding = '40px';
     
-    // Apply safe padding - use CSS padding instead of negative margins
-    const safePadding = Math.max(20, Math.min(this.customization.layout.margins.top, 60));
-    container.style.padding = `${safePadding}px`;
+    // Add CSS for better page breaking
+    const style = document.createElement('style');
+    style.textContent = `
+      .pdf-section {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        margin-bottom: 24px;
+      }
+      .pdf-contact-item {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .pdf-schedule-item {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .pdf-page-break {
+        page-break-before: always;
+        break-before: page;
+      }
+    `;
+    document.head.appendChild(style);
     
     container.id = 'temp-pdf-content';
-    
-    // Generate the HTML content
     container.innerHTML = this.generateHTMLContent(callsheet);
     
-    // Append to body temporarily
     document.body.appendChild(container);
-    
-    // Wait for fonts and images to load
     await this.waitForResourcesLoaded(container);
+    
+    // Clean up style
+    document.head.removeChild(style);
     
     return container;
   }
 
   private async waitForResourcesLoaded(container: HTMLElement): Promise<void> {
-    // Wait for images to load
     const images = container.querySelectorAll('img');
     if (images.length > 0) {
       await Promise.all(
@@ -202,7 +216,6 @@ export class HTMLToPDFService {
             } else {
               img.onload = () => resolve();
               img.onerror = () => resolve();
-              // Fallback timeout
               setTimeout(() => resolve(), 3000);
             }
           });
@@ -210,11 +223,9 @@ export class HTMLToPDFService {
       );
     }
     
-    // Wait for fonts to load
     if (document.fonts) {
       try {
         await document.fonts.ready;
-        // Additional small delay for font rendering
         await new Promise(resolve => setTimeout(resolve, 200));
       } catch (error) {
         console.warn('Font loading failed:', error);
@@ -251,7 +262,7 @@ export class HTMLToPDFService {
         box-sizing: border-box;
       ">
         <!-- Header -->
-        <div class="header-section" style="
+        <div class="pdf-section header-section" style="
           margin-bottom: 32px; 
           text-align: ${isHeaderCentered ? 'center' : 'left'}; 
           ${headerBackgroundStyles}
@@ -292,7 +303,7 @@ export class HTMLToPDFService {
         </div>
 
         <!-- Basic Information -->
-        <div class="basic-info" style="
+        <div class="pdf-section basic-info" style="
           display: grid; 
           grid-template-columns: 1fr 1fr; 
           gap: 24px; 
@@ -338,7 +349,7 @@ export class HTMLToPDFService {
 
         ${callsheet.schedule.length > 0 && this.customization.sections.visibility.schedule ? `
         <!-- Schedule -->
-        <div class="schedule-section" style="${sectionDividerStyles}">
+        <div class="pdf-section schedule-section" style="${sectionDividerStyles}">
           <h3 style="
             font-size: ${this.customization.typography.fontSize.header + 2}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -359,9 +370,12 @@ export class HTMLToPDFService {
               </thead>
               <tbody>
                 ${callsheet.schedule.map((item, index) => `
-                  <tr style="background-color: ${this.customization.sections.formatting.alternateRowColors ? 
-                    (index % 2 === 0 ? this.customization.colors.background : this.customization.colors.surface) : 
-                    this.customization.colors.background};">
+                  <tr class="pdf-schedule-item" style="
+                    background-color: ${this.customization.sections.formatting.alternateRowColors ? 
+                      (index % 2 === 0 ? this.customization.colors.background : this.customization.colors.surface) : 
+                      this.customization.colors.background};
+                    page-break-inside: avoid;
+                  ">
                     <td style="padding: 12px; font-weight: 500; font-size: ${this.customization.typography.fontSize.body}px; border-bottom: 1px solid ${this.customization.colors.borderLight};">${item.sceneNumber}</td>
                     <td style="padding: 12px; font-size: ${this.customization.typography.fontSize.body}px; border-bottom: 1px solid ${this.customization.colors.borderLight};">${item.intExt}</td>
                     <td style="padding: 12px; font-size: ${this.customization.typography.fontSize.body}px; border-bottom: 1px solid ${this.customization.colors.borderLight};">${item.description}</td>
@@ -376,7 +390,7 @@ export class HTMLToPDFService {
 
         ${callsheet.cast.length > 0 ? `
         <!-- Cast -->
-        <div class="cast-section" style="${sectionDividerStyles}">
+        <div class="pdf-section cast-section" style="${sectionDividerStyles}">
           <h3 style="
             font-size: ${this.customization.typography.fontSize.header + 2}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -387,7 +401,7 @@ export class HTMLToPDFService {
           </h3>
           <div style="${contactLayoutStyles}">
             ${callsheet.cast.map(member => `
-              <div style="${contactItemStyles}">
+              <div class="pdf-contact-item" style="${contactItemStyles}">
                 <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 4px;">${member.name}</div>
                 ${member.character ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; margin-bottom: 6px;">as ${member.character}</div>` : ''}
                 <div style="font-size: ${this.customization.typography.fontSize.small}px; margin-bottom: 2px;">${this.renderEmoji('📞')}${member.phone}</div>
@@ -400,7 +414,7 @@ export class HTMLToPDFService {
 
         ${callsheet.crew.length > 0 ? `
         <!-- Crew -->
-        <div class="crew-section" style="${sectionDividerStyles}">
+        <div class="pdf-section crew-section" style="${sectionDividerStyles}">
           <h3 style="
             font-size: ${this.customization.typography.fontSize.header + 2}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -411,7 +425,7 @@ export class HTMLToPDFService {
           </h3>
           <div style="${contactLayoutStyles}">
             ${callsheet.crew.map(member => `
-              <div style="${contactItemStyles}">
+              <div class="pdf-contact-item" style="${contactItemStyles}">
                 <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 4px;">${member.name}</div>
                 <div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; margin-bottom: 6px;">${member.role}</div>
                 <div style="font-size: ${this.customization.typography.fontSize.small}px; margin-bottom: 2px;">${this.renderEmoji('📞')}${member.phone}</div>
@@ -424,7 +438,7 @@ export class HTMLToPDFService {
 
         ${callsheet.emergencyContacts.length > 0 && this.customization.sections.visibility.emergencyContacts ? `
         <!-- Emergency Contacts -->
-        <div class="emergency-section" style="${sectionDividerStyles}">
+        <div class="pdf-section emergency-section" style="${sectionDividerStyles}">
           <h3 style="
             font-size: ${this.customization.typography.fontSize.header + 2}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -435,7 +449,7 @@ export class HTMLToPDFService {
           </h3>
           <div style="${contactLayoutStyles}">
             ${callsheet.emergencyContacts.map(contact => `
-              <div style="${contactItemStyles} ${this.customization.sections.formatting.emergencyProminent ? 
+              <div class="pdf-contact-item" style="${contactItemStyles} ${this.customization.sections.formatting.emergencyProminent ? 
                 `border: 2px solid #fca5a5; background-color: #fef2f2;` : 
                 `border: 1px solid ${this.customization.colors.border};`}">
                 <div style="font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 4px;">${contact.name}</div>
@@ -448,9 +462,9 @@ export class HTMLToPDFService {
         ` : ''}
 
         <!-- Additional Information -->
-        <div class="additional-info">
+        <div class="pdf-section additional-info">
           ${callsheet.parkingInstructions ? `
-            <div style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
+            <div class="pdf-section" style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
               <h4 style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
                 margin-bottom: 8px; 
@@ -464,7 +478,7 @@ export class HTMLToPDFService {
           ` : ''}
           
           ${callsheet.basecampLocation ? `
-            <div style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
+            <div class="pdf-section" style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
               <h4 style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
                 margin-bottom: 8px; 
@@ -478,7 +492,7 @@ export class HTMLToPDFService {
           ` : ''}
           
           ${callsheet.weather && this.customization.sections.visibility.weather ? `
-            <div style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
+            <div class="pdf-section" style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
               <h4 style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
                 margin-bottom: 8px; 
@@ -492,7 +506,7 @@ export class HTMLToPDFService {
           ` : ''}
           
           ${callsheet.specialNotes && this.customization.sections.visibility.notes ? `
-            <div style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
+            <div class="pdf-section" style="margin-bottom: 16px; ${cardStyles} padding: 16px; background-color: ${this.customization.colors.surface};">
               <h4 style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
                 margin-bottom: 8px; 
@@ -508,7 +522,7 @@ export class HTMLToPDFService {
 
         ${this.customization.branding.footer?.text ? `
         <!-- Footer -->
-        <div style="
+        <div class="pdf-section" style="
           margin-top: 32px; 
           padding-top: 16px; 
           border-top: 1px solid ${this.customization.colors.border}; 
@@ -527,27 +541,24 @@ export class HTMLToPDFService {
     console.log('Generating PDF for callsheet:', callsheet.projectTitle);
     
     try {
-      // Render the PDF content
       const element = await this.renderPDFContent(callsheet);
       
       console.log('Capturing PDF content as canvas...');
       
-      // Optimized html2canvas configuration for better quality and consistency
       const canvas = await html2canvas(element, {
-        scale: 1.5, // Balanced scale for quality vs performance
+        scale: 1.5,
         useCORS: true,
         allowTaint: true,
         backgroundColor: this.customization.colors.background,
         logging: false,
-        width: 794, // Fixed A4 width
-        height: element.scrollHeight, // Dynamic height based on content
+        width: 794,
+        height: element.scrollHeight,
         scrollX: 0,
         scrollY: 0
       });
 
       console.log('Canvas captured successfully, dimensions:', canvas.width, 'x', canvas.height);
 
-      // Create PDF with proper A4 dimensions
       const pdf = new jsPDF({
         orientation: this.customization.layout.pageOrientation,
         unit: 'pt',
@@ -557,7 +568,6 @@ export class HTMLToPDFService {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      // Calculate scaling to fit content properly
       const imgWidth = pdfWidth;
       const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
@@ -566,27 +576,46 @@ export class HTMLToPDFService {
 
       const imgData = canvas.toDataURL('image/png', 0.95);
       
-      // Simple single-page approach or proper multi-page with consistent margins
       if (imgHeight <= pdfHeight) {
-        // Content fits on one page
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       } else {
-        // Multi-page handling with consistent positioning
-        let yOffset = 0;
-        const pageCount = Math.ceil(imgHeight / pdfHeight);
+        // Better multi-page handling with consistent spacing
+        let remainingHeight = imgHeight;
+        let yPosition = 0;
+        let pageNumber = 0;
         
-        for (let page = 0; page < pageCount; page++) {
-          if (page > 0) {
+        while (remainingHeight > 0) {
+          if (pageNumber > 0) {
             pdf.addPage();
           }
           
-          // Calculate the y position for this page
-          const pageYOffset = -page * pdfHeight;
-          pdf.addImage(imgData, 'PNG', 0, pageYOffset, imgWidth, imgHeight);
+          const currentPageHeight = Math.min(pdfHeight, remainingHeight);
+          const sourceY = pageNumber * pdfHeight * (canvas.height / imgHeight);
+          
+          // Create a temporary canvas for this page section
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = Math.min(canvas.height - sourceY, pdfHeight * (canvas.height / imgHeight));
+          
+          const pageCtx = pageCanvas.getContext('2d');
+          if (pageCtx) {
+            pageCtx.drawImage(
+              canvas,
+              0, sourceY, canvas.width, pageCanvas.height,
+              0, 0, canvas.width, pageCanvas.height
+            );
+            
+            const pageImgData = pageCanvas.toDataURL('image/png', 0.95);
+            const pageImgHeight = (pageCanvas.height * pdfWidth) / canvas.width;
+            
+            pdf.addImage(pageImgData, 'PNG', 0, 0, imgWidth, pageImgHeight);
+          }
+          
+          remainingHeight -= currentPageHeight;
+          pageNumber++;
         }
       }
 
-      // Clean up
       document.body.removeChild(element);
 
       const blob = pdf.output('blob');
@@ -614,7 +643,6 @@ export class HTMLToPDFService {
       link.click();
       document.body.removeChild(link);
       
-      // Clean up the URL after a short delay
       setTimeout(() => {
         URL.revokeObjectURL(url);
       }, 1000);
@@ -642,7 +670,6 @@ export class HTMLToPDFService {
         link.click();
       }
       
-      // Clean up the URL after a delay to allow the browser to load it
       setTimeout(() => {
         URL.revokeObjectURL(url);
       }, 5000);
@@ -655,7 +682,6 @@ export class HTMLToPDFService {
   }
 }
 
-// Helper function for direct PDF generation
 export const generateHTMLToPDF = async (callsheet: CallsheetData, customization: Partial<PDFCustomization> = {}) => {
   const service = new HTMLToPDFService(customization);
   return service.savePDF(callsheet);
