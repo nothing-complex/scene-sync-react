@@ -1,3 +1,4 @@
+
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -170,60 +171,91 @@ export class HTMLToPDFService {
     container.style.boxSizing = 'border-box';
     container.style.padding = '40px';
     
-    // Enhanced CSS for better page breaking with more specific rules
+    // Enhanced CSS for better page breaking - allow sections to break but protect individual cards
     const style = document.createElement('style');
     style.textContent = `
       .pdf-page-content {
-        page-break-inside: avoid;
-        break-inside: avoid;
+        page-break-inside: auto;
+        break-inside: auto;
       }
+      
+      /* Allow sections to break between cards */
       .pdf-section {
-        page-break-inside: avoid;
-        break-inside: avoid;
+        page-break-inside: auto;
+        break-inside: auto;
         margin-bottom: 32px;
         position: relative;
       }
+      
+      /* Keep section headers with their content */
       .pdf-section-header {
         page-break-after: avoid;
         break-after: avoid;
         margin-bottom: 16px;
       }
+      
+      /* Protect individual cards from breaking */
       .pdf-contact-item, .pdf-schedule-item, .pdf-info-card {
         page-break-inside: avoid;
         break-inside: avoid;
         margin-bottom: 16px;
         position: relative;
       }
+      
+      /* Allow contact grids to break between items */
       .pdf-contact-grid {
         display: block !important;
+        page-break-inside: auto;
+        break-inside: auto;
       }
+      
       .pdf-contact-grid .pdf-contact-item {
         display: block;
         margin-bottom: 20px;
         width: 100% !important;
-      }
-      .pdf-schedule-table {
         page-break-inside: avoid;
         break-inside: avoid;
       }
+      
+      /* Allow schedule tables to break between rows */
+      .pdf-schedule-table {
+        page-break-inside: auto;
+        break-inside: auto;
+      }
+      
       .pdf-schedule-row {
         page-break-inside: avoid;
         break-inside: avoid;
       }
+      
+      /* Keep table header with at least one row */
+      .pdf-schedule-header {
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+      
+      /* Basic info should stay together */
       .pdf-basic-info {
         display: block !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
+      
       .pdf-basic-info > div {
         margin-bottom: 20px;
         page-break-inside: avoid;
         break-inside: avoid;
       }
-      .pdf-page-break {
-        page-break-before: always;
-        break-before: page;
-        height: 1px;
-        margin: 40px 0;
-        visibility: hidden;
+      
+      /* Reduce excessive spacing while maintaining readability */
+      .pdf-section + .pdf-section {
+        margin-top: 24px;
+      }
+      
+      /* Orphan and widow control */
+      .pdf-contact-item:nth-last-child(-n+2) {
+        page-break-before: avoid;
+        break-before: avoid;
       }
     `;
     document.head.appendChild(style);
@@ -284,7 +316,6 @@ export class HTMLToPDFService {
     
     const headerBackgroundStyles = this.getHeaderBackgroundStyles();
     const cardStyles = this.getCardStyles();
-    const sectionDividerStyles = this.getSectionDividerStyles();
 
     return `
       <div class="pdf-page-content" style="
@@ -300,8 +331,10 @@ export class HTMLToPDFService {
           text-align: ${isHeaderCentered ? 'center' : 'left'}; 
           ${headerBackgroundStyles}
           padding: 24px;
-          margin-bottom: 40px;
+          margin-bottom: 32px;
           border-radius: ${this.customization.visual.cornerRadius}px;
+          page-break-inside: avoid;
+          break-inside: avoid;
         ">
           ${this.customization.branding.logo ? `
             <div style="margin-bottom: 16px;">
@@ -339,7 +372,7 @@ export class HTMLToPDFService {
         </div>
 
         <!-- Basic Information -->
-        <div class="pdf-section pdf-basic-info" style="margin-bottom: 40px;">
+        <div class="pdf-section pdf-basic-info" style="margin-bottom: 32px;">
           <div class="pdf-info-card" style="
             ${cardStyles} 
             padding: 20px; 
@@ -386,8 +419,8 @@ export class HTMLToPDFService {
 
         ${callsheet.schedule.length > 0 && this.customization.sections.visibility.schedule ? `
         <!-- Schedule -->
-        <div class="pdf-section" style="margin-bottom: 40px;">
-          <h3 class="pdf-section-header" style="
+        <div class="pdf-section" style="margin-bottom: 32px;">
+          <h3 class="pdf-section-header pdf-schedule-header" style="
             font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
             margin-bottom: 20px; 
@@ -402,7 +435,7 @@ export class HTMLToPDFService {
             border-radius: ${this.customization.visual.cornerRadius}px;
             border: 1px solid ${this.customization.colors.border};
           ">
-            <div class="pdf-schedule-row" style="
+            <div class="pdf-schedule-row pdf-schedule-header" style="
               display: grid;
               grid-template-columns: 80px 100px 1fr 120px;
               gap: 0;
@@ -438,7 +471,7 @@ export class HTMLToPDFService {
 
         ${callsheet.cast.length > 0 ? `
         <!-- Cast -->
-        <div class="pdf-section" style="margin-bottom: 40px;">
+        <div class="pdf-section" style="margin-bottom: 32px;">
           <h3 class="pdf-section-header" style="
             font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -456,6 +489,7 @@ export class HTMLToPDFService {
                 border: 1px solid ${this.customization.colors.border};
                 border-radius: ${this.customization.visual.cornerRadius}px;
                 border-left: 4px solid ${this.customization.colors.accent};
+                margin-bottom: 16px;
               ">
                 <div style="
                   font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -486,7 +520,7 @@ export class HTMLToPDFService {
 
         ${callsheet.crew.length > 0 ? `
         <!-- Crew -->
-        <div class="pdf-section" style="margin-bottom: 40px;">
+        <div class="pdf-section" style="margin-bottom: 32px;">
           <h3 class="pdf-section-header" style="
             font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -504,6 +538,7 @@ export class HTMLToPDFService {
                 border: 1px solid ${this.customization.colors.border};
                 border-radius: ${this.customization.visual.cornerRadius}px;
                 border-left: 4px solid ${this.customization.colors.accent};
+                margin-bottom: 16px;
               ">
                 <div style="
                   font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -534,7 +569,7 @@ export class HTMLToPDFService {
 
         ${callsheet.emergencyContacts.length > 0 && this.customization.sections.visibility.emergencyContacts ? `
         <!-- Emergency Contacts -->
-        <div class="pdf-section" style="margin-bottom: 40px;">
+        <div class="pdf-section" style="margin-bottom: 32px;">
           <h3 class="pdf-section-header" style="
             font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -552,6 +587,7 @@ export class HTMLToPDFService {
                 border: ${this.customization.sections.formatting.emergencyProminent ? '2px solid #fca5a5' : `1px solid ${this.customization.colors.border}`};
                 border-radius: ${this.customization.visual.cornerRadius}px;
                 border-left: 4px solid ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.accent};
+                margin-bottom: 16px;
               ">
                 <div style="
                   font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -580,7 +616,7 @@ export class HTMLToPDFService {
         <div class="pdf-section">
           ${callsheet.parkingInstructions ? `
             <div class="pdf-info-card" style="
-              margin-bottom: 24px; 
+              margin-bottom: 20px; 
               ${cardStyles} 
               padding: 18px; 
               background-color: ${this.customization.colors.surface};
@@ -601,7 +637,7 @@ export class HTMLToPDFService {
           
           ${callsheet.basecampLocation ? `
             <div class="pdf-info-card" style="
-              margin-bottom: 24px; 
+              margin-bottom: 20px; 
               ${cardStyles} 
               padding: 18px; 
               background-color: ${this.customization.colors.surface};
@@ -622,7 +658,7 @@ export class HTMLToPDFService {
           
           ${callsheet.weather && this.customization.sections.visibility.weather ? `
             <div class="pdf-info-card" style="
-              margin-bottom: 24px; 
+              margin-bottom: 20px; 
               ${cardStyles} 
               padding: 18px; 
               background-color: ${this.customization.colors.surface};
@@ -643,7 +679,7 @@ export class HTMLToPDFService {
           
           ${callsheet.specialNotes && this.customization.sections.visibility.notes ? `
             <div class="pdf-info-card" style="
-              margin-bottom: 24px; 
+              margin-bottom: 20px; 
               ${cardStyles} 
               padding: 18px; 
               background-color: ${this.customization.colors.surface};
@@ -666,7 +702,7 @@ export class HTMLToPDFService {
         ${this.customization.branding.footer?.text ? `
         <!-- Footer -->
         <div class="pdf-section" style="
-          margin-top: 40px; 
+          margin-top: 32px; 
           padding-top: 20px; 
           border-top: 1px solid ${this.customization.colors.border}; 
           text-align: ${this.customization.branding.footer.position}; 
