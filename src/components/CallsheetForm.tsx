@@ -89,8 +89,57 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   const handleLocationSelect = async (location: GeocodingResult) => {
     setSelectedLocation(location);
     
-    // Set emergency numbers based on country
-    const numbers = EmergencyServiceApi.getEmergencyNumbers(location.country || 'US');
+    // Set emergency numbers based on country - ensure we use the correct country code format
+    console.log('Location country code:', location.country);
+    
+    // Map common country codes to our emergency numbers format
+    let countryCode = location.country || 'US';
+    
+    // Handle common country code variations
+    const countryCodeMap: Record<string, string> = {
+      'Denmark': 'DK',
+      'DK': 'DK',
+      'Germany': 'DE', 
+      'DE': 'DE',
+      'France': 'FR',
+      'FR': 'FR',
+      'United Kingdom': 'GB',
+      'GB': 'GB',
+      'UK': 'GB',
+      'United States': 'US',
+      'US': 'US',
+      'Canada': 'CA',
+      'CA': 'CA',
+      'Australia': 'AU',
+      'AU': 'AU',
+      'Sweden': 'SE',
+      'SE': 'SE',
+      'Norway': 'NO',
+      'NO': 'NO',
+      'Finland': 'FI',
+      'FI': 'FI',
+      'Netherlands': 'NL',
+      'NL': 'NL',
+      'Belgium': 'BE',
+      'BE': 'BE',
+      'Austria': 'AT',
+      'AT': 'AT',
+      'Switzerland': 'CH',
+      'CH': 'CH',
+      'Italy': 'IT',
+      'IT': 'IT',
+      'Spain': 'ES',
+      'ES': 'ES',
+      'Portugal': 'PT',
+      'PT': 'PT',
+    };
+    
+    // Use mapped country code if available, otherwise try the original
+    const mappedCountryCode = countryCodeMap[countryCode] || countryCode.toUpperCase();
+    console.log('Mapped country code:', mappedCountryCode);
+    
+    const numbers = EmergencyServiceApi.getEmergencyNumbers(mappedCountryCode);
+    console.log('Emergency numbers for', mappedCountryCode, ':', numbers);
     setEmergencyNumbers(numbers);
     
     // Auto-fetch weather for the selected location and date
