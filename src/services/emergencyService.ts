@@ -99,51 +99,84 @@ export class EmergencyServiceApi {
       return tags['addr:full'];
     }
     
-    // Try to build address from components
-    const parts = [];
-    if (tags['addr:housenumber']) parts.push(tags['addr:housenumber']);
-    if (tags['addr:street']) parts.push(tags['addr:street']);
-    if (tags['addr:city']) parts.push(tags['addr:city']);
-    if (tags['addr:postcode']) parts.push(tags['addr:postcode']);
+    // Try to build address from standard OSM address components
+    const addressParts = [];
+    if (tags['addr:housenumber']) addressParts.push(tags['addr:housenumber']);
+    if (tags['addr:street']) addressParts.push(tags['addr:street']);
+    if (tags['addr:city']) addressParts.push(tags['addr:city']);
+    if (tags['addr:postcode']) addressParts.push(tags['addr:postcode']);
     
-    if (parts.length > 0) {
-      return parts.join(', ');
+    if (addressParts.length > 0) {
+      return addressParts.join(', ');
     }
     
-    // Try alternative address formats commonly used in Overpass
-    if (tags.address) {
-      return tags.address;
+    // Try alternative address formats
+    const altAddressParts = [];
+    if (tags['addr:place']) altAddressParts.push(tags['addr:place']);
+    if (tags['addr:hamlet']) altAddressParts.push(tags['addr:hamlet']);
+    if (tags['addr:village']) altAddressParts.push(tags['addr:village']);
+    if (tags['addr:town']) altAddressParts.push(tags['addr:town']);
+    if (tags['addr:suburb']) altAddressParts.push(tags['addr:suburb']);
+    if (tags['addr:district']) altAddressParts.push(tags['addr:district']);
+    if (tags['addr:province']) altAddressParts.push(tags['addr:province']);
+    if (tags['addr:state']) altAddressParts.push(tags['addr:state']);
+    if (tags['addr:country']) altAddressParts.push(tags['addr:country']);
+    
+    if (altAddressParts.length > 0) {
+      return altAddressParts.join(', ');
     }
     
-    // Try building from alternative fields
-    const altParts = [];
-    if (tags['addr:place']) altParts.push(tags['addr:place']);
-    if (tags['addr:suburb']) altParts.push(tags['addr:suburb']);
-    if (tags['addr:state']) altParts.push(tags['addr:state']);
-    if (tags['addr:country']) altParts.push(tags['addr:country']);
-    
-    if (altParts.length > 0) {
-      return altParts.join(', ');
+    // Try location-based tags that might give us useful info
+    if (tags['contact:street']) {
+      const contactAddress = [];
+      if (tags['contact:housenumber']) contactAddress.push(tags['contact:housenumber']);
+      contactAddress.push(tags['contact:street']);
+      if (tags['contact:city']) contactAddress.push(tags['contact:city']);
+      if (tags['contact:postcode']) contactAddress.push(tags['contact:postcode']);
+      return contactAddress.join(', ');
     }
     
-    // Try location or area descriptions
-    if (tags.location) {
-      return tags.location;
+    // Try building from name and location context
+    if (tags.name) {
+      const contextParts = [];
+      if (tags['addr:city'] || tags['addr:town'] || tags['addr:village']) {
+        contextParts.push(tags['addr:city'] || tags['addr:town'] || tags['addr:village']);
+      }
+      if (tags['addr:state'] || tags['addr:province']) {
+        contextParts.push(tags['addr:state'] || tags['addr:province']);
+      }
+      if (tags['addr:country']) {
+        contextParts.push(tags['addr:country']);
+      }
+      
+      if (contextParts.length > 0) {
+        return `${tags.name}, ${contextParts.join(', ')}`;
+      }
     }
     
-    if (tags.description) {
-      return tags.description;
+    // Try getting area/region information
+    if (tags.place) {
+      return tags.place;
     }
     
-    // For nodes that are part of ways/relations, try to use the name as location reference
-    if (tags.name && element.type === 'node') {
-      return `Near ${tags.name}`;
+    // Try operator and brand information which might give context
+    if (tags.operator && (tags['addr:city'] || tags['addr:town'])) {
+      return `${tags.operator}, ${tags['addr:city'] || tags['addr:town']}`;
     }
     
-    // Get coordinates for fallback
+    // Try getting nearby landmark or area reference
+    if (tags.landuse) {
+      return `${tags.landuse} area`;
+    }
+    
+    if (tags.amenity && tags.name) {
+      return `${tags.name} (${tags.amenity})`;
+    }
+    
+    // If we have coordinates, format them more nicely as a last resort
     const coords = this.getElementCoordinates(element);
     if (coords) {
-      return `Lat: ${coords.lat.toFixed(4)}, Lon: ${coords.lon.toFixed(4)}`;
+      return `Coordinates: ${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}`;
     }
     
     return 'Address not available';
