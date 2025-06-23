@@ -184,14 +184,15 @@ export class EmergencyServiceApi {
       return data.elements
         .map((element): EmergencyService | null => {
           const serviceType = this.determineServiceType(element);
-          if (!serviceType || !element.tags.name) return null;
+          if (!serviceType) return null;
 
+          // Don't require name - many emergency services might not have a name in OSM
           const distance = this.calculateDistance(latitude, longitude, element.lat, element.lon);
           const finalDistance = units === 'imperial' ? this.convertToMiles(distance) : distance;
 
           return {
             id: `${element.type}-${element.id}`,
-            name: element.tags.name,
+            name: element.tags.name || `${this.formatServiceType(serviceType)}`,
             type: serviceType,
             address: this.formatAddress(element),
             phone: element.tags.phone,
