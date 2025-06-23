@@ -309,7 +309,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   const handleAddEmergencyService = (service: EmergencyService) => {
     const currentContacts = formData.emergencyContacts || [];
     
-    // Convert emergency service to contact format
+    // Convert emergency service to contact format with clearer address display
     const emergencyContact = {
       id: service.id,
       name: service.name,
@@ -541,32 +541,42 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                       <AlertTriangle className="w-4 h-4 mr-2" />
                       Nearby Emergency Services
                     </Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                    <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
                       {emergencyServices.map((service) => (
-                        <div key={service.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center">
-                              <span className="mr-2">{EmergencyServiceApi.getServiceIcon(service.type)}</span>
-                              <div>
-                                <div className="font-medium text-sm">{service.name}</div>
+                        <div key={service.id} className="flex items-start justify-between p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center mb-2">
+                              <span className="mr-2 text-lg">{EmergencyServiceApi.getServiceIcon(service.type)}</span>
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-sm text-gray-900 truncate">{service.name}</div>
                                 <div className="text-xs text-gray-600">{EmergencyServiceApi.formatServiceType(service.type)}</div>
-                                <div className="text-xs text-gray-500">
-                                  {service.distance}{weatherUnits === 'imperial' ? 'mi' : 'km'} away
-                                </div>
-                                {service.address && (
-                                  <div className="text-xs text-gray-500 mt-1">
-                                    {service.address}
-                                  </div>
-                                )}
+                              </div>
+                              <div className="ml-2 text-xs text-gray-500 whitespace-nowrap">
+                                {service.distance}{weatherUnits === 'imperial' ? 'mi' : 'km'} away
                               </div>
                             </div>
+                            {service.address && (
+                              <div className="text-sm text-gray-700 mb-2 bg-white p-2 rounded border">
+                                <div className="flex items-start">
+                                  <MapPin className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0 text-gray-500" />
+                                  <span className="text-xs leading-relaxed">{service.address}</span>
+                                </div>
+                              </div>
+                            )}
+                            {service.phone && (
+                              <div className="text-xs text-gray-600 flex items-center">
+                                <span className="mr-1">📞</span>
+                                {service.phone}
+                              </div>
+                            )}
                           </div>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => handleAddEmergencyService(service)}
-                            className="text-orange-600 hover:text-orange-700"
+                            className="text-orange-600 hover:text-orange-700 ml-3 flex-shrink-0"
+                            title="Add to emergency contacts"
                           >
                             <Plus className="w-4 h-4" />
                           </Button>
