@@ -1,575 +1,1029 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { CallsheetData, useCallsheet } from '@/contexts/CallsheetContext';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { DatePicker } from "@/components/ui/date-picker"
-import { CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { EmergencyService, EmergencyServiceApi } from '@/services/emergencyService';
-import { EmergencyServicesList } from '@/components/EmergencyServicesList';
-import { EmergencyNumbers } from '@/components/EmergencyNumbers';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer"
-import { Loader } from 'lucide-react';
-import { toast } from "@/components/ui/use-toast"
-import { useToast } from "@/components/ui/use-toast"
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCallsheet, Contact, CallsheetData, ScheduleItem } from '@/contexts/CallsheetContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { ContactSelector } from './ContactSelector';
+import { LocationInput } from './LocationInput';
+import { EmergencyNumbers } from './EmergencyNumbers';
+import { PDFAppearanceTab } from './PDFAppearanceTab';
+import { WeatherService, WeatherData } from '@/services/weatherService';
+import { EmergencyServiceApi, EmergencyService } from '@/services/emergencyService';
+import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
+import { SimplePDFSettings } from './SimplePDFSettings';
 
-const formSchema = z.object({
-  projectTitle: z.string().min(2, {
-    message: 'Project title must be at least 2 characters.',
-  }),
-  shootDate: z.date(),
-  generalCallTime: z.string().min(5, {
-    message: 'Call time must be at least 5 characters.',
-  }),
-  location: z.string().min(2, {
-    message: 'Location must be at least 2 characters.',
-  }),
-  locationAddress: z.string().optional(),
-  weather: z.string().optional(),
-  parkingInstructions: z.string().optional(),
-  basecampLocation: z.string().optional(),
-  specialNotes: z.string().optional(),
-});
+interface CallsheetFormProps {
+  onBack: () => void;
+  callsheetId?: string;
+}
 
-interface EmergencyContact {
-  id: string;
+interface GeocodingResult {
   name: string;
-  role: string;
-  phone: string;
-  email?: string;
-  address?: string;
+  latitude: number;
+  longitude: number;
+  country: string;
+  admin1?: string;
 }
 
-export interface CallsheetFormProps {
-  callsheet?: CallsheetData;
-  onBack?: () => void;
-}
+export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
+  const { addCallsheet, updateCallsheet, callsheets, contacts, addContact } = useCallsheet();
+  const { user } = useAuth();
+  
+  const existingCallsheet = callsheetId ? callsheets.find(c => c.id === callsheetId) : null;
+  const isEditing = !!existingCallsheet;
 
-export function CallsheetForm({ callsheet, onBack }: CallsheetFormProps) {
-  const { updateCallsheet, addCallsheet } = useCallsheet();
-  const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchRadius, setSearchRadius] = useState(5);
-  const [units, setUnits] = useState<'imperial' | 'metric'>('imperial');
-  const [locationSearch, setLocationSearch] = useState('');
-  const [isLocationEnabled, setIsLocationEnabled] = useState(false);
-  const [location, setLocation] = useState<{ latitude: number | null; longitude: number | null }>({
-    latitude: null,
-    longitude: null,
-  });
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { toast } = useToast()
-
-  // Get the current callsheet data or create default values
-  const defaultCallsheet: Partial<CallsheetData> = {
+  const [formData, setFormData] = useState<Partial<CallsheetData>>({
     projectTitle: '',
-    shootDate: new Date().toISOString(),
+    shootDate: '',
     generalCallTime: '',
     location: '',
     locationAddress: '',
-    weather: '',
     parkingInstructions: '',
     basecampLocation: '',
-    specialNotes: '',
     cast: [],
     crew: [],
     schedule: [],
-    emergencyContacts: []
-  };
-
-  const callsheetData = callsheet || defaultCallsheet;
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      projectTitle: callsheetData.projectTitle || '',
-      shootDate: new Date(callsheetData.shootDate || Date.now()),
-      generalCallTime: callsheetData.generalCallTime || '',
-      location: callsheetData.location || '',
-      locationAddress: callsheetData.locationAddress || '',
-      weather: callsheetData.weather || '',
-      parkingInstructions: callsheetData.parkingInstructions || '',
-      basecampLocation: callsheetData.basecampLocation || '',
-      specialNotes: callsheetData.specialNotes || '',
-    },
+    emergencyContacts: [],
+    weather: '',
+    specialNotes: '',
   });
 
-  useEffect(() => {
-    if (callsheetData.locationAddress) {
-      setLocationSearch(callsheetData.locationAddress);
-    }
-  }, [callsheetData.locationAddress]);
+  const [showContactSelector, setShowContactSelector] = useState<{
+    show: boolean;
+    type: 'cast' | 'crew' | 'emergency';
+  }>({ show: false, type: 'cast' });
+
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherUnits, setWeatherUnits] = useState<'imperial' | 'metric'>('metric'); // Default to metric
+  const [selectedLocation, setSelectedLocation] = useState<GeocodingResult | null>(null);
+
+  const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
+  const [emergencyServicesLoading, setEmergencyServicesLoading] = useState(false);
+  const [emergencyNumbers, setEmergencyNumbers] = useState<{
+    general: string;
+    police: string;
+    fire: string;
+    medical: string;
+  } | null>(null);
+
+  const [pdfCustomization, setPdfCustomization] = useState<PDFCustomization>(DEFAULT_PDF_CUSTOMIZATION);
+  const [activeTab, setActiveTab] = useState('basic');
 
   useEffect(() => {
-    if (isLocationEnabled && location.latitude && location.longitude) {
-      fetchEmergencyServices();
+    if (existingCallsheet) {
+      setFormData(existingCallsheet);
     }
-  }, [location, searchRadius, units, isLocationEnabled]);
+  }, [existingCallsheet]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const updatedData = {
-      ...callsheetData,
-      projectTitle: values.projectTitle,
-      shootDate: values.shootDate.toISOString(),
-      generalCallTime: values.generalCallTime,
-      location: values.location,
-      locationAddress: values.locationAddress || '',
-      weather: values.weather || '',
-      parkingInstructions: values.parkingInstructions || '',
-      basecampLocation: values.basecampLocation || '',
-      specialNotes: values.specialNotes || '',
+  const handleInputChange = (field: keyof CallsheetData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleLocationSelect = async (location: GeocodingResult) => {
+    setSelectedLocation(location);
+    
+    // Set emergency numbers based on country - ensure we use the correct country code format
+    console.log('Location country code:', location.country);
+    
+    // Map common country codes to our emergency numbers format
+    let countryCode = location.country || 'US';
+    
+    // Comprehensive country code mapping including full country names and variations
+    const countryCodeMap: Record<string, string> = {
+      // Europe
+      'Denmark': 'DK', 'DK': 'DK',
+      'Germany': 'DE', 'DE': 'DE', 'Deutschland': 'DE',
+      'France': 'FR', 'FR': 'FR',
+      'United Kingdom': 'GB', 'UK': 'GB', 'GB': 'GB', 'Britain': 'GB',
+      'Sweden': 'SE', 'SE': 'SE', 'Sverige': 'SE',
+      'Norway': 'NO', 'NO': 'NO', 'Norge': 'NO',
+      'Finland': 'FI', 'FI': 'FI', 'Suomi': 'FI',
+      'Netherlands': 'NL', 'NL': 'NL', 'Holland': 'NL',
+      'Belgium': 'BE', 'BE': 'BE', 'België': 'BE',
+      'Austria': 'AT', 'AT': 'AT', 'Österreich': 'AT',
+      'Switzerland': 'CH', 'CH': 'CH', 'Schweiz': 'CH',
+      'Italy': 'IT', 'IT': 'IT', 'Italia': 'IT',
+      'Spain': 'ES', 'ES': 'ES', 'España': 'ES',
+      'Portugal': 'PT', 'PT': 'PT',
+      'Poland': 'PL', 'PL': 'PL', 'Polska': 'PL',
+      'Czech Republic': 'CZ', 'CZ': 'CZ', 'Czechia': 'CZ',
+      'Slovakia': 'SK', 'SK': 'SK',
+      'Hungary': 'HU', 'HU': 'HU', 'Magyarország': 'HU',
+      'Slovenia': 'SI', 'SI': 'SI', 'Slovenija': 'SI',
+      'Croatia': 'HR', 'HR': 'HR', 'Hrvatska': 'HR',
+      'Estonia': 'EE', 'EE': 'EE', 'Eesti': 'EE',
+      'Latvia': 'LV', 'LV': 'LV', 'Latvija': 'LV',
+      'Lithuania': 'LT', 'LT': 'LT', 'Lietuva': 'LT',
+      'Romania': 'RO', 'RO': 'RO', 'România': 'RO',
+      'Bulgaria': 'BG', 'BG': 'BG', 'България': 'BG',
+      'Greece': 'GR', 'GR': 'GR', 'Ελλάδα': 'GR',
+      'Ireland': 'IE', 'IE': 'IE', 'Éire': 'IE',
+      'Malta': 'MT', 'MT': 'MT',
+      'Cyprus': 'CY_SOUTH', 'CY': 'CY_SOUTH',
+      'Iceland': 'IS', 'IS': 'IS', 'Ísland': 'IS',
+      'Luxembourg': 'LU', 'LU': 'LU',
+      'Monaco': 'MC', 'MC': 'MC',
+      'San Marino': 'SM', 'SM': 'SM',
+      'Vatican City': 'VA', 'VA': 'VA',
+      'Andorra': 'AD', 'AD': 'AD',
+      'Liechtenstein': 'LI', 'LI': 'LI',
+      'Russia': 'RU', 'RU': 'RU', 'Russian Federation': 'RU', 'Россия': 'RU',
+      'Belarus': 'BY', 'BY': 'BY', 'Беларусь': 'BY',
+      'Ukraine': 'UA', 'UA': 'UA', 'Україна': 'UA',
+      'Moldova': 'MD', 'MD': 'MD',
+      'Serbia': 'RS', 'RS': 'RS', 'Србија': 'RS',
+      'Montenegro': 'ME', 'ME': 'ME', 'Црна Гора': 'ME',
+      'Bosnia and Herzegovina': 'BA', 'BA': 'BA',
+      'North Macedonia': 'MK', 'MK': 'MK', 'Macedonia': 'MK',
+      'Albania': 'AL', 'AL': 'AL', 'Shqipëria': 'AL',
+      'Kosovo': 'XK', 'XK': 'XK',
+      'Turkey': 'TR', 'TR': 'TR', 'Türkiye': 'TR',
+      
+      // North America
+      'United States': 'US', 'US': 'US', 'USA': 'US', 'America': 'US',
+      'Canada': 'CA', 'CA': 'CA',
+      'Mexico': 'MX', 'MX': 'MX', 'México': 'MX',
+      
+      // Asia
+      'Vietnam': 'VN', 'VN': 'VN', 'Việt Nam': 'VN',
+      'Japan': 'JP', 'JP': 'JP', '日本': 'JP',
+      'South Korea': 'KR', 'KR': 'KR', 'Korea': 'KR', '한국': 'KR',
+      'China': 'CN', 'CN': 'CN', '中国': 'CN',
+      'India': 'IN', 'IN': 'IN', 'भारत': 'IN',
+      'Thailand': 'TH', 'TH': 'TH', 'ไทย': 'TH',
+      'Singapore': 'SG', 'SG': 'SG',
+      'Malaysia': 'MY', 'MY': 'MY',
+      'Indonesia': 'ID', 'ID': 'ID',
+      'Philippines': 'PH', 'PH': 'PH', 'Pilipinas': 'PH',
+      'Taiwan': 'TW', 'TW': 'TW', '台灣': 'TW',
+      'Hong Kong': 'HK', 'HK': 'HK', '香港': 'HK',
+      'Macau': 'MO', 'MO': 'MO', '澳門': 'MO',
+      'Mongolia': 'MN', 'MN': 'MN', 'Монгол': 'MN',
+      'Kazakhstan': 'KZ', 'KZ': 'KZ', 'Қазақстан': 'KZ',
+      'Kyrgyzstan': 'KG', 'KG': 'KG', 'Кыргызстан': 'KG',
+      'Tajikistan': 'TJ', 'TJ': 'TJ', 'Тоҷикистон': 'TJ',
+      'Uzbekistan': 'UZ', 'UZ': 'UZ', 'Oʻzbekiston': 'UZ',
+      'Turkmenistan': 'TM', 'TM': 'TM', 'Türkmenistan': 'TM',
+      'Afghanistan': 'AF', 'AF': 'AF', 'افغانستان': 'AF',
+      'Pakistan': 'PK', 'PK': 'PK', 'پاکستان': 'PK',
+      'Bangladesh': 'BD', 'BD': 'BD', 'বাংলাদেশ': 'BD',
+      'Sri Lanka': 'LK', 'LK': 'LK', 'ශ්‍රී ලංකා': 'LK',
+      'Maldives': 'MV', 'MV': 'MV',
+      'Nepal': 'NP', 'NP': 'NP', 'नेपाल': 'NP',
+      'Bhutan': 'BT', 'BT': 'BT', 'འབྲུག': 'BT',
+      'Myanmar': 'MM', 'MM': 'MM', 'မြန်မာ': 'MM',
+      'Laos': 'LA', 'LA': 'LA', 'ລາວ': 'LA',
+      'Cambodia': 'KH', 'KH': 'KH', 'កម្ពុជា': 'KH',
+      'Brunei': 'BN', 'BN': 'BN',
+      'East Timor': 'TL', 'TL': 'TL', 'Timor-Leste': 'TL',
     };
-
-    try {
-      if (callsheet?.id) {
-        await updateCallsheet(callsheet.id, updatedData);
-      } else {
-        await addCallsheet(updatedData as Omit<CallsheetData, 'id' | 'createdAt' | 'updatedAt'>);
-      }
-      toast({
-        title: "Success!",
-        description: `You have successfully ${callsheet?.id ? 'updated' : 'created'} the callsheet.`,
-      });
-    } catch (error) {
-      console.error('Error saving callsheet:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save callsheet. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleEmergencyServiceSelect = async (service: EmergencyService) => {
-    const newContact = {
-      id: `emergency-${Date.now()}`,
-      name: service.name,
-      role: EmergencyServiceApi.formatServiceType(service.type),
-      phone: service.phone || 'Phone not available',
-      email: '', // Emergency services typically don't have email
-      address: service.address // Include the address from the service
-    };
     
-    const updatedContacts = [...(callsheetData.emergencyContacts || []), newContact];
+    // Use mapped country code if available, otherwise try the original
+    const mappedCountryCode = countryCodeMap[countryCode] || countryCode.toUpperCase();
+    console.log('Mapped country code:', mappedCountryCode);
     
-    if (callsheet?.id) {
-      await updateCallsheet(callsheet.id, {
-        emergencyContacts: updatedContacts
-      });
-    }
-  };
-
-  const handleRemoveEmergencyContact = async (id: string) => {
-    const updatedContacts = (callsheetData.emergencyContacts || []).filter(contact => contact.id !== id);
+    const numbers = EmergencyServiceApi.getEmergencyNumbers(mappedCountryCode);
+    console.log('Emergency numbers for', mappedCountryCode, ':', numbers);
+    setEmergencyNumbers(numbers);
     
-    if (callsheet?.id) {
-      await updateCallsheet(callsheet.id, {
-        emergencyContacts: updatedContacts
-      });
-    }
-  };
-
-  const handleLocationToggle = () => {
-    setIsLocationEnabled(!isLocationEnabled);
-    if (!isLocationEnabled) {
-      getLocation();
-    } else {
-      setLocation({ latitude: null, longitude: null });
-      setEmergencyServices([]);
-    }
-  };
-
-  const getLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          alert('Error getting location. Please ensure location services are enabled.');
-          setIsLocationEnabled(false);
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by this browser.');
-      setIsLocationEnabled(false);
-    }
-  };
-
-  const fetchEmergencyServices = useCallback(async () => {
-    if (!location.latitude || !location.longitude) {
-      return;
+    // Auto-fetch weather for the selected location and date
+    if (!formData.weather && formData.shootDate) {
+      await fetchWeatherForLocationAndDate(location);
     }
 
-    setIsLoading(true);
+    // Auto-fetch emergency services with 10km radius
+    setEmergencyServicesLoading(true);
     try {
       const services = await EmergencyServiceApi.getNearbyEmergencyServices(
         location.latitude,
         location.longitude,
-        searchRadius,
-        units
+        10, // 10km radius
+        weatherUnits
       );
       setEmergencyServices(services);
     } catch (error) {
-      console.error('Error fetching emergency services:', error);
-      alert('Failed to fetch emergency services. Please try again.');
+      console.error('Failed to fetch emergency services:', error);
     } finally {
-      setIsLoading(false);
-    }
-  }, [location.latitude, location.longitude, searchRadius, units]);
-
-  const handleSearchLocation = async () => {
-    setIsLoading(true);
-    try {
-      // For now, just show an alert as the geocoding service needs to be implemented
-      alert('Location search feature coming soon. Please use the location toggle instead.');
-    } catch (error) {
-      console.error('Error geocoding location:', error);
-      alert('Failed to geocode location. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setEmergencyServicesLoading(false);
     }
   };
 
-  const emergencyNumbers = location.latitude && location.longitude ? 
-    EmergencyServiceApi.getEmergencyNumbers('US') : null;
+  const fetchWeatherForLocationAndDate = async (location: GeocodingResult) => {
+    if (!formData.shootDate) return;
+
+    setWeatherLoading(true);
+    try {
+      const weatherData = await WeatherService.getWeatherForDate(
+        location.latitude,
+        location.longitude,
+        formData.shootDate,
+        weatherUnits
+      );
+      if (weatherData) {
+        const weatherString = WeatherService.formatWeatherString(weatherData);
+        handleInputChange('weather', weatherString);
+      }
+    } catch (error) {
+      console.error('Failed to fetch weather:', error);
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+
+  const handleRefreshWeather = async () => {
+    if (!selectedLocation && !formData.location) return;
+    if (!formData.shootDate) {
+      console.warn('Shoot date is required for weather forecast');
+      return;
+    }
+
+    setWeatherLoading(true);
+    try {
+      let weatherData: WeatherData | null = null;
+      
+      if (selectedLocation) {
+        weatherData = await WeatherService.getWeatherForDate(
+          selectedLocation.latitude,
+          selectedLocation.longitude,
+          formData.shootDate,
+          weatherUnits
+        );
+      } else if (formData.location) {
+        const locations = await WeatherService.geocodeLocation(formData.location);
+        if (locations.length > 0) {
+          weatherData = await WeatherService.getWeatherForDate(
+            locations[0].latitude,
+            locations[0].longitude,
+            formData.shootDate,
+            weatherUnits
+          );
+        }
+      }
+      
+      if (weatherData) {
+        const weatherString = WeatherService.formatWeatherString(weatherData);
+        handleInputChange('weather', weatherString);
+      }
+    } catch (error) {
+      console.error('Failed to refresh weather:', error);
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+
+  // Handle weather units change and re-fetch weather
+  const handleWeatherUnitsChange = async (units: 'imperial' | 'metric') => {
+    setWeatherUnits(units);
+    
+    // Re-fetch weather with new units if we have a location and date
+    if ((selectedLocation || formData.location) && formData.shootDate) {
+      setWeatherLoading(true);
+      try {
+        let weatherData: WeatherData | null = null;
+        
+        if (selectedLocation) {
+          weatherData = await WeatherService.getWeatherForDate(
+            selectedLocation.latitude,
+            selectedLocation.longitude,
+            formData.shootDate,
+            units
+          );
+        } else if (formData.location) {
+          const locations = await WeatherService.geocodeLocation(formData.location);
+          if (locations.length > 0) {
+            weatherData = await WeatherService.getWeatherForDate(
+              locations[0].latitude,
+              locations[0].longitude,
+              formData.shootDate,
+              units
+            );
+          }
+        }
+        
+        if (weatherData) {
+          const weatherString = WeatherService.formatWeatherString(weatherData);
+          handleInputChange('weather', weatherString);
+        }
+      } catch (error) {
+        console.error('Failed to refresh weather with new units:', error);
+      } finally {
+        setWeatherLoading(false);
+      }
+    }
+
+    // Re-fetch emergency services with new units
+    if (selectedLocation) {
+      setEmergencyServicesLoading(true);
+      try {
+        const services = await EmergencyServiceApi.getNearbyEmergencyServices(
+          selectedLocation.latitude,
+          selectedLocation.longitude,
+          10,
+          units
+        );
+        setEmergencyServices(services);
+      } catch (error) {
+        console.error('Failed to fetch emergency services with new units:', error);
+      } finally {
+        setEmergencyServicesLoading(false);
+      }
+    }
+  };
+
+  // Auto-refresh weather when shoot date changes
+  useEffect(() => {
+    if (selectedLocation && formData.shootDate) {
+      fetchWeatherForLocationAndDate(selectedLocation);
+    }
+  }, [formData.shootDate]);
+
+  const handleAddContact = async (contact: Contact, type: 'cast' | 'crew' | 'emergency') => {
+    const fieldName = type === 'emergency' ? 'emergencyContacts' : type;
+    const currentContacts = formData[fieldName] || [];
+    
+    // Check if contact already exists in the current list
+    if (!currentContacts.find(c => c.id === contact.id)) {
+      // Always try to save new contacts to the database if they have the required fields
+      // This ensures contacts are preserved even if removed from the callsheet later
+      if (contact.name && contact.role && contact.phone) {
+        // Check if this contact already exists in the contacts database
+        const existingContact = contacts.find(c => 
+          c.name === contact.name && 
+          c.phone === contact.phone && 
+          c.role === contact.role
+        );
+        
+        // Only save if it doesn't already exist in the database
+        if (!existingContact) {
+          try {
+            console.log('Saving new contact to database:', contact);
+            await addContact({
+              name: contact.name,
+              role: contact.role,
+              phone: contact.phone,
+              email: contact.email || '',
+              character: contact.character || '',
+              department: contact.department || ''
+            });
+            console.log('Contact saved successfully to database');
+          } catch (error) {
+            console.error('Failed to save contact to database:', error);
+            // Continue anyway - the contact will still be added to the callsheet
+            // We don't want to block the user from adding contacts to their callsheet
+          }
+        } else {
+          console.log('Contact already exists in database, skipping save');
+        }
+      } else {
+        console.warn('Contact missing required fields, not saving to database:', contact);
+      }
+      
+      // Always add the contact to the current callsheet regardless of database save success
+      handleInputChange(fieldName, [...currentContacts, contact]);
+    }
+    setShowContactSelector({ show: false, type: 'cast' });
+  };
+
+  const handleRemoveContact = (contactId: string, type: 'cast' | 'crew' | 'emergency') => {
+    const fieldName = type === 'emergency' ? 'emergencyContacts' : type;
+    const currentContacts = formData[fieldName] || [];
+    handleInputChange(fieldName, currentContacts.filter(c => c.id !== contactId));
+  };
+
+  const handleAddScheduleItem = () => {
+    const newItem: ScheduleItem = {
+      id: Date.now().toString(),
+      sceneNumber: '',
+      intExt: 'INT',
+      description: '',
+      location: '',
+      pageCount: '',
+      estimatedTime: '',
+    };
+    const currentSchedule = formData.schedule || [];
+    handleInputChange('schedule', [...currentSchedule, newItem]);
+  };
+
+  const handleUpdateScheduleItem = (itemId: string, field: keyof ScheduleItem, value: string) => {
+    const currentSchedule = formData.schedule || [];
+    const updatedSchedule = currentSchedule.map(item =>
+      item.id === itemId ? { ...item, [field]: value } : item
+    );
+    handleInputChange('schedule', updatedSchedule);
+  };
+
+  const handleRemoveScheduleItem = (itemId: string) => {
+    const currentSchedule = formData.schedule || [];
+    handleInputChange('schedule', currentSchedule.filter(item => item.id !== itemId));
+  };
+
+  const handleAddEmergencyService = (service: EmergencyService) => {
+    const currentContacts = formData.emergencyContacts || [];
+    
+    // Convert emergency service to contact format with clearer address display
+    const emergencyContact = {
+      id: service.id,
+      name: service.name,
+      role: `${EmergencyServiceApi.formatServiceType(service.type)} (${service.distance}${weatherUnits === 'imperial' ? 'mi' : 'km'})`,
+      phone: service.phone || 'Phone not available',
+      email: '',
+      character: '',
+      company: service.address
+    };
+    
+    // Check if already added
+    if (!currentContacts.find(c => c.id === service.id)) {
+      handleInputChange('emergencyContacts', [...currentContacts, emergencyContact]);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.projectTitle || !formData.shootDate || !formData.generalCallTime) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    if (!user) {
+      alert('You must be logged in to create a callsheet');
+      return;
+    }
+
+    const callsheetData = {
+      projectTitle: formData.projectTitle,
+      shootDate: formData.shootDate,
+      generalCallTime: formData.generalCallTime,
+      location: formData.location || '',
+      locationAddress: formData.locationAddress || '',
+      parkingInstructions: formData.parkingInstructions || '',
+      basecampLocation: formData.basecampLocation || '',
+      cast: formData.cast || [],
+      crew: formData.crew || [],
+      schedule: formData.schedule || [],
+      emergencyContacts: formData.emergencyContacts || [],
+      weather: formData.weather || '',
+      specialNotes: formData.specialNotes || '',
+      userId: user.id,
+    };
+
+    if (isEditing && callsheetId) {
+      updateCallsheet(callsheetId, callsheetData);
+    } else {
+      addCallsheet(callsheetData);
+    }
+
+    onBack();
+  };
+
+  if (showContactSelector.show) {
+    return (
+      <ContactSelector
+        onBack={() => setShowContactSelector({ show: false, type: 'cast' })}
+        onSelectContact={(contact) => handleAddContact(contact, showContactSelector.type)}
+        contacts={contacts}
+        title={`Add ${showContactSelector.type === 'emergency' ? 'Emergency Contact' : 
+               showContactSelector.type === 'cast' ? 'Cast Member' : 'Crew Member'}`}
+      />
+    );
+  }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="projectTitle"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Project title</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter project title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="shootDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Shoot Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <DatePicker
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={false}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="generalCallTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>General call time</FormLabel>
-                <FormControl>
-                  <Input placeholder="09:00 AM" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <div className="p-8 max-w-6xl">
+      <div className="flex items-center mb-8">
+        <Button variant="ghost" onClick={onBack} className="mr-4">
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Dashboard
+        </Button>
+        <div className="flex-1">
+          <h1 className="section-heading mb-2">
+            {isEditing ? 'Edit Callsheet' : 'Create New Callsheet'}
+          </h1>
+          <p className="text-muted-foreground font-normal leading-relaxed">
+            Fill in the production details below
+          </p>
         </div>
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Location</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter location" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="locationAddress"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Location Address</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter location address" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="weather"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Weather</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter weather forecast" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="parkingInstructions"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Parking instructions</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter parking instructions" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <FormField
-          control={form.control}
-          name="basecampLocation"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Basecamp location</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter basecamp location" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="specialNotes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Special notes</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Enter special notes" className="resize-none" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">{callsheet?.id ? 'Update' : 'Create'} Callsheet</Button>
-      </form>
+      </div>
 
-      <div className="mt-12">
-        <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Emergency Services</h2>
-            <DrawerTrigger asChild>
-              <Button variant="outline">
-                Find Emergency Services
-              </Button>
-            </DrawerTrigger>
-          </div>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>Emergency Services</DrawerTitle>
-              <DrawerDescription>
-                Find nearby emergency services based on your location.
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="grid gap-4 py-4">
-              <div className="flex items-center space-x-2">
-                <Label htmlFor="location-enabled">Enable Location</Label>
-                <Switch
-                  id="location-enabled"
-                  checked={isLocationEnabled}
-                  onCheckedChange={handleLocationToggle}
-                />
-              </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="basic">Callsheet Details</TabsTrigger>
+          <TabsTrigger value="appearance">Modify PDF</TabsTrigger>
+        </TabsList>
 
-              {isLocationEnabled && (
-                <>
-                  <div className="grid grid-cols-3 items-center gap-4">
-                    <Label htmlFor="search-radius">Search Radius</Label>
+        <TabsContent value="basic" className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Production Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="projectTitle">Project Title *</Label>
                     <Input
-                      type="number"
-                      id="search-radius"
-                      defaultValue={searchRadius.toString()}
-                      onChange={(e) => setSearchRadius(Number(e.target.value))}
-                      className="col-span-2"
+                      id="projectTitle"
+                      value={formData.projectTitle || ''}
+                      onChange={(e) => handleInputChange('projectTitle', e.target.value)}
+                      placeholder="Enter project title"
+                      required
                     />
                   </div>
-
-                  <div className="grid grid-cols-3 items-center gap-4">
-                    <Label htmlFor="units">Units</Label>
-                    <Select value={units} onValueChange={(value) => setUnits(value as 'imperial' | 'metric')}>
-                      <SelectTrigger id="units" className="col-span-2">
-                        <SelectValue placeholder="Select units" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="imperial">Imperial (mi)</SelectItem>
-                        <SelectItem value="metric">Metric (km)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div>
+                    <Label htmlFor="shootDate">Shoot Date *</Label>
+                    <Input
+                      id="shootDate"
+                      type="date"
+                      value={formData.shootDate || ''}
+                      onChange={(e) => handleInputChange('shootDate', e.target.value)}
+                      required
+                    />
                   </div>
-                </>
-              )}
-
-              {!isLocationEnabled && (
-                <div className="grid grid-cols-3 items-center gap-4">
-                  <Label htmlFor="location-search">Search Location</Label>
-                  <Input
-                    type="text"
-                    id="location-search"
-                    placeholder="Enter address or location"
-                    value={locationSearch}
-                    onChange={(e) => setLocationSearch(e.target.value)}
-                    className="col-span-2"
-                  />
-                  <Button type="button" onClick={handleSearchLocation} disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader className="mr-2 h-4 w-4 animate-spin" />
-                        Please wait
-                      </>
-                    ) : (
-                      "Search"
-                    )}
-                  </Button>
                 </div>
-              )}
-            </div>
+                <div>
+                  <Label htmlFor="generalCallTime">General Call Time *</Label>
+                  <Input
+                    id="generalCallTime"
+                    type="time"
+                    value={formData.generalCallTime || ''}
+                    onChange={(e) => handleInputChange('generalCallTime', e.target.value)}
+                    required
+                    className="md:w-1/2"
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-            {isLoading && (
-              <div className="flex items-center space-x-2">
-                <Loader className="mr-2 h-4 w-4 animate-spin" />
-                <span>Loading emergency services...</span>
-              </div>
-            )}
-
-            {emergencyServices.length > 0 && (
-              <EmergencyServicesList services={emergencyServices} units={units} />
-            )}
-
+            {/* Emergency Numbers - Prominent Display */}
             {emergencyNumbers && (
               <EmergencyNumbers emergencyNumbers={emergencyNumbers} />
             )}
 
-            <DrawerFooter>
-              <DrawerClose>Cancel</DrawerClose>
-            </DrawerFooter>
-          </DrawerContent>
-        </Drawer>
-      </div>
+            {/* Location Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Location Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <LocationInput
+                    label="Location Name"
+                    value={formData.location || ''}
+                    onChange={(value) => handleInputChange('location', value)}
+                    onLocationSelect={handleLocationSelect}
+                    placeholder="Search for a location..."
+                    id="location"
+                  />
+                  <div>
+                    <Label htmlFor="locationAddress">Location Address</Label>
+                    <Input
+                      id="locationAddress"
+                      value={formData.locationAddress || ''}
+                      onChange={(e) => handleInputChange('locationAddress', e.target.value)}
+                      placeholder="Full address with zip code"
+                    />
+                  </div>
+                </div>
+                
+                {/* Weather Units Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Weather Units</Label>
+                    <RadioGroup 
+                      value={weatherUnits} 
+                      onValueChange={handleWeatherUnitsChange}
+                      className="flex flex-row space-x-4 mt-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="metric" id="metric" />
+                        <Label htmlFor="metric" className="font-normal">Metric (°C, km/h)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="imperial" id="imperial" />
+                        <Label htmlFor="imperial" className="font-normal">Imperial (°F, mph)</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  <div>
+                    <Label htmlFor="weather">Weather</Label>
+                    <div className="relative">
+                      <Input
+                        id="weather"
+                        value={formData.weather || ''}
+                        onChange={(e) => handleInputChange('weather', e.target.value)}
+                        placeholder="Auto-populated from location and date or enter manually"
+                        className="pr-20"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRefreshWeather}
+                        disabled={weatherLoading || (!selectedLocation && !formData.location) || !formData.shootDate}
+                        className="absolute right-1 top-1 h-8 w-16 text-xs"
+                      >
+                        {weatherLoading ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Cloud className="w-3 h-3" />
+                        )}
+                      </Button>
+                    </div>
+                    {weatherLoading && (
+                      <p className="text-xs text-muted-foreground mt-1">Fetching weather data for {formData.shootDate}...</p>
+                    )}
+                    {!formData.shootDate && (
+                      <p className="text-xs text-muted-foreground mt-1">Set shoot date to get weather forecast</p>
+                    )}
+                  </div>
+                </div>
 
-      {(callsheetData.emergencyContacts || []).length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold mb-4">Emergency Contacts</h3>
-          <div className="space-y-3">
-            {(callsheetData.emergencyContacts || []).map((contact) => (
-              <div key={contact.id} className="border rounded-md p-4">
-                <div className="font-medium">{contact.name}</div>
-                <div className="text-sm text-gray-500">{contact.role}</div>
-                <div className="text-sm text-gray-500">{contact.phone}</div>
-                {contact.address && (
-                  <div className="text-sm text-gray-500">Address: {contact.address}</div>
+                {/* Emergency Services Section - Two Column Layout */}
+                {emergencyServices.length > 0 && (
+                  <div className="mt-6">
+                    <Label className="text-base font-medium flex items-center mb-3">
+                      <AlertTriangle className="w-4 h-4 mr-2" />
+                      Nearby Emergency Services
+                    </Label>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
+                      {emergencyServices.map((service) => (
+                        <div key={service.id} className="flex items-start justify-between p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center mb-2">
+                              <span className="mr-2 text-lg">{EmergencyServiceApi.getServiceIcon(service.type)}</span>
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-sm text-gray-900 truncate">{service.name}</div>
+                                <div className="text-xs text-gray-600">{EmergencyServiceApi.formatServiceType(service.type)}</div>
+                              </div>
+                              <div className="ml-2 text-xs text-gray-500 whitespace-nowrap">
+                                {service.distance}{weatherUnits === 'imperial' ? 'mi' : 'km'} away
+                              </div>
+                            </div>
+                            {service.address && (
+                              <div className="text-sm text-gray-700 mb-2 bg-white p-2 rounded border">
+                                <div className="flex items-start">
+                                  <MapPin className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0 text-gray-500" />
+                                  <span className="text-xs leading-relaxed">{service.address}</span>
+                                </div>
+                              </div>
+                            )}
+                            {service.phone && (
+                              <div className="text-xs text-gray-600 flex items-center">
+                                <span className="mr-1">📞</span>
+                                {service.phone}
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleAddEmergencyService(service)}
+                            className="text-orange-600 hover:text-orange-700 ml-3 flex-shrink-0"
+                            title="Add to emergency contacts"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    {emergencyServicesLoading && (
+                      <p className="text-xs text-muted-foreground mt-2">Loading emergency services...</p>
+                    )}
+                  </div>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveEmergencyContact(contact.id)}
-                  className="mt-2"
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </Form>
-  );
-}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="parkingInstructions">Parking Instructions</Label>
+                    <Textarea
+                      id="parkingInstructions"
+                      value={formData.parkingInstructions || ''}
+                      onChange={(e) => handleInputChange('parkingInstructions', e.target.value)}
+                      placeholder="Parking details and restrictions"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="basecampLocation">Basecamp Location</Label>
+                    <Textarea
+                      id="basecampLocation"
+                      value={formData.basecampLocation || ''}
+                      onChange={(e) => handleInputChange('basecampLocation', e.target.value)}
+                      placeholder="Craft services, trailers, equipment staging"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-function format(date: Date, formatStr: string): string {
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  };
-  return date.toLocaleDateString(undefined, options);
-}
+            {/* Cast & Crew */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Cast */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Cast ({(formData.cast || []).length})
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowContactSelector({ show: true, type: 'cast' })}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Cast
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(formData.cast || []).map((castMember) => (
+                      <div key={castMember.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{castMember.name}</div>
+                          <div className="text-sm text-gray-600">{castMember.character || castMember.role}</div>
+                          <div className="text-sm text-gray-500">{castMember.phone}</div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveContact(castMember.id, 'cast')}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {(formData.cast || []).length === 0 && (
+                      <p className="text-gray-500 text-center py-4">No cast members added yet</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Crew */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Crew ({(formData.crew || []).length})
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowContactSelector({ show: true, type: 'crew' })}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Crew
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(formData.crew || []).map((crewMember) => (
+                      <div key={crewMember.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{crewMember.name}</div>
+                          <div className="text-sm text-gray-600">{crewMember.role}</div>
+                          <div className="text-sm text-gray-500">{crewMember.phone}</div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveContact(crewMember.id, 'crew')}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {(formData.crew || []).length === 0 && (
+                      <p className="text-gray-500 text-center py-4">No crew members added yet</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Schedule */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Shooting Schedule</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddScheduleItem}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Scene
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {(formData.schedule || []).map((item) => (
+                    <div key={item.id} className="p-4 border border-gray-200 rounded-lg">
+                      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                        <div>
+                          <Label>Scene #</Label>
+                          <Input
+                            value={item.sceneNumber}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'sceneNumber', e.target.value)}
+                            placeholder="1A"
+                          />
+                        </div>
+                        <div>
+                          <Label>INT/EXT</Label>
+                          <Select
+                            value={item.intExt}
+                            onValueChange={(value: 'INT' | 'EXT') => 
+                              handleUpdateScheduleItem(item.id, 'intExt', value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="INT">INT</SelectItem>
+                              <SelectItem value="EXT">EXT</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Description</Label>
+                          <Input
+                            value={item.description}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'description', e.target.value)}
+                            placeholder="Kitchen - Morning coffee"
+                          />
+                        </div>
+                        <div>
+                          <Label>Pages</Label>
+                          <Input
+                            value={item.pageCount}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'pageCount', e.target.value)}
+                            placeholder="2/8"
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveScheduleItem(item.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <Label>Location</Label>
+                          <Input
+                            value={item.location}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'location', e.target.value)}
+                            placeholder="Studio Kitchen Set"
+                          />
+                        </div>
+                        <div>
+                          <Label>Estimated Time</Label>
+                          <Input
+                            value={item.estimatedTime}
+                            onChange={(e) => handleUpdateScheduleItem(item.id, 'estimatedTime', e.target.value)}
+                            placeholder="9:00 AM - 11:00 AM"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {(formData.schedule || []).length === 0 && (
+                    <p className="text-gray-500 text-center py-8">No scenes added yet</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Emergency Contacts & Notes */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Emergency Contacts</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowContactSelector({ show: true, type: 'emergency' })}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Contact
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(formData.emergencyContacts || []).map((contact) => (
+                      <div key={contact.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{contact.name}</div>
+                          <div className="text-sm text-gray-600">{contact.role}</div>
+                          <div className="text-sm text-gray-500">{contact.phone}</div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveContact(contact.id, 'emergency')}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {(formData.emergencyContacts || []).length === 0 && (
+                      <p className="text-gray-500 text-center py-4">No emergency contacts added</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Special Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={formData.specialNotes || ''}
+                    onChange={(e) => handleInputChange('specialNotes', e.target.value)}
+                    placeholder="Additional production notes, safety information, special instructions..."
+                    rows={8}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex justify-end space-x-4 pt-6 border-t">
+              <Button type="button" variant="outline" onClick={onBack}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                {isEditing ? 'Update Callsheet' : 'Create Callsheet'}
+              </Button>
+            </div>
+          </form>
+        </TabsContent>
+
+        <TabsContent value="appearance">
+          {formData.projectTitle ? (
+            <SimplePDFSettings
+              callsheet={formData as CallsheetData}
+              customization={pdfCustomization}
+              onCustomizationChange={setPdfCustomization}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <p className="text-muted-foreground">
+                  Please fill in the basic callsheet details first to customize PDF appearance.
+                </p>
+                <Button 
+                  onClick={() => setActiveTab('basic')} 
+                  className="mt-4"
+                  variant="outline"
+                >
+                  Go to Callsheet Details
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};

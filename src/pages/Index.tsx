@@ -27,7 +27,7 @@ const Index = () => {
   const renderActiveView = () => {
     switch (activeView) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onCreateNew={() => setActiveView('create')} />;
       case 'create':
         return <CallsheetForm onBack={() => setActiveView('dashboard')} />;
       case 'contacts':
@@ -35,7 +35,7 @@ const Index = () => {
       case 'pdf-settings':
         return <MasterPDFSettings onBack={() => setActiveView('dashboard')} />;
       default:
-        return <Dashboard />;
+        return <Dashboard onCreateNew={() => setActiveView('create')} />;
     }
   };
 
