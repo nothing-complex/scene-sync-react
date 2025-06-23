@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -232,10 +231,11 @@ export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
 
     setIsLoading(true);
     try {
-      const services = await EmergencyServiceApi.findNearbyServices(
+      const services = await EmergencyServiceApi.getNearbyEmergencyServices(
         location.latitude,
         location.longitude,
-        searchRadius
+        searchRadius,
+        units
       );
       setEmergencyServices(services);
     } catch (error) {
@@ -244,30 +244,23 @@ export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [location.latitude, location.longitude, searchRadius]);
+  }, [location.latitude, location.longitude, searchRadius, units]);
 
   const handleSearchLocation = async () => {
     setIsLoading(true);
     try {
-      const geocodingResponse = await EmergencyServiceApi.geocodeAddress(locationSearch);
-
-      if (geocodingResponse.results && geocodingResponse.results.length > 0) {
-        const { lat, lng } = geocodingResponse.results[0].geometry.location;
-        setLocation({ latitude: lat, longitude: lng });
-        setIsLocationEnabled(true);
-        await fetchEmergencyServices();
-      } else {
-        alert('No results found for the given location.');
-      }
+      // Use a basic geocoding service or handle location search differently
+      // For now, we'll alert the user to use the location toggle instead
+      alert('Please use the "Enable Location" toggle to find emergency services near your current location.');
     } catch (error) {
-      console.error('Error geocoding location:', error);
-      alert('Failed to geocode location. Please try again.');
+      console.error('Error searching location:', error);
+      alert('Failed to search location. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers();
+  const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers('US');
 
   return (
     <Form {...form}>
