@@ -173,13 +173,13 @@ export class EmergencyServiceApi {
       return `${tags.name} (${tags.amenity})`;
     }
     
-    // If we have coordinates, format them more nicely as a last resort
+    // Fall back to coordinates if we have them
     const coords = this.getElementCoordinates(element);
     if (coords) {
-      return `Coordinates: ${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}`;
+      return `${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}`;
     }
     
-    return 'Address not available';
+    return 'Location unavailable';
   }
 
   private static determineServiceType(element: OverpassElement): EmergencyService['type'] | null {
@@ -212,6 +212,11 @@ export class EmergencyServiceApi {
       case 'pharmacy': return 'Pharmacy';
       default: return 'Emergency Service';
     }
+  }
+
+  static getGoogleMapsUrl(service: EmergencyService): string {
+    const { lat, lon } = service.coordinates;
+    return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
   }
 
   static async getNearbyEmergencyServices(
