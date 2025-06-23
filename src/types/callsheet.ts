@@ -1,3 +1,4 @@
+
 export interface Contact {
   id: string;
   name: string;
@@ -7,7 +8,6 @@ export interface Contact {
   character?: string;
   department?: string;
   company?: string;
-  address?: string;
 }
 
 export interface ScheduleItem {

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useCallsheet } from '@/contexts/CallsheetContext';
+import { CallsheetData, useCallsheet } from '@/contexts/CallsheetContext';
 import {
   Select,
   SelectContent,
@@ -51,10 +51,9 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { Loader } from "lucide-react"
+import { ReloadIcon } from '@radix-ui/react-icons';
 import { toast } from "@/components/ui/use-toast"
 import { useToast } from "@/components/ui/use-toast"
-import { useAuth } from '@/contexts/AuthContext';
 
 const formSchema = z.object({
   projectTitle: z.string().min(2, {
@@ -74,20 +73,22 @@ const formSchema = z.object({
   specialNotes: z.string().optional(),
 });
 
-interface CallsheetFormProps {
-  onBack?: () => void;
-  callsheetId?: string;
+interface EmergencyContact {
+  id: string;
+  name: string;
+  role: string;
+  phone: string;
+  email?: string;
+  address?: string;
 }
 
-export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
-  const { callsheets, updateCallsheet, addCallsheet } = useCallsheet();
-  const { user } = useAuth();
-  const currentCallsheet = callsheetId ? callsheets.find(cs => cs.id === callsheetId) : callsheets[0];
+export function CallsheetForm() {
+  const { callsheet, setCallsheet } = useCallsheet();
   const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchRadius, setSearchRadius] = useState(5);
   const [units, setUnits] = useState<'imperial' | 'metric'>('imperial');
-  const [locationSearch, setLocationSearch] = useState(currentCallsheet?.locationAddress || '');
+  const [locationSearch, setLocationSearch] = useState(callsheet.locationAddress || '');
   const [isLocationEnabled, setIsLocationEnabled] = useState(false);
   const [location, setLocation] = useState<{ latitude: number | null; longitude: number | null }>({
     latitude: null,
@@ -99,23 +100,23 @@ export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      projectTitle: currentCallsheet?.projectTitle || '',
-      shootDate: currentCallsheet ? new Date(currentCallsheet.shootDate) : new Date(),
-      generalCallTime: currentCallsheet?.generalCallTime || '',
-      location: currentCallsheet?.location || '',
-      locationAddress: currentCallsheet?.locationAddress || '',
-      weather: currentCallsheet?.weather || '',
-      parkingInstructions: currentCallsheet?.parkingInstructions || '',
-      basecampLocation: currentCallsheet?.basecampLocation || '',
-      specialNotes: currentCallsheet?.specialNotes || '',
+      projectTitle: callsheet.projectTitle,
+      shootDate: new Date(callsheet.shootDate),
+      generalCallTime: callsheet.generalCallTime,
+      location: callsheet.location,
+      locationAddress: callsheet.locationAddress || '',
+      weather: callsheet.weather || '',
+      parkingInstructions: callsheet.parkingInstructions || '',
+      basecampLocation: callsheet.basecampLocation || '',
+      specialNotes: callsheet.specialNotes || '',
     },
   });
 
   useEffect(() => {
-    if (currentCallsheet?.locationAddress) {
-      setLocationSearch(currentCallsheet.locationAddress);
+    if (callsheet.locationAddress) {
+      setLocationSearch(callsheet.locationAddress);
     }
-  }, [currentCallsheet?.locationAddress]);
+  }, [callsheet.locationAddress]);
 
   useEffect(() => {
     if (isLocationEnabled && location.latitude && location.longitude) {
@@ -123,74 +124,46 @@ export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
     }
   }, [location, searchRadius, units, isLocationEnabled]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      if (currentCallsheet) {
-        await updateCallsheet(currentCallsheet.id, {
-          projectTitle: values.projectTitle,
-          shootDate: values.shootDate.toISOString(),
-          generalCallTime: values.generalCallTime,
-          location: values.location,
-          locationAddress: values.locationAddress,
-          weather: values.weather,
-          parkingInstructions: values.parkingInstructions,
-          basecampLocation: values.basecampLocation,
-          specialNotes: values.specialNotes,
-        });
-      } else {
-        await addCallsheet({
-          projectTitle: values.projectTitle,
-          shootDate: values.shootDate.toISOString(),
-          generalCallTime: values.generalCallTime,
-          location: values.location,
-          locationAddress: values.locationAddress,
-          weather: values.weather,
-          parkingInstructions: values.parkingInstructions,
-          basecampLocation: values.basecampLocation,
-          specialNotes: values.specialNotes,
-          cast: [],
-          crew: [],
-          emergencyContacts: [],
-          schedule: [],
-          userId: user?.id || ''
-        });
-      }
-      toast({
-        title: "Success!",
-        description: "You have successfully updated the callsheet form.",
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save callsheet. Please try again.",
-        variant: "destructive"
-      })
-    }
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    setCallsheet((prev) => ({
+      ...prev,
+      projectTitle: values.projectTitle,
+      shootDate: values.shootDate.toISOString(),
+      generalCallTime: values.generalCallTime,
+      location: values.location,
+      locationAddress: values.locationAddress,
+      weather: values.weather,
+      parkingInstructions: values.parkingInstructions,
+      basecampLocation: values.basecampLocation,
+      specialNotes: values.specialNotes,
+    }));
+    toast({
+      title: "Success!",
+      description: "You have successfully updated the callsheet form.",
+    })
   };
 
-  const handleEmergencyServiceSelect = async (service: EmergencyService) => {
-    const newContact = {
+  const handleEmergencyServiceSelect = (service: EmergencyService) => {
+    const newContact: EmergencyContact = {
       id: `emergency-${Date.now()}`,
       name: service.name,
       role: EmergencyServiceApi.formatServiceType(service.type),
       phone: service.phone || 'Phone not available',
-      email: '',
-      address: service.address
+      email: '', // Emergency services typically don't have email
+      address: service.address // Include the address from the service
     };
     
-    if (currentCallsheet) {
-      await updateCallsheet(currentCallsheet.id, {
-        emergencyContacts: [...(currentCallsheet.emergencyContacts || []), newContact]
-      });
-    }
+    setCallsheet(prev => ({
+      ...prev,
+      emergencyContacts: [...prev.emergencyContacts, newContact]
+    }));
   };
 
-  const handleRemoveEmergencyContact = async (id: string) => {
-    if (currentCallsheet) {
-      await updateCallsheet(currentCallsheet.id, {
-        emergencyContacts: (currentCallsheet.emergencyContacts || []).filter(contact => contact.id !== id)
-      });
-    }
+  const handleRemoveEmergencyContact = (id: string) => {
+    setCallsheet(prev => ({
+      ...prev,
+      emergencyContacts: prev.emergencyContacts.filter(contact => contact.id !== id)
+    }));
   };
 
   const handleLocationToggle = () => {
@@ -231,7 +204,7 @@ export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
 
     setIsLoading(true);
     try {
-      const services = await EmergencyServiceApi.getNearbyEmergencyServices(
+      const services = await EmergencyServiceApi.getNearbyServices(
         location.latitude,
         location.longitude,
         searchRadius,
@@ -249,18 +222,25 @@ export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
   const handleSearchLocation = async () => {
     setIsLoading(true);
     try {
-      // Use a basic geocoding service or handle location search differently
-      // For now, we'll alert the user to use the location toggle instead
-      alert('Please use the "Enable Location" toggle to find emergency services near your current location.');
+      const geocodingResponse = await EmergencyServiceApi.getGeocoding(locationSearch);
+
+      if (geocodingResponse.results && geocodingResponse.results.length > 0) {
+        const { lat, lng } = geocodingResponse.results[0].geometry.location;
+        setLocation({ latitude: lat, longitude: lng });
+        setIsLocationEnabled(true);
+        await fetchEmergencyServices();
+      } else {
+        alert('No results found for the given location.');
+      }
     } catch (error) {
-      console.error('Error searching location:', error);
-      alert('Failed to search location. Please try again.');
+      console.error('Error geocoding location:', error);
+      alert('Failed to geocode location. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers('US');
+  const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers(location.latitude, location.longitude);
 
   return (
     <Form {...form}>
@@ -457,8 +437,8 @@ export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
 
                   <div className="grid grid-cols-3 items-center gap-4">
                     <Label htmlFor="units">Units</Label>
-                    <Select value={units} onValueChange={(value) => setUnits(value as 'imperial' | 'metric')}>
-                      <SelectTrigger id="units" className="col-span-2">
+                    <Select value={units} onValueChange={(value) => setUnits(value as 'imperial' | 'metric')} className="col-span-2">
+                      <SelectTrigger id="units">
                         <SelectValue placeholder="Select units" />
                       </SelectTrigger>
                       <SelectContent>
@@ -471,35 +451,33 @@ export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
               )}
 
               {!isLocationEnabled && (
-                <>
-                  <div className="grid grid-cols-3 items-center gap-4">
-                    <Label htmlFor="location-search">Search Location</Label>
-                    <Input
-                      type="text"
-                      id="location-search"
-                      placeholder="Enter address or location"
-                      value={locationSearch}
-                      onChange={(e) => setLocationSearch(e.target.value)}
-                      className="col-span-2"
-                    />
-                  </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label htmlFor="location-search">Search Location</Label>
+                  <Input
+                    type="text"
+                    id="location-search"
+                    placeholder="Enter address or location"
+                    value={locationSearch}
+                    onChange={(e) => setLocationSearch(e.target.value)}
+                    className="col-span-2"
+                  />
                   <Button type="button" onClick={handleSearchLocation} disabled={isLoading}>
                     {isLoading ? (
                       <>
-                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                        <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
                         Please wait
                       </>
                     ) : (
                       "Search"
                     )}
                   </Button>
-                </>
+                </div>
               )}
             </div>
 
             {isLoading && (
               <div className="flex items-center space-x-2">
-                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
                 <span>Loading emergency services...</span>
               </div>
             )}
@@ -519,11 +497,11 @@ export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
         </Drawer>
       </div>
 
-      {currentCallsheet?.emergencyContacts && currentCallsheet.emergencyContacts.length > 0 && (
+      {callsheet.emergencyContacts.length > 0 && (
         <div className="mt-6">
           <h3 className="text-xl font-semibold mb-4">Emergency Contacts</h3>
           <div className="space-y-3">
-            {currentCallsheet.emergencyContacts.map((contact) => (
+            {callsheet.emergencyContacts.map((contact) => (
               <div key={contact.id} className="border rounded-md p-4">
                 <div className="font-medium">{contact.name}</div>
                 <div className="text-sm text-gray-500">{contact.role}</div>
