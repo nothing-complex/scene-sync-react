@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,9 +52,10 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { ReloadIcon } from "lucide-react"
+import { Loader } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from '@/contexts/AuthContext';
 
 const formSchema = z.object({
   projectTitle: z.string().min(2, {
@@ -73,22 +75,15 @@ const formSchema = z.object({
   specialNotes: z.string().optional(),
 });
 
-interface EmergencyContact {
-  id: string;
-  name: string;
-  role: string;
-  phone: string;
-  email?: string;
-  address?: string;
-}
-
 interface CallsheetFormProps {
   onBack?: () => void;
+  callsheetId?: string;
 }
 
-export function CallsheetForm({ onBack }: CallsheetFormProps) {
+export function CallsheetForm({ onBack, callsheetId }: CallsheetFormProps) {
   const { callsheets, updateCallsheet, addCallsheet } = useCallsheet();
-  const [currentCallsheet] = callsheets; // Use the first callsheet for now
+  const { user } = useAuth();
+  const currentCallsheet = callsheetId ? callsheets.find(cs => cs.id === callsheetId) : callsheets[0];
   const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchRadius, setSearchRadius] = useState(5);
@@ -157,7 +152,8 @@ export function CallsheetForm({ onBack }: CallsheetFormProps) {
           cast: [],
           crew: [],
           emergencyContacts: [],
-          schedule: []
+          schedule: [],
+          userId: user?.id || ''
         });
       }
       toast({
@@ -174,13 +170,13 @@ export function CallsheetForm({ onBack }: CallsheetFormProps) {
   };
 
   const handleEmergencyServiceSelect = async (service: EmergencyService) => {
-    const newContact: EmergencyContact = {
+    const newContact = {
       id: `emergency-${Date.now()}`,
       name: service.name,
       role: EmergencyServiceApi.formatServiceType(service.type),
       phone: service.phone || 'Phone not available',
-      email: '', // Emergency services typically don't have email
-      address: service.address // Include the address from the service
+      email: '',
+      address: service.address
     };
     
     if (currentCallsheet) {
@@ -482,33 +478,35 @@ export function CallsheetForm({ onBack }: CallsheetFormProps) {
               )}
 
               {!isLocationEnabled && (
-                <div className="grid grid-cols-3 items-center gap-4">
-                  <Label htmlFor="location-search">Search Location</Label>
-                  <Input
-                    type="text"
-                    id="location-search"
-                    placeholder="Enter address or location"
-                    value={locationSearch}
-                    onChange={(e) => setLocationSearch(e.target.value)}
-                    className="col-span-2"
-                  />
+                <>
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <Label htmlFor="location-search">Search Location</Label>
+                    <Input
+                      type="text"
+                      id="location-search"
+                      placeholder="Enter address or location"
+                      value={locationSearch}
+                      onChange={(e) => setLocationSearch(e.target.value)}
+                      className="col-span-2"
+                    />
+                  </div>
                   <Button type="button" onClick={handleSearchLocation} disabled={isLoading}>
                     {isLoading ? (
                       <>
-                        <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader className="mr-2 h-4 w-4 animate-spin" />
                         Please wait
                       </>
                     ) : (
                       "Search"
                     )}
                   </Button>
-                </div>
+                </>
               )}
             </div>
 
             {isLoading && (
               <div className="flex items-center space-x-2">
-                <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
                 <span>Loading emergency services...</span>
               </div>
             )}
