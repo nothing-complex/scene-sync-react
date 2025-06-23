@@ -95,7 +95,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     // Map common country codes to our emergency numbers format
     let countryCode = location.country || 'US';
     
-    // Handle common country code variations
+    // Handle common country code variations and full country names
     const countryCodeMap: Record<string, string> = {
       'Denmark': 'DK',
       'DK': 'DK',
@@ -132,6 +132,26 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
       'ES': 'ES',
       'Portugal': 'PT',
       'PT': 'PT',
+      'Vietnam': 'VN',
+      'VN': 'VN',
+      'Japan': 'JP',
+      'JP': 'JP',
+      'South Korea': 'KR',
+      'KR': 'KR',
+      'China': 'CN',
+      'CN': 'CN',
+      'India': 'IN',
+      'IN': 'IN',
+      'Thailand': 'TH',
+      'TH': 'TH',
+      'Singapore': 'SG',
+      'SG': 'SG',
+      'Malaysia': 'MY',
+      'MY': 'MY',
+      'Indonesia': 'ID',
+      'ID': 'ID',
+      'Philippines': 'PH',
+      'PH': 'PH',
     };
     
     // Use mapped country code if available, otherwise try the original
