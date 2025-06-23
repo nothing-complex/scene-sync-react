@@ -1,4 +1,3 @@
-
 export interface WeatherData {
   temperature: number;
   condition: string;
@@ -199,7 +198,7 @@ export class WeatherService {
     return this.searchLocations(location);
   }
 
-  static async getCurrentWeather(latitude: number, longitude: number, units: 'imperial' | 'metric' = 'imperial'): Promise<WeatherData | null> {
+  static async getCurrentWeather(latitude: number, longitude: number, units: 'imperial' | 'metric' = 'metric'): Promise<WeatherData | null> {
     try {
       const tempUnit = units === 'imperial' ? 'fahrenheit' : 'celsius';
       const windUnit = units === 'imperial' ? 'mph' : 'kmh';
@@ -237,7 +236,7 @@ export class WeatherService {
     latitude: number, 
     longitude: number, 
     dateString: string,
-    units: 'imperial' | 'metric' = 'imperial'
+    units: 'imperial' | 'metric' = 'metric'
   ): Promise<WeatherData | null> {
     try {
       const dateType = this.getDateType(dateString);
@@ -302,7 +301,7 @@ export class WeatherService {
     }
   }
 
-  static async getWeatherForLocation(location: string, units: 'imperial' | 'metric' = 'imperial'): Promise<WeatherData | null> {
+  static async getWeatherForLocation(location: string, units: 'imperial' | 'metric' = 'metric'): Promise<WeatherData | null> {
     if (!location.trim()) return null;
 
     const locations = await this.geocodeLocation(location);

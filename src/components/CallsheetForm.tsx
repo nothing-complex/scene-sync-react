@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Trash2, Users, Calendar, MapPin, Cloud, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCallsheet, Contact, CallsheetData, ScheduleItem } from '@/contexts/CallsheetContext';
-import { useAuth } from '@/contexts/AuthContext'; // Add this import
+import { useAuth } from '@/contexts/AuthContext';
 import { ContactSelector } from './ContactSelector';
 import { LocationInput } from './LocationInput';
 import { EmergencyNumbers } from './EmergencyNumbers';
@@ -34,8 +33,8 @@ interface GeocodingResult {
 }
 
 export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
-  const { addCallsheet, updateCallsheet, callsheets, contacts } = useCallsheet();
-  const { user } = useAuth(); // Add this line
+  const { addCallsheet, updateCallsheet, callsheets, contacts, addContact } = useCallsheet();
+  const { user } = useAuth();
   
   const existingCallsheet = callsheetId ? callsheets.find(c => c.id === callsheetId) : null;
   const isEditing = !!existingCallsheet;
@@ -62,7 +61,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   }>({ show: false, type: 'cast' });
 
   const [weatherLoading, setWeatherLoading] = useState(false);
-  const [weatherUnits, setWeatherUnits] = useState<'imperial' | 'metric'>('imperial');
+  const [weatherUnits, setWeatherUnits] = useState<'imperial' | 'metric'>('metric'); // Default to metric
   const [selectedLocation, setSelectedLocation] = useState<GeocodingResult | null>(null);
 
   const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
@@ -179,13 +178,62 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     }
   };
 
-  // Handle weather units change
+  // Handle weather units change and re-fetch weather
   const handleWeatherUnitsChange = async (units: 'imperial' | 'metric') => {
     setWeatherUnits(units);
     
     // Re-fetch weather with new units if we have a location and date
     if ((selectedLocation || formData.location) && formData.shootDate) {
-      await handleRefreshWeather();
+      setWeatherLoading(true);
+      try {
+        let weatherData: WeatherData | null = null;
+        
+        if (selectedLocation) {
+          weatherData = await WeatherService.getWeatherForDate(
+            selectedLocation.latitude,
+            selectedLocation.longitude,
+            formData.shootDate,
+            units
+          );
+        } else if (formData.location) {
+          const locations = await WeatherService.geocodeLocation(formData.location);
+          if (locations.length > 0) {
+            weatherData = await WeatherService.getWeatherForDate(
+              locations[0].latitude,
+              locations[0].longitude,
+              formData.shootDate,
+              units
+            );
+          }
+        }
+        
+        if (weatherData) {
+          const weatherString = WeatherService.formatWeatherString(weatherData);
+          handleInputChange('weather', weatherString);
+        }
+      } catch (error) {
+        console.error('Failed to refresh weather with new units:', error);
+      } finally {
+        setWeatherLoading(false);
+      }
+    }
+
+    // Re-fetch emergency services with new units
+    if (selectedLocation) {
+      setEmergencyServicesLoading(true);
+      try {
+        const services = await EmergencyServiceApi.getNearbyEmergencyServices(
+          selectedLocation.latitude,
+          selectedLocation.longitude,
+          10,
+          units
+        );
+        setEmergencyServices(services);
+      } catch (error) {
+        console.error('Failed to fetch emergency services with new units:', error);
+      } finally {
+        setEmergencyServicesLoading(false);
+      }
     }
   };
 
@@ -194,14 +242,32 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     if (selectedLocation && formData.shootDate) {
       fetchWeatherForLocationAndDate(selectedLocation);
     }
-  }, [formData.shootDate, weatherUnits]);
+  }, [formData.shootDate]);
 
-  const handleAddContact = (contact: Contact, type: 'cast' | 'crew' | 'emergency') => {
+  const handleAddContact = async (contact: Contact, type: 'cast' | 'crew' | 'emergency') => {
     const fieldName = type === 'emergency' ? 'emergencyContacts' : type;
     const currentContacts = formData[fieldName] || [];
     
-    // Check if contact already exists
+    // Check if contact already exists in the current list
     if (!currentContacts.find(c => c.id === contact.id)) {
+      // If this is a new contact (doesn't exist in contacts database), save it
+      const existingContact = contacts.find(c => c.id === contact.id);
+      if (!existingContact && contact.name && contact.role && contact.phone) {
+        try {
+          await addContact({
+            name: contact.name,
+            role: contact.role,
+            phone: contact.phone,
+            email: contact.email || '',
+            character: contact.character || '',
+            department: contact.department || ''
+          });
+        } catch (error) {
+          console.error('Failed to save contact to database:', error);
+          // Continue anyway - the contact will still be added to the callsheet
+        }
+      }
+      
       handleInputChange(fieldName, [...currentContacts, contact]);
     }
     setShowContactSelector({ show: false, type: 'cast' });
@@ -287,7 +353,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
       emergencyContacts: formData.emergencyContacts || [],
       weather: formData.weather || '',
       specialNotes: formData.specialNotes || '',
-      userId: user.id, // Add the missing userId property
+      userId: user.id,
     };
 
     if (isEditing && callsheetId) {
@@ -425,12 +491,12 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                       className="flex flex-row space-x-4 mt-2"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="imperial" id="imperial" />
-                        <Label htmlFor="imperial" className="font-normal">Imperial (°F, mph)</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="metric" id="metric" />
                         <Label htmlFor="metric" className="font-normal">Metric (°C, km/h)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="imperial" id="imperial" />
+                        <Label htmlFor="imperial" className="font-normal">Imperial (°F, mph)</Label>
                       </div>
                     </RadioGroup>
                   </div>
@@ -487,6 +553,11 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                                 <div className="text-xs text-gray-500">
                                   {service.distance}{weatherUnits === 'imperial' ? 'mi' : 'km'} away
                                 </div>
+                                {service.address && (
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    {service.address}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
