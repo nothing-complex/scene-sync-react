@@ -82,7 +82,12 @@ interface EmergencyContact {
   address?: string;
 }
 
-export function CallsheetForm() {
+export interface CallsheetFormProps {
+  callsheetId?: string;
+  onBack?: () => void;
+}
+
+export function CallsheetForm({ callsheetId, onBack }: CallsheetFormProps) {
   const { callsheet, setCallsheet } = useCallsheet();
   const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -136,6 +141,7 @@ export function CallsheetForm() {
       parkingInstructions: values.parkingInstructions,
       basecampLocation: values.basecampLocation,
       specialNotes: values.specialNotes,
+      userId: prev.userId || 'default-user', // Ensure userId is included
     }));
     toast({
       title: "Success!",
@@ -144,7 +150,7 @@ export function CallsheetForm() {
   };
 
   const handleEmergencyServiceSelect = (service: EmergencyService) => {
-    const newContact: EmergencyContact = {
+    const newContact = {
       id: `emergency-${Date.now()}`,
       name: service.name,
       role: EmergencyServiceApi.formatServiceType(service.type),
