@@ -163,6 +163,9 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
                 {contact.email && contact.email.trim() && (
                   <SafeText style={styles.contactDetails}>{contact.email}</SafeText>
                 )}
+                {contact.address && contact.address.trim() && (
+                  <SafeText style={styles.contactDetails}>{contact.address}</SafeText>
+                )}
               </View>
             ))}
           </View>

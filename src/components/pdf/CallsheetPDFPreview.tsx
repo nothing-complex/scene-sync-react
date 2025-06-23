@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
@@ -512,6 +511,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   {sections.formatting.showSectionIcons && '📞 '}
                   {contact.phone}
                 </div>
+                {contact.address && (
+                  <div style={{ fontSize: `${typography.fontSize.small}px`, marginTop: '4px' }}>
+                    {sections.formatting.showSectionIcons && '📍 '}
+                    {contact.address}
+                  </div>
+                )}
               </div>
             ))}
           </div>
