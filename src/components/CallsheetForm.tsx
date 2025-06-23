@@ -534,14 +534,14 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                   </div>
                 </div>
 
-                {/* Emergency Services Section */}
+                {/* Emergency Services Section - Two Column Layout */}
                 {emergencyServices.length > 0 && (
                   <div className="mt-6">
                     <Label className="text-base font-medium flex items-center mb-3">
                       <AlertTriangle className="w-4 h-4 mr-2" />
                       Nearby Emergency Services
                     </Label>
-                    <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
                       {emergencyServices.map((service) => (
                         <div key={service.id} className="flex items-start justify-between p-4 bg-orange-50 border border-orange-200 rounded-lg">
                           <div className="flex-1 min-w-0">
