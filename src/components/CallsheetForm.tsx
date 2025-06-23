@@ -350,24 +350,42 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
     
     // Check if contact already exists in the current list
     if (!currentContacts.find(c => c.id === contact.id)) {
-      // If this is a new contact (doesn't exist in contacts database), save it
-      const existingContact = contacts.find(c => c.id === contact.id);
-      if (!existingContact && contact.name && contact.role && contact.phone) {
-        try {
-          await addContact({
-            name: contact.name,
-            role: contact.role,
-            phone: contact.phone,
-            email: contact.email || '',
-            character: contact.character || '',
-            department: contact.department || ''
-          });
-        } catch (error) {
-          console.error('Failed to save contact to database:', error);
-          // Continue anyway - the contact will still be added to the callsheet
+      // Always try to save new contacts to the database if they have the required fields
+      // This ensures contacts are preserved even if removed from the callsheet later
+      if (contact.name && contact.role && contact.phone) {
+        // Check if this contact already exists in the contacts database
+        const existingContact = contacts.find(c => 
+          c.name === contact.name && 
+          c.phone === contact.phone && 
+          c.role === contact.role
+        );
+        
+        // Only save if it doesn't already exist in the database
+        if (!existingContact) {
+          try {
+            console.log('Saving new contact to database:', contact);
+            await addContact({
+              name: contact.name,
+              role: contact.role,
+              phone: contact.phone,
+              email: contact.email || '',
+              character: contact.character || '',
+              department: contact.department || ''
+            });
+            console.log('Contact saved successfully to database');
+          } catch (error) {
+            console.error('Failed to save contact to database:', error);
+            // Continue anyway - the contact will still be added to the callsheet
+            // We don't want to block the user from adding contacts to their callsheet
+          }
+        } else {
+          console.log('Contact already exists in database, skipping save');
         }
+      } else {
+        console.warn('Contact missing required fields, not saving to database:', contact);
       }
       
+      // Always add the contact to the current callsheet regardless of database save success
       handleInputChange(fieldName, [...currentContacts, contact]);
     }
     setShowContactSelector({ show: false, type: 'cast' });
