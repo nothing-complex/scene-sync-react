@@ -14,8 +14,12 @@ export interface EmergencyService {
 interface OverpassElement {
   type: string;
   id: number;
-  lat: number;
-  lon: number;
+  lat?: number;
+  lon?: number;
+  center?: {
+    lat: number;
+    lon: number;
+  };
   tags: {
     name?: string;
     amenity?: string;
@@ -73,6 +77,20 @@ export class EmergencyServiceApi {
     `;
   }
 
+  private static getElementCoordinates(element: OverpassElement): { lat: number; lon: number } | null {
+    // For nodes, coordinates are directly on the element
+    if (element.lat !== undefined && element.lon !== undefined) {
+      return { lat: element.lat, lon: element.lon };
+    }
+    
+    // For ways and relations, coordinates are in the center property
+    if (element.center?.lat !== undefined && element.center?.lon !== undefined) {
+      return { lat: element.center.lat, lon: element.center.lon };
+    }
+    
+    return null;
+  }
+
   private static formatAddress(element: OverpassElement): string {
     const tags = element.tags;
     
@@ -122,8 +140,13 @@ export class EmergencyServiceApi {
       return `Near ${tags.name}`;
     }
     
-    // Last resort: use coordinates as a location reference
-    return `Lat: ${element.lat.toFixed(4)}, Lon: ${element.lon.toFixed(4)}`;
+    // Get coordinates for fallback
+    const coords = this.getElementCoordinates(element);
+    if (coords) {
+      return `Lat: ${coords.lat.toFixed(4)}, Lon: ${coords.lon.toFixed(4)}`;
+    }
+    
+    return 'Address not available';
   }
 
   private static determineServiceType(element: OverpassElement): EmergencyService['type'] | null {
@@ -186,8 +209,15 @@ export class EmergencyServiceApi {
           const serviceType = this.determineServiceType(element);
           if (!serviceType) return null;
 
+          // Get coordinates and skip if not available
+          const coords = this.getElementCoordinates(element);
+          if (!coords) {
+            console.warn('Skipping element without coordinates:', element);
+            return null;
+          }
+
           // Don't require name - many emergency services might not have a name in OSM
-          const distance = this.calculateDistance(latitude, longitude, element.lat, element.lon);
+          const distance = this.calculateDistance(latitude, longitude, coords.lat, coords.lon);
           const finalDistance = units === 'imperial' ? this.convertToMiles(distance) : distance;
 
           return {
@@ -197,7 +227,7 @@ export class EmergencyServiceApi {
             address: this.formatAddress(element),
             phone: element.tags.phone,
             distance: Math.round(finalDistance * 10) / 10, // Round to 1 decimal
-            coordinates: { lat: element.lat, lon: element.lon }
+            coordinates: coords
           };
         })
         .filter((service): service is EmergencyService => service !== null)
