@@ -1,13 +1,10 @@
+
 import React, { useState } from 'react';
 import { CallsheetForm } from './CallsheetForm';
 import { CallsheetList } from './CallsheetList';
 import { Button } from "@/components/ui/button"
 import { useCallsheet } from '@/contexts/CallsheetContext';
 import { MasterPDFSettings } from './MasterPDFSettings';
-
-interface DashboardProps {
-  // You can add props here if needed
-}
 
 export function Dashboard() {
   const { callsheets } = useCallsheet();
@@ -49,7 +46,7 @@ export function Dashboard() {
             Back to Dashboard
           </Button>
         </div>
-        <MasterPDFSettings />
+        <MasterPDFSettings onBack={handleBackToList} />
       </div>
     );
   }
@@ -58,8 +55,8 @@ export function Dashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Callsheets</h1>
-        <div>
-          <Button variant="primary" onClick={handleCreateNew}>
+        <div className="space-x-2">
+          <Button onClick={handleCreateNew}>
             Create New
           </Button>
           <Button variant="secondary" onClick={() => setView('settings')}>
