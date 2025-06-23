@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -84,16 +83,17 @@ interface EmergencyContact {
 }
 
 export interface CallsheetFormProps {
+  callsheetId?: string;
   onBack?: () => void;
 }
 
-export function CallsheetForm({ onBack }: CallsheetFormProps) {
-  const { callsheetData, updateCallsheet } = useCallsheet();
+export function CallsheetForm({ callsheetId, onBack }: CallsheetFormProps) {
+  const { callsheets, updateCallsheet, addCallsheet } = useCallsheet();
   const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchRadius, setSearchRadius] = useState(5);
   const [units, setUnits] = useState<'imperial' | 'metric'>('imperial');
-  const [locationSearch, setLocationSearch] = useState(callsheetData.locationAddress || '');
+  const [locationSearch, setLocationSearch] = useState('');
   const [isLocationEnabled, setIsLocationEnabled] = useState(false);
   const [location, setLocation] = useState<{ latitude: number | null; longitude: number | null }>({
     latitude: null,
@@ -102,13 +102,33 @@ export function CallsheetForm({ onBack }: CallsheetFormProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { toast } = useToast()
 
+  // Get the current callsheet data or create default values
+  const currentCallsheet = callsheetId ? callsheets.find(cs => cs.id === callsheetId) : null;
+  const defaultCallsheet: Partial<CallsheetData> = {
+    projectTitle: '',
+    shootDate: new Date().toISOString(),
+    generalCallTime: '',
+    location: '',
+    locationAddress: '',
+    weather: '',
+    parkingInstructions: '',
+    basecampLocation: '',
+    specialNotes: '',
+    cast: [],
+    crew: [],
+    schedule: [],
+    emergencyContacts: []
+  };
+
+  const callsheetData = currentCallsheet || defaultCallsheet;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      projectTitle: callsheetData.projectTitle,
-      shootDate: new Date(callsheetData.shootDate),
-      generalCallTime: callsheetData.generalCallTime,
-      location: callsheetData.location,
+      projectTitle: callsheetData.projectTitle || '',
+      shootDate: new Date(callsheetData.shootDate || Date.now()),
+      generalCallTime: callsheetData.generalCallTime || '',
+      location: callsheetData.location || '',
       locationAddress: callsheetData.locationAddress || '',
       weather: callsheetData.weather || '',
       parkingInstructions: callsheetData.parkingInstructions || '',
@@ -129,26 +149,41 @@ export function CallsheetForm({ onBack }: CallsheetFormProps) {
     }
   }, [location, searchRadius, units, isLocationEnabled]);
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    updateCallsheet({
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const updatedData = {
       ...callsheetData,
       projectTitle: values.projectTitle,
       shootDate: values.shootDate.toISOString(),
       generalCallTime: values.generalCallTime,
       location: values.location,
-      locationAddress: values.locationAddress,
-      weather: values.weather,
-      parkingInstructions: values.parkingInstructions,
-      basecampLocation: values.basecampLocation,
-      specialNotes: values.specialNotes,
-    });
-    toast({
-      title: "Success!",
-      description: "You have successfully updated the callsheet form.",
-    })
+      locationAddress: values.locationAddress || '',
+      weather: values.weather || '',
+      parkingInstructions: values.parkingInstructions || '',
+      basecampLocation: values.basecampLocation || '',
+      specialNotes: values.specialNotes || '',
+    };
+
+    try {
+      if (callsheetId) {
+        await updateCallsheet(callsheetId, updatedData);
+      } else {
+        await addCallsheet(updatedData as Omit<CallsheetData, 'id' | 'createdAt' | 'updatedAt'>);
+      }
+      toast({
+        title: "Success!",
+        description: `You have successfully ${callsheetId ? 'updated' : 'created'} the callsheet.`,
+      });
+    } catch (error) {
+      console.error('Error saving callsheet:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save callsheet. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleEmergencyServiceSelect = (service: EmergencyService) => {
+  const handleEmergencyServiceSelect = async (service: EmergencyService) => {
     const newContact = {
       id: `emergency-${Date.now()}`,
       name: service.name,
@@ -158,17 +193,23 @@ export function CallsheetForm({ onBack }: CallsheetFormProps) {
       address: service.address // Include the address from the service
     };
     
-    updateCallsheet({
-      ...callsheetData,
-      emergencyContacts: [...callsheetData.emergencyContacts, newContact]
-    });
+    const updatedContacts = [...(callsheetData.emergencyContacts || []), newContact];
+    
+    if (callsheetId) {
+      await updateCallsheet(callsheetId, {
+        emergencyContacts: updatedContacts
+      });
+    }
   };
 
-  const handleRemoveEmergencyContact = (id: string) => {
-    updateCallsheet({
-      ...callsheetData,
-      emergencyContacts: callsheetData.emergencyContacts.filter(contact => contact.id !== id)
-    });
+  const handleRemoveEmergencyContact = async (id: string) => {
+    const updatedContacts = (callsheetData.emergencyContacts || []).filter(contact => contact.id !== id);
+    
+    if (callsheetId) {
+      await updateCallsheet(callsheetId, {
+        emergencyContacts: updatedContacts
+      });
+    }
   };
 
   const handleLocationToggle = () => {
@@ -209,7 +250,7 @@ export function CallsheetForm({ onBack }: CallsheetFormProps) {
 
     setIsLoading(true);
     try {
-      const services = await EmergencyServiceApi.findNearbyEmergencyServices(
+      const services = await EmergencyServiceApi.getNearbyEmergencyServices(
         location.latitude,
         location.longitude,
         searchRadius,
@@ -390,7 +431,7 @@ export function CallsheetForm({ onBack }: CallsheetFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit">Update Callsheet</Button>
+        <Button type="submit">{callsheetId ? 'Update' : 'Create'} Callsheet</Button>
       </form>
 
       <div className="mt-12">
@@ -495,11 +536,11 @@ export function CallsheetForm({ onBack }: CallsheetFormProps) {
         </Drawer>
       </div>
 
-      {callsheetData.emergencyContacts.length > 0 && (
+      {(callsheetData.emergencyContacts || []).length > 0 && (
         <div className="mt-6">
           <h3 className="text-xl font-semibold mb-4">Emergency Contacts</h3>
           <div className="space-y-3">
-            {callsheetData.emergencyContacts.map((contact) => (
+            {(callsheetData.emergencyContacts || []).map((contact) => (
               <div key={contact.id} className="border rounded-md p-4">
                 <div className="font-medium">{contact.name}</div>
                 <div className="text-sm text-gray-500">{contact.role}</div>
