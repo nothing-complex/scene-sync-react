@@ -1,3 +1,4 @@
+
 export interface EmergencyService {
   id: string;
   name: string;
@@ -205,7 +206,7 @@ export class EmergencyServiceApi {
       'RO': { general: '112', police: '112', fire: '112', medical: '112' },
       'BG': { general: '112', police: '166', fire: '160', medical: '150' },
       'MT': { general: '112', police: '112', fire: '112', medical: '112' },
-      'CY': { general: '112', police: '199', fire: '199', medical: '199' },
+      'CY_SOUTH': { general: '112', police: '199', fire: '199', medical: '199' },
       'IS': { general: '112', police: '112', fire: '112', medical: '112' },
       'LI': { general: '112', police: '117', fire: '118', medical: '144' },
       'MC': { general: '112', police: '17', fire: '18', medical: '15' },
@@ -323,7 +324,7 @@ export class EmergencyServiceApi {
       'AM': { general: '112', police: '102', fire: '101', medical: '103' },
       'AZ': { general: '112', police: '102', fire: '101', medical: '103' },
       'TR': { general: '112', police: '155', fire: '110', medical: '112' },
-      'CY': { general: '112', police: '199', fire: '199', medical: '199' },
+      'CY_NORTH': { general: '112', police: '199', fire: '199', medical: '199' },
       'RU': { general: '112', police: '102', fire: '101', medical: '103' },
       'BY': { general: '112', police: '102', fire: '101', medical: '103' },
       'UA': { general: '112', police: '102', fire: '101', medical: '103' },
