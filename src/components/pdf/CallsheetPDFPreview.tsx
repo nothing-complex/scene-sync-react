@@ -203,51 +203,80 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         </h2>
       </div>
 
-      {/* Basic Information */}
-      <div className="grid grid-cols-2 gap-6" style={sectionDividerStyles}>
-        <div className="space-y-4">
-          <div className="flex items-center" style={{...cardStyles, padding: '12px'}}>
-            {sections.formatting.showSectionIcons && <span className="mr-2">📅</span>}
-            <div>
-              <div 
-                style={{
-                  fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
-                             typography.fontWeight.header === 'medium' ? 500 :
-                             typography.fontWeight.header === 'semibold' ? 600 : 700,
-                  fontSize: `${typography.fontSize.header}px`
-                }}
-              >
-                Shoot Date
-              </div>
-              <div style={{ fontSize: `${typography.fontSize.body}px` }}>
-                {formatDate(callsheet.shootDate)}
-              </div>
+      {/* Production Details Grid - moved to top */}
+      <div className="grid grid-cols-3 gap-4 mb-6" style={sectionDividerStyles}>
+        {/* Shoot Date */}
+        <div className="flex items-center" style={{...cardStyles, padding: '12px'}}>
+          {sections.formatting.showSectionIcons && <span className="mr-2">📅</span>}
+          <div>
+            <div 
+              style={{
+                fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
+                           typography.fontWeight.header === 'medium' ? 500 :
+                           typography.fontWeight.header === 'semibold' ? 600 : 700,
+                fontSize: `${typography.fontSize.header}px`
+              }}
+            >
+              Shoot Date
+            </div>
+            <div style={{ fontSize: `${typography.fontSize.body}px` }}>
+              {formatDate(callsheet.shootDate)}
             </div>
           </div>
-          
-          <div className="flex items-center" style={{...cardStyles, padding: '12px'}}>
-            {sections.formatting.showSectionIcons && <span className="mr-2">🕐</span>}
-            <div>
-              <div 
-                style={{
-                  fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
-                             typography.fontWeight.header === 'medium' ? 500 :
-                             typography.fontWeight.header === 'semibold' ? 600 : 700,
-                  fontSize: `${typography.fontSize.header}px`
-                }}
-              >
-                General Call Time
-              </div>
-              <div style={{ fontSize: `${typography.fontSize.body}px` }}>
-                {callsheet.generalCallTime}
-              </div>
+        </div>
+        
+        {/* General Call Time */}
+        <div className="flex items-center" style={{...cardStyles, padding: '12px'}}>
+          {sections.formatting.showSectionIcons && <span className="mr-2">🕐</span>}
+          <div>
+            <div 
+              style={{
+                fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
+                           typography.fontWeight.header === 'medium' ? 500 :
+                           typography.fontWeight.header === 'semibold' ? 600 : 700,
+                fontSize: `${typography.fontSize.header}px`
+              }}
+            >
+              General Call Time
+            </div>
+            <div style={{ fontSize: `${typography.fontSize.body}px` }}>
+              {callsheet.generalCallTime}
             </div>
           </div>
         </div>
 
-        <div className="space-y-4">
+        {/* Location */}
+        <div className="flex items-center" style={{...cardStyles, padding: '12px'}}>
+          {sections.formatting.showSectionIcons && <span className="mr-2">📍</span>}
+          <div>
+            <div 
+              style={{
+                fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
+                           typography.fontWeight.header === 'medium' ? 500 :
+                           typography.fontWeight.header === 'semibold' ? 600 : 700,
+                fontSize: `${typography.fontSize.header}px`
+              }}
+            >
+              Location
+            </div>
+            <div style={{ fontSize: `${typography.fontSize.body}px` }}>
+              {callsheet.location}
+            </div>
+            {callsheet.locationAddress && (
+              <div style={{ 
+                fontSize: `${typography.fontSize.small}px`, 
+                color: colors.textLight 
+              }}>
+                {callsheet.locationAddress}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Weather */}
+        {callsheet.weather && sections.visibility.weather && (
           <div className="flex items-center" style={{...cardStyles, padding: '12px'}}>
-            {sections.formatting.showSectionIcons && <span className="mr-2">📍</span>}
+            {sections.formatting.showSectionIcons && <span className="mr-2">🌤️</span>}
             <div>
               <div 
                 style={{
@@ -257,23 +286,82 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   fontSize: `${typography.fontSize.header}px`
                 }}
               >
-                Location
+                Weather
               </div>
               <div style={{ fontSize: `${typography.fontSize.body}px` }}>
-                {callsheet.location}
+                {callsheet.weather}
               </div>
-              {callsheet.locationAddress && (
-                <div style={{ 
-                  fontSize: `${typography.fontSize.small}px`, 
-                  color: colors.textLight 
-                }}>
-                  {callsheet.locationAddress}
-                </div>
-              )}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Parking Instructions */}
+        {callsheet.parkingInstructions && (
+          <div className="flex items-center" style={{...cardStyles, padding: '12px'}}>
+            {sections.formatting.showSectionIcons && <span className="mr-2">🅿️</span>}
+            <div>
+              <div 
+                style={{
+                  fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
+                             typography.fontWeight.header === 'medium' ? 500 :
+                             typography.fontWeight.header === 'semibold' ? 600 : 700,
+                  fontSize: `${typography.fontSize.header}px`
+                }}
+              >
+                Parking Instructions
+              </div>
+              <div style={{ fontSize: `${typography.fontSize.body}px` }}>
+                {callsheet.parkingInstructions}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Basecamp Location */}
+        {callsheet.basecampLocation && (
+          <div className="flex items-center" style={{...cardStyles, padding: '12px'}}>
+            {sections.formatting.showSectionIcons && <span className="mr-2">🏕️</span>}
+            <div>
+              <div 
+                style={{
+                  fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
+                             typography.fontWeight.header === 'medium' ? 500 :
+                             typography.fontWeight.header === 'semibold' ? 600 : 700,
+                  fontSize: `${typography.fontSize.header}px`
+                }}
+              >
+                Basecamp Location
+              </div>
+              <div style={{ fontSize: `${typography.fontSize.body}px` }}>
+                {callsheet.basecampLocation}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Special Notes - moved to top but separate from grid */}
+      {callsheet.specialNotes && sections.visibility.notes && (
+        <div style={{...sectionDividerStyles, ...cardStyles, padding: '16px'}}>
+          <h4 
+            className={sections.formatting.showSectionIcons ? "flex items-center" : ""}
+            style={{
+              fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
+                         typography.fontWeight.header === 'medium' ? 500 :
+                         typography.fontWeight.header === 'semibold' ? 600 : 700,
+              marginBottom: '12px',
+              fontSize: `${typography.fontSize.header}px`,
+              color: colors.primary
+            }}
+          >
+            {sections.formatting.showSectionIcons && <span className="mr-2">📝</span>}
+            Special Notes
+          </h4>
+          <p style={{ fontSize: `${typography.fontSize.body}px` }}>
+            {callsheet.specialNotes}
+          </p>
+        </div>
+      )}
 
       {/* Schedule */}
       {callsheet.schedule.length > 0 && sections.visibility.schedule && (
@@ -332,7 +420,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               fontSize: `${typography.fontSize.title}px`,
               fontWeight: typography.fontWeight.title === 'normal' ? 400 : 
                          typography.fontWeight.title === 'medium' ? 500 :
-                         typography.fontWeight.title === 'semibold' ? 600 : 700,
+                         typography.fontWeight.title === 'sebibold' ? 600 : 700,
               marginBottom: '16px',
               color: colors.primary
             }}
@@ -517,93 +605,6 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           </div>
         </div>
       )}
-
-      {/* Additional Information */}
-      <div className="grid grid-cols-1 gap-6">
-        {callsheet.parkingInstructions && (
-          <div style={{...cardStyles, padding: '12px'}}>
-            <h4 
-              className={sections.formatting.showSectionIcons ? "flex items-center" : ""}
-              style={{
-                fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
-                           typography.fontWeight.header === 'medium' ? 500 :
-                           typography.fontWeight.header === 'semibold' ? 600 : 700,
-                marginBottom: '8px',
-                fontSize: `${typography.fontSize.header}px`
-              }}
-            >
-              {sections.formatting.showSectionIcons && <span className="mr-2">🅿️</span>}
-              Parking Instructions
-            </h4>
-            <p style={{ fontSize: `${typography.fontSize.body}px` }}>
-              {callsheet.parkingInstructions}
-            </p>
-          </div>
-        )}
-
-        {callsheet.basecampLocation && (
-          <div style={{...cardStyles, padding: '12px'}}>
-            <h4 
-              className={sections.formatting.showSectionIcons ? "flex items-center" : ""}
-              style={{
-                fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
-                           typography.fontWeight.header === 'medium' ? 500 :
-                           typography.fontWeight.header === 'semibold' ? 600 : 700,
-                marginBottom: '8px',
-                fontSize: `${typography.fontSize.header}px`
-              }}
-            >
-              {sections.formatting.showSectionIcons && <span className="mr-2">🏕️</span>}
-              Basecamp Location
-            </h4>
-            <p style={{ fontSize: `${typography.fontSize.body}px` }}>
-              {callsheet.basecampLocation}
-            </p>
-          </div>
-        )}
-
-        {callsheet.weather && sections.visibility.weather && (
-          <div style={{...cardStyles, padding: '12px'}}>
-            <h4 
-              className={sections.formatting.showSectionIcons ? "flex items-center" : ""}
-              style={{
-                fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
-                           typography.fontWeight.header === 'medium' ? 500 :
-                           typography.fontWeight.header === 'semibold' ? 600 : 700,
-                marginBottom: '8px',
-                fontSize: `${typography.fontSize.header}px`
-              }}
-            >
-              {sections.formatting.showSectionIcons && <span className="mr-2">🌤️</span>}
-              Weather
-            </h4>
-            <p style={{ fontSize: `${typography.fontSize.body}px` }}>
-              {callsheet.weather}
-            </p>
-          </div>
-        )}
-
-        {callsheet.specialNotes && sections.visibility.notes && (
-          <div style={{...cardStyles, padding: '12px'}}>
-            <h4 
-              className={sections.formatting.showSectionIcons ? "flex items-center" : ""}
-              style={{
-                fontWeight: typography.fontWeight.header === 'normal' ? 400 : 
-                           typography.fontWeight.header === 'medium' ? 500 :
-                           typography.fontWeight.header === 'semibold' ? 600 : 700,
-                marginBottom: '8px',
-                fontSize: `${typography.fontSize.header}px`
-              }}
-            >
-              {sections.formatting.showSectionIcons && <span className="mr-2">📝</span>}
-              Special Notes
-            </h4>
-            <p style={{ fontSize: `${typography.fontSize.body}px` }}>
-              {callsheet.specialNotes}
-            </p>
-          </div>
-        )}
-      </div>
 
       {/* Footer */}
       {branding.footer?.text && (
