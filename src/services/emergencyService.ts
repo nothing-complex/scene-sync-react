@@ -1,4 +1,3 @@
-
 export interface EmergencyService {
   id: string;
   name: string;
@@ -76,17 +75,55 @@ export class EmergencyServiceApi {
 
   private static formatAddress(element: OverpassElement): string {
     const tags = element.tags;
+    
+    // First try the full address field
     if (tags['addr:full']) {
       return tags['addr:full'];
     }
     
+    // Try to build address from components
     const parts = [];
     if (tags['addr:housenumber']) parts.push(tags['addr:housenumber']);
     if (tags['addr:street']) parts.push(tags['addr:street']);
     if (tags['addr:city']) parts.push(tags['addr:city']);
     if (tags['addr:postcode']) parts.push(tags['addr:postcode']);
     
-    return parts.length > 0 ? parts.join(', ') : 'Address not available';
+    if (parts.length > 0) {
+      return parts.join(', ');
+    }
+    
+    // Try alternative address formats commonly used in Overpass
+    if (tags.address) {
+      return tags.address;
+    }
+    
+    // Try building from alternative fields
+    const altParts = [];
+    if (tags['addr:place']) altParts.push(tags['addr:place']);
+    if (tags['addr:suburb']) altParts.push(tags['addr:suburb']);
+    if (tags['addr:state']) altParts.push(tags['addr:state']);
+    if (tags['addr:country']) altParts.push(tags['addr:country']);
+    
+    if (altParts.length > 0) {
+      return altParts.join(', ');
+    }
+    
+    // Try location or area descriptions
+    if (tags.location) {
+      return tags.location;
+    }
+    
+    if (tags.description) {
+      return tags.description;
+    }
+    
+    // For nodes that are part of ways/relations, try to use the name as location reference
+    if (tags.name && element.type === 'node') {
+      return `Near ${tags.name}`;
+    }
+    
+    // Last resort: use coordinates as a location reference
+    return `Lat: ${element.lat.toFixed(4)}, Lon: ${element.lon.toFixed(4)}`;
   }
 
   private static determineServiceType(element: OverpassElement): EmergencyService['type'] | null {
