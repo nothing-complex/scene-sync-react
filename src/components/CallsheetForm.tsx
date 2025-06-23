@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -83,12 +84,12 @@ interface EmergencyContact {
 }
 
 export interface CallsheetFormProps {
-  callsheetId?: string;
+  callsheet?: CallsheetData;
   onBack?: () => void;
 }
 
-export function CallsheetForm({ callsheetId, onBack }: CallsheetFormProps) {
-  const { callsheets, updateCallsheet, addCallsheet } = useCallsheet();
+export function CallsheetForm({ callsheet, onBack }: CallsheetFormProps) {
+  const { updateCallsheet, addCallsheet } = useCallsheet();
   const [emergencyServices, setEmergencyServices] = useState<EmergencyService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchRadius, setSearchRadius] = useState(5);
@@ -103,7 +104,6 @@ export function CallsheetForm({ callsheetId, onBack }: CallsheetFormProps) {
   const { toast } = useToast()
 
   // Get the current callsheet data or create default values
-  const currentCallsheet = callsheetId ? callsheets.find(cs => cs.id === callsheetId) : null;
   const defaultCallsheet: Partial<CallsheetData> = {
     projectTitle: '',
     shootDate: new Date().toISOString(),
@@ -120,7 +120,7 @@ export function CallsheetForm({ callsheetId, onBack }: CallsheetFormProps) {
     emergencyContacts: []
   };
 
-  const callsheetData = currentCallsheet || defaultCallsheet;
+  const callsheetData = callsheet || defaultCallsheet;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -164,14 +164,14 @@ export function CallsheetForm({ callsheetId, onBack }: CallsheetFormProps) {
     };
 
     try {
-      if (callsheetId) {
-        await updateCallsheet(callsheetId, updatedData);
+      if (callsheet?.id) {
+        await updateCallsheet(callsheet.id, updatedData);
       } else {
         await addCallsheet(updatedData as Omit<CallsheetData, 'id' | 'createdAt' | 'updatedAt'>);
       }
       toast({
         title: "Success!",
-        description: `You have successfully ${callsheetId ? 'updated' : 'created'} the callsheet.`,
+        description: `You have successfully ${callsheet?.id ? 'updated' : 'created'} the callsheet.`,
       });
     } catch (error) {
       console.error('Error saving callsheet:', error);
@@ -195,8 +195,8 @@ export function CallsheetForm({ callsheetId, onBack }: CallsheetFormProps) {
     
     const updatedContacts = [...(callsheetData.emergencyContacts || []), newContact];
     
-    if (callsheetId) {
-      await updateCallsheet(callsheetId, {
+    if (callsheet?.id) {
+      await updateCallsheet(callsheet.id, {
         emergencyContacts: updatedContacts
       });
     }
@@ -205,8 +205,8 @@ export function CallsheetForm({ callsheetId, onBack }: CallsheetFormProps) {
   const handleRemoveEmergencyContact = async (id: string) => {
     const updatedContacts = (callsheetData.emergencyContacts || []).filter(contact => contact.id !== id);
     
-    if (callsheetId) {
-      await updateCallsheet(callsheetId, {
+    if (callsheet?.id) {
+      await updateCallsheet(callsheet.id, {
         emergencyContacts: updatedContacts
       });
     }
@@ -431,7 +431,7 @@ export function CallsheetForm({ callsheetId, onBack }: CallsheetFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit">{callsheetId ? 'Update' : 'Create'} Callsheet</Button>
+        <Button type="submit">{callsheet?.id ? 'Update' : 'Create'} Callsheet</Button>
       </form>
 
       <div className="mt-12">
