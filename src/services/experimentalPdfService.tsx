@@ -1,3 +1,4 @@
+
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { ReactPDFService } from './pdf/service_backup';
@@ -36,15 +37,15 @@ export class ExperimentalPDFService extends ReactPDFService {
       };
 
       console.log('Creating experimental PDF document with timeline design...');
-      // Create the document component directly - it already returns a Document element
-      const documentComponent = React.createElement(ExperimentalCallsheetPDFDocument, {
+      // Create the document component with props
+      const documentElement = React.createElement(ExperimentalCallsheetPDFDocument, {
         callsheet: callsheet,
         customization: mergedCustomization
       });
 
       console.log('Generating experimental PDF blob...');
-      // Pass the document component directly to pdf()
-      const blob = await pdf(documentComponent).toBlob();
+      // Pass the document element directly to pdf()
+      const blob = await pdf(documentElement).toBlob();
       console.log('Experimental PDF blob generated successfully, size:', blob.size);
       return blob;
     } catch (error) {
