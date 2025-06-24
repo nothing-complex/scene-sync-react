@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
@@ -420,7 +419,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               fontSize: `${typography.fontSize.title}px`,
               fontWeight: typography.fontWeight.title === 'normal' ? 400 : 
                          typography.fontWeight.title === 'medium' ? 500 :
-                         typography.fontWeight.title === 'sebibold' ? 600 : 700,
+                         typography.fontWeight.title === 'semibold' ? 600 : 700,
               marginBottom: '16px',
               color: colors.primary
             }}

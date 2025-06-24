@@ -371,51 +371,198 @@ export class HTMLToPDFService {
           </h2>
         </div>
 
-        <!-- Basic Information -->
-        <div class="pdf-section pdf-basic-info" style="margin-bottom: 32px;">
+        <!-- Production Details Grid - moved to top -->
+        <div class="pdf-section pdf-basic-info" style="
+          display: grid; 
+          grid-template-columns: repeat(3, 1fr); 
+          gap: 16px; 
+          margin-bottom: 32px;
+        ">
+          <!-- Shoot Date -->
           <div class="pdf-info-card" style="
             ${cardStyles} 
-            padding: 20px; 
+            padding: 16px; 
             background-color: ${this.customization.colors.surface};
-            margin-bottom: 20px;
             border-radius: ${this.customization.visual.cornerRadius}px;
+            border: 1px solid ${this.customization.colors.border};
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
           ">
-            <div style="margin-bottom: 20px;">
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">📅</span>' : ''}
+            <div style="flex: 1;">
               <div style="
                 font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
                 font-size: ${this.customization.typography.fontSize.header}px;
                 color: ${this.customization.colors.primary};
-                margin-bottom: 8px;
+                margin-bottom: 6px;
               ">
-                ${this.renderEmoji('📅')}Shoot Date
+                Shoot Date
               </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px; padding-left: 4px;">${formatDate(callsheet.shootDate)}</div>
-            </div>
-            <div style="margin-bottom: 20px;">
-              <div style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-                margin-bottom: 8px;
-              ">
-                ${this.renderEmoji('🕐')}Call Time
-              </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px; padding-left: 4px;">${callsheet.generalCallTime}</div>
-            </div>
-            <div>
-              <div style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-                margin-bottom: 8px;
-              ">
-                ${this.renderEmoji('📍')}Location
-              </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 6px; padding-left: 4px;">${callsheet.location}</div>
-              ${callsheet.locationAddress ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; padding-left: 4px;">${callsheet.locationAddress}</div>` : ''}
+              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${formatDate(callsheet.shootDate)}</div>
             </div>
           </div>
+          
+          <!-- Call Time -->
+          <div class="pdf-info-card" style="
+            ${cardStyles} 
+            padding: 16px; 
+            background-color: ${this.customization.colors.surface};
+            border-radius: ${this.customization.visual.cornerRadius}px;
+            border: 1px solid ${this.customization.colors.border};
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+          ">
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">🕐</span>' : ''}
+            <div style="flex: 1;">
+              <div style="
+                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+                font-size: ${this.customization.typography.fontSize.header}px;
+                color: ${this.customization.colors.primary};
+                margin-bottom: 6px;
+              ">
+                Call Time
+              </div>
+              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.generalCallTime}</div>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="pdf-info-card" style="
+            ${cardStyles} 
+            padding: 16px; 
+            background-color: ${this.customization.colors.surface};
+            border-radius: ${this.customization.visual.cornerRadius}px;
+            border: 1px solid ${this.customization.colors.border};
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+          ">
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">📍</span>' : ''}
+            <div style="flex: 1;">
+              <div style="
+                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+                font-size: ${this.customization.typography.fontSize.header}px;
+                color: ${this.customization.colors.primary};
+                margin-bottom: 6px;
+              ">
+                Location
+              </div>
+              <div style="font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 4px;">${callsheet.location}</div>
+              ${callsheet.locationAddress ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight};">${callsheet.locationAddress}</div>` : ''}
+            </div>
+          </div>
+
+          ${callsheet.weather && this.customization.sections.visibility.weather ? `
+          <!-- Weather -->
+          <div class="pdf-info-card" style="
+            ${cardStyles} 
+            padding: 16px; 
+            background-color: ${this.customization.colors.surface};
+            border-radius: ${this.customization.visual.cornerRadius}px;
+            border: 1px solid ${this.customization.colors.border};
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+          ">
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">🌤️</span>' : ''}
+            <div style="flex: 1;">
+              <div style="
+                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+                font-size: ${this.customization.typography.fontSize.header}px;
+                color: ${this.customization.colors.primary};
+                margin-bottom: 6px;
+              ">
+                Weather
+              </div>
+              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.weather}</div>
+            </div>
+          </div>
+          ` : ''}
+
+          ${callsheet.parkingInstructions ? `
+          <!-- Parking Instructions -->
+          <div class="pdf-info-card" style="
+            ${cardStyles} 
+            padding: 16px; 
+            background-color: ${this.customization.colors.surface};
+            border-radius: ${this.customization.visual.cornerRadius}px;
+            border: 1px solid ${this.customization.colors.border};
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+          ">
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">🅿️</span>' : ''}
+            <div style="flex: 1;">
+              <div style="
+                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+                font-size: ${this.customization.typography.fontSize.header}px;
+                color: ${this.customization.colors.primary};
+                margin-bottom: 6px;
+              ">
+                Parking Instructions
+              </div>
+              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.parkingInstructions}</div>
+            </div>
+          </div>
+          ` : ''}
+
+          ${callsheet.basecampLocation ? `
+          <!-- Basecamp Location -->
+          <div class="pdf-info-card" style="
+            ${cardStyles} 
+            padding: 16px; 
+            background-color: ${this.customization.colors.surface};
+            border-radius: ${this.customization.visual.cornerRadius}px;
+            border: 1px solid ${this.customization.colors.border};
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+          ">
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">🏕️</span>' : ''}
+            <div style="flex: 1;">
+              <div style="
+                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+                font-size: ${this.customization.typography.fontSize.header}px;
+                color: ${this.customization.colors.primary};
+                margin-bottom: 6px;
+              ">
+                Basecamp Location
+              </div>
+              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.basecampLocation}</div>
+            </div>
+          </div>
+          ` : ''}
         </div>
+
+        ${callsheet.specialNotes && this.customization.sections.visibility.notes ? `
+        <!-- Special Notes - moved to top but separate from grid -->
+        <div class="pdf-section" style="margin-bottom: 32px;">
+          <div class="pdf-info-card" style="
+            ${cardStyles} 
+            padding: 18px; 
+            background-color: ${this.customization.colors.surface};
+            border-radius: ${this.customization.visual.cornerRadius}px;
+            border: 1px solid ${this.customization.colors.border};
+            border-left: 4px solid ${this.customization.colors.accent};
+          ">
+            <h4 style="
+              font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+              margin-bottom: 12px; 
+              font-size: ${this.customization.typography.fontSize.header}px;
+              color: ${this.customization.colors.primary};
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            ">
+              ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">📝</span>' : ''}
+              Special Notes
+            </h4>
+            <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0; line-height: 1.5;">${callsheet.specialNotes}</p>
+          </div>
+        </div>
+        ` : ''}
 
         ${callsheet.schedule.length > 0 && this.customization.sections.visibility.schedule ? `
         <!-- Schedule -->
@@ -425,8 +572,12 @@ export class HTMLToPDFService {
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
             margin-bottom: 20px; 
             color: ${this.customization.colors.primary};
+            display: flex;
+            align-items: center;
+            gap: 8px;
           ">
-            ${this.renderEmoji('📋')}SCHEDULE
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 20px;">📋</span>' : ''}
+            SCHEDULE
           </h3>
           <div class="pdf-schedule-table" style="
             ${cardStyles} 
@@ -477,8 +628,12 @@ export class HTMLToPDFService {
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
             margin-bottom: 20px; 
             color: ${this.customization.colors.primary};
+            display: flex;
+            align-items: center;
+            gap: 8px;
           ">
-            ${this.renderEmoji('🎭')}CAST
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 20px;">🎭</span>' : ''}
+            CAST
           </h3>
           <div class="pdf-contact-grid">
             ${callsheet.cast.map(member => `
@@ -526,8 +681,12 @@ export class HTMLToPDFService {
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
             margin-bottom: 20px; 
             color: ${this.customization.colors.primary};
+            display: flex;
+            align-items: center;
+            gap: 8px;
           ">
-            ${this.renderEmoji('🎬')}CREW
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 20px;">🎬</span>' : ''}
+            CREW
           </h3>
           <div class="pdf-contact-grid">
             ${callsheet.crew.map(member => `
@@ -575,8 +734,12 @@ export class HTMLToPDFService {
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
             margin-bottom: 20px; 
             color: ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.primary};
+            display: flex;
+            align-items: center;
+            gap: 8px;
           ">
-            ${this.renderEmoji('⚠️')}EMERGENCY CONTACTS
+            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 20px;">⚠️</span>' : ''}
+            EMERGENCY CONTACTS
           </h3>
           <div class="pdf-contact-grid">
             ${callsheet.emergencyContacts.map(contact => `
@@ -611,93 +774,6 @@ export class HTMLToPDFService {
           </div>
         </div>
         ` : ''}
-
-        <!-- Additional Information -->
-        <div class="pdf-section">
-          ${callsheet.parkingInstructions ? `
-            <div class="pdf-info-card" style="
-              margin-bottom: 20px; 
-              ${cardStyles} 
-              padding: 18px; 
-              background-color: ${this.customization.colors.surface};
-              border-radius: ${this.customization.visual.cornerRadius}px;
-              border: 1px solid ${this.customization.colors.border};
-            ">
-              <h4 style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                margin-bottom: 12px; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-              ">
-                ${this.renderEmoji('🅿️')}Parking Instructions
-              </h4>
-              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0; line-height: 1.5;">${callsheet.parkingInstructions}</p>
-            </div>
-          ` : ''}
-          
-          ${callsheet.basecampLocation ? `
-            <div class="pdf-info-card" style="
-              margin-bottom: 20px; 
-              ${cardStyles} 
-              padding: 18px; 
-              background-color: ${this.customization.colors.surface};
-              border-radius: ${this.customization.visual.cornerRadius}px;
-              border: 1px solid ${this.customization.colors.border};
-            ">
-              <h4 style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                margin-bottom: 12px; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-              ">
-                ${this.renderEmoji('🏕️')}Basecamp Location
-              </h4>
-              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0; line-height: 1.5;">${callsheet.basecampLocation}</p>
-            </div>
-          ` : ''}
-          
-          ${callsheet.weather && this.customization.sections.visibility.weather ? `
-            <div class="pdf-info-card" style="
-              margin-bottom: 20px; 
-              ${cardStyles} 
-              padding: 18px; 
-              background-color: ${this.customization.colors.surface};
-              border-radius: ${this.customization.visual.cornerRadius}px;
-              border: 1px solid ${this.customization.colors.border};
-            ">
-              <h4 style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                margin-bottom: 12px; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-              ">
-                ${this.renderEmoji('🌤️')}Weather
-              </h4>
-              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0; line-height: 1.5;">${callsheet.weather}</p>
-            </div>
-          ` : ''}
-          
-          ${callsheet.specialNotes && this.customization.sections.visibility.notes ? `
-            <div class="pdf-info-card" style="
-              margin-bottom: 20px; 
-              ${cardStyles} 
-              padding: 18px; 
-              background-color: ${this.customization.colors.surface};
-              border-radius: ${this.customization.visual.cornerRadius}px;
-              border: 1px solid ${this.customization.colors.border};
-            ">
-              <h4 style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                margin-bottom: 12px; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-              ">
-                ${this.renderEmoji('📝')}Special Notes
-              </h4>
-              <p style="font-size: ${this.customization.typography.fontSize.body}px; color: ${this.customization.colors.text}; margin: 0; line-height: 1.5;">${callsheet.specialNotes}</p>
-            </div>
-          ` : ''}
-        </div>
 
         ${this.customization.branding.footer?.text ? `
         <!-- Footer -->
