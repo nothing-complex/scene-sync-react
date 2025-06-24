@@ -37,11 +37,13 @@ export class ExperimentalPDFService extends ReactPDFService {
       };
 
       console.log('Creating experimental PDF document with timeline design...');
-      // Create the document component with props
-      const documentElement = React.createElement(ExperimentalCallsheetPDFDocument, {
-        callsheet: callsheet,
-        customization: mergedCustomization
-      });
+      // Create the document using JSX syntax which returns the Document element directly
+      const documentElement = (
+        <ExperimentalCallsheetPDFDocument
+          callsheet={callsheet}
+          customization={mergedCustomization}
+        />
+      );
 
       console.log('Generating experimental PDF blob...');
       // Pass the document element directly to pdf()

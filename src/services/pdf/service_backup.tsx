@@ -45,11 +45,13 @@ export class ReactPDFService {
       }
 
       console.log('Creating PDF document...');
-      // Create the document component with props
-      const documentElement = React.createElement(CallsheetPDFDocument, {
-        callsheet: callsheet,
-        customization: this.customization
-      });
+      // Create the document using JSX syntax which returns the Document element directly
+      const documentElement = (
+        <CallsheetPDFDocument
+          callsheet={callsheet}
+          customization={this.customization}
+        />
+      );
 
       console.log('Generating PDF blob...');
       // Pass the document element directly to pdf()
