@@ -28,10 +28,12 @@ export class ExperimentalPDFService extends ReactPDFService {
       }
 
       console.log('Creating experimental PDF document with timeline design...');
-      const pdfDocument = React.createElement(ExperimentalCallsheetPDFDocument, {
-        callsheet: callsheet,
-        customization: { ...this.customization, ...this.experimentalCustomization }
-      });
+      const pdfDocument = (
+        <ExperimentalCallsheetPDFDocument 
+          callsheet={callsheet}
+          customization={{ ...this.customization, ...this.experimentalCustomization }}
+        />
+      );
 
       console.log('Generating experimental PDF blob...');
       const blob = await pdf(pdfDocument).toBlob();
