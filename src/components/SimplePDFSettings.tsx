@@ -13,7 +13,7 @@ import { LogoUpload } from './LogoUpload';
 import { generateCustomCallsheetPDF, previewCallsheetPDF } from '@/services/pdfService';
 import { generateExperimentalCallsheetPDF, previewExperimentalCallsheetPDF } from '@/services/experimentalPdfService';
 import { PDFPreviewDialog } from './pdf/PDFPreviewDialog';
-import { Eye, Download, Palette, Type, Layout, Settings, Flask } from 'lucide-react';
+import { Eye, Download, Palette, Type, Layout, Settings, Beaker } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SimplePDFSettingsProps {
@@ -608,7 +608,7 @@ export const SimplePDFSettings = ({
               disabled={isExperimentalGenerating}
               className="w-full font-normal bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
             >
-              <Flask className="w-4 h-4 mr-2" />
+              <Beaker className="w-4 h-4 mr-2" />
               {isExperimentalGenerating ? 'Generating...' : 'Experimental Preview'}
             </Button>
             

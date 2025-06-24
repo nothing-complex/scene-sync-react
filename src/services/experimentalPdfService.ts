@@ -5,9 +5,12 @@ import { HTMLToPDFService } from './htmlToPdfService';
 
 // Experimental PDF service for testing new designs
 export class ExperimentalPDFService extends HTMLToPDFService {
+  protected experimentalCustomization: Partial<PDFCustomization>;
+
   constructor(customization: Partial<PDFCustomization> = {}) {
     super(customization);
-    console.log('ExperimentalPDFService initialized with customization:', this.customization);
+    this.experimentalCustomization = customization;
+    console.log('ExperimentalPDFService initialized with customization:', this.experimentalCustomization);
   }
 
   // Override methods here for experimental features
