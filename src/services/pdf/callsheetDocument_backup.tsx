@@ -147,9 +147,9 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
             No contacts added
           </Text>
         ) : (
-          <View style={config.sections.formatting.contactLayout === 'cards' ? styles.contactGrid : {}}>
+          <View style={styles.contactGridContainer}>
             {contacts.map((contact, index) => (
-              <View key={contact.id || index} style={styles.contactCard}>
+              <View key={contact.id || index} style={styles.contactGridItem}>
                 <SafeText style={styles.contactName}>{contact.name}</SafeText>
                 {((contact.role && contact.role.trim()) || (contact.character && contact.character.trim())) && (
                   <SafeText style={styles.contactRole}>

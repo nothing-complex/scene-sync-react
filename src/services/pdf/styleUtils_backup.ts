@@ -1,3 +1,4 @@
+
 import { StyleSheet } from '@react-pdf/renderer';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { getFontFamily, getFontWeight } from './fontUtils_backup';
@@ -167,6 +168,21 @@ export const createStyles = (customization: PDFCustomization) => {
       padding: 12,
       borderRadius: customization.visual.cornerRadius - 2,
       ...createPartialBorderStyle({ left: 3 }, customization.colors.accent),
+    },
+
+    contactGridContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+    },
+    
+    contactGridItem: {
+      width: '48%',
+      backgroundColor: customization.colors.background,
+      padding: 12,
+      borderRadius: customization.visual.cornerRadius - 2,
+      marginBottom: 8,
+      ...createPartialBorderStyle({ left: 2 }, customization.colors.accent),
     },
 
     contactGrid: {
