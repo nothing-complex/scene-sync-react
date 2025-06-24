@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -211,6 +210,7 @@ const createExperimentalStyles = (customization: PDFCustomization) => {
       fontSize: 10,
       color: '#6b7280',
       textAlign: 'center',
+      fontWeight: getFontWeight('medium'),
     },
     
     scheduleContent: {
