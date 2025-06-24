@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +11,9 @@ import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { LogoUpload } from './LogoUpload';
 import { generateCustomCallsheetPDF, previewCallsheetPDF } from '@/services/pdfService';
+import { generateExperimentalCallsheetPDF, previewExperimentalCallsheetPDF } from '@/services/experimentalPdfService';
 import { PDFPreviewDialog } from './pdf/PDFPreviewDialog';
-import { Eye, Download, Palette, Type, Layout, Settings } from 'lucide-react';
+import { Eye, Download, Palette, Type, Layout, Settings, Flask } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SimplePDFSettingsProps {
@@ -29,6 +29,7 @@ export const SimplePDFSettings = ({
 }: SimplePDFSettingsProps) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExperimentalGenerating, setIsExperimentalGenerating] = useState(false);
   
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
@@ -49,6 +50,28 @@ export const SimplePDFSettings = ({
       console.error('Error previewing PDF:', error);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleExperimentalPreviewPDF = async () => {
+    setIsExperimentalGenerating(true);
+    try {
+      await previewExperimentalCallsheetPDF(callsheet, customization);
+    } catch (error) {
+      console.error('Error previewing experimental PDF:', error);
+    } finally {
+      setIsExperimentalGenerating(false);
+    }
+  };
+
+  const handleExperimentalDownloadPDF = async () => {
+    setIsExperimentalGenerating(true);
+    try {
+      await generateExperimentalCallsheetPDF(callsheet, customization);
+    } catch (error) {
+      console.error('Error generating experimental PDF:', error);
+    } finally {
+      setIsExperimentalGenerating(false);
     }
   };
 
@@ -568,7 +591,7 @@ export const SimplePDFSettings = ({
           <CardTitle className="text-lg font-medium tracking-tight">Generate PDF</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button 
               variant="outline"
               onClick={() => setIsPreviewOpen(true)}
@@ -577,6 +600,16 @@ export const SimplePDFSettings = ({
             >
               <Eye className="w-4 h-4 mr-2" />
               Preview PDF
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={handleExperimentalPreviewPDF}
+              disabled={isExperimentalGenerating}
+              className="w-full font-normal bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+            >
+              <Flask className="w-4 h-4 mr-2" />
+              {isExperimentalGenerating ? 'Generating...' : 'Experimental Preview'}
             </Button>
             
             <Button 
@@ -590,7 +623,7 @@ export const SimplePDFSettings = ({
           </div>
           
           <p className="text-sm text-muted-foreground font-normal">
-            Preview your PDF before downloading, or download directly with your current settings
+            Use the experimental preview to test new designs. Once satisfied, the regular preview will be updated.
           </p>
         </CardContent>
       </Card>
