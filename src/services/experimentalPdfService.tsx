@@ -22,7 +22,7 @@ export class ExperimentalPDFService extends ReactPDFService {
     console.log('Using experimental customization:', this.experimentalCustomization);
     
     try {
-      // Ensure fonts are registered before generating PDF (same as parent class)
+      // Ensure fonts are registered before generating PDF
       await this.ensureFontsRegistered();
 
       // Validate callsheet data
@@ -30,13 +30,17 @@ export class ExperimentalPDFService extends ReactPDFService {
         throw new Error('Invalid callsheet data provided');
       }
 
+      // Merge customizations properly
+      const mergedCustomization = { 
+        ...this.customization, 
+        ...this.experimentalCustomization 
+      };
+
       console.log('Creating experimental PDF document with timeline design...');
-      const pdfDocument = (
-        <ExperimentalCallsheetPDFDocument 
-          callsheet={callsheet}
-          customization={{ ...this.customization, ...this.experimentalCustomization }}
-        />
-      );
+      const pdfDocument = React.createElement(ExperimentalCallsheetPDFDocument, {
+        callsheet: callsheet,
+        customization: mergedCustomization
+      });
 
       console.log('Generating experimental PDF blob...');
       const blob = await pdf(pdfDocument).toBlob();
@@ -47,12 +51,6 @@ export class ExperimentalPDFService extends ReactPDFService {
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       throw new Error(`Experimental PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }
-
-  // Make ensureFontsRegistered accessible to this class
-  protected async ensureFontsRegistered(): Promise<void> {
-    // Call the parent's font registration method
-    return super['ensureFontsRegistered']();
   }
 }
 

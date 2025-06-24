@@ -28,7 +28,6 @@ export const SectionIcon: React.FC<{ type: string; color: string }> = ({ type, c
 export const SafeText: React.FC<{ children: string | undefined | null; style?: any }> = ({ children, style }) => {
   // Strict validation: only render if we have actual content
   if (children === null || children === undefined) {
-    console.log('SafeText: Received null/undefined children');
     return null;
   }
   
@@ -39,7 +38,6 @@ export const SafeText: React.FC<{ children: string | undefined | null; style?: a
   
   const cleanText = children.trim();
   if (cleanText === '') {
-    console.log('SafeText: Received empty string after trim');
     return null;
   }
   

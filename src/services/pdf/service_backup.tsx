@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -15,15 +14,15 @@ export class ReactPDFService {
     console.log('ReactPDFService initialized with customization:', this.customization);
   }
 
-  protected async ensureFontsRegistered(): Promise<void> {
+  public async ensureFontsRegistered(): Promise<void> {
     if (!this.fontsRegistered) {
       try {
         console.log('Registering PDF fonts...');
         registerPDFFonts();
         this.fontsRegistered = true;
         console.log('PDF fonts registered successfully');
-        // Give fonts a moment to register
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Give fonts more time to register properly
+        await new Promise(resolve => setTimeout(resolve, 200));
       } catch (error) {
         console.warn('Font registration failed:', error);
         // Continue without custom fonts
@@ -45,12 +44,10 @@ export class ReactPDFService {
       }
 
       console.log('Creating PDF document...');
-      const pdfDocument = (
-        <CallsheetPDFDocument 
-          callsheet={callsheet}
-          customization={this.customization}
-        />
-      );
+      const pdfDocument = React.createElement(CallsheetPDFDocument, {
+        callsheet: callsheet,
+        customization: this.customization
+      });
 
       console.log('Generating PDF blob...');
       const blob = await pdf(pdfDocument).toBlob();

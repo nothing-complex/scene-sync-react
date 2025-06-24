@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -28,7 +29,6 @@ const createExperimentalStyles = (customization: PDFCustomization) => {
       padding: 30,
       backgroundColor: '#ffffff',
       borderRadius: 20,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
     },
     
     mainTitle: {
@@ -37,7 +37,6 @@ const createExperimentalStyles = (customization: PDFCustomization) => {
       color: '#1a1a1a',
       textAlign: 'center',
       marginBottom: 8,
-      letterSpacing: 2,
     },
     
     subtitle: {
@@ -45,7 +44,6 @@ const createExperimentalStyles = (customization: PDFCustomization) => {
       color: '#6b7280',
       textAlign: 'center',
       fontWeight: getFontWeight('medium'),
-      letterSpacing: 1,
     },
     
     // Timeline navigation inspired section
@@ -83,7 +81,6 @@ const createExperimentalStyles = (customization: PDFCustomization) => {
       marginBottom: 20,
       borderLeftWidth: 4,
       borderLeftColor: customization.colors.accent,
-      boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
     },
     
     eventTitle: {
@@ -128,8 +125,6 @@ const createExperimentalStyles = (customization: PDFCustomization) => {
       fontSize: 11,
       color: '#6b7280',
       fontWeight: getFontWeight('medium'),
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
       marginBottom: 4,
     },
     
