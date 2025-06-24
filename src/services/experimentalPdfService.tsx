@@ -37,13 +37,17 @@ export class ExperimentalPDFService extends ReactPDFService {
       };
 
       console.log('Creating experimental PDF document with timeline design...');
-      const pdfDocument = React.createElement(ExperimentalCallsheetPDFDocument, {
+      // Create the document component and get its render output
+      const documentComponent = React.createElement(ExperimentalCallsheetPDFDocument, {
         callsheet: callsheet,
         customization: mergedCustomization
       });
 
+      // Render the component to get the Document element
+      const renderedDocument = React.createElement(React.Fragment, {}, documentComponent);
+
       console.log('Generating experimental PDF blob...');
-      const blob = await pdf(pdfDocument).toBlob();
+      const blob = await pdf(renderedDocument).toBlob();
       console.log('Experimental PDF blob generated successfully, size:', blob.size);
       return blob;
     } catch (error) {
