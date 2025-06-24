@@ -98,7 +98,7 @@ const createExperimentalStyles = (customization: PDFCustomization) => {
       fontSize: 12,
       color: '#6b7280',
       marginBottom: 16,
-      fontStyle: 'italic',
+      fontWeight: getFontWeight('medium'),
     },
     
     eventContent: {
