@@ -1,20 +1,20 @@
-
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { Separator } from '@/components/ui/separator';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, Palette, Type, Layout, Settings, Download, Sparkles, Image } from 'lucide-react';
-import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION, PDF_THEMES } from '@/types/pdfTypes';
+import { Input } from '@/components/ui/input';
+import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetData } from '@/contexts/CallsheetContext';
-import { ReactPDFService } from '@/services/reactPdfService';
-import { useToast } from '@/hooks/use-toast';
+import { LogoUpload } from './LogoUpload';
+import { previewCallsheetPDF } from '@/services/pdfService';
+import { previewExperimentalCallsheetPDF } from '@/services/experimentalPdfService';
+import { PDFPreviewDialog } from './pdf/PDFPreviewDialog';
+import { Eye, Palette, Type, Layout, Settings, Beaker } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PDFAppearanceTabProps {
   callsheet: CallsheetData;
@@ -27,311 +27,93 @@ export const PDFAppearanceTab = ({
   customization, 
   onCustomizationChange 
 }: PDFAppearanceTabProps) => {
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [downloadLoading, setDownloadLoading] = useState(false);
-  const { toast } = useToast();
-
-  const updateCustomization = (updates: Partial<PDFCustomization>) => {
-    const newCustomization = { ...customization, ...updates };
-    onCustomizationChange(newCustomization);
-    console.log('Updated customization:', newCustomization);
-  };
-
-  const handleThemeChange = (themeKey: string) => {
-    const theme = PDF_THEMES[themeKey];
-    if (theme) {
-      console.log('Applying theme:', themeKey, theme);
-      updateCustomization({
-        theme,
-        colors: theme.colors,
-        typography: { 
-          ...customization.typography, 
-          fontFamily: theme.typography?.fontFamily || customization.typography.fontFamily,
-          fontWeight: { 
-            ...customization.typography.fontWeight, 
-            ...(theme.typography?.fontWeight || {})
-          }
-        },
-        visual: theme.visual,
-      });
-    }
-  };
-
-  const handleLayoutChange = (field: string, value: any) => {
-    console.log('Layout change:', field, value);
-    updateCustomization({
-      layout: { ...customization.layout, [field]: value }
-    });
-  };
-
-  const handleTypographyChange = (section: string, field: string, value: any) => {
-    console.log('Typography change:', section, field, value);
-    if (section === '') {
-      updateCustomization({
-        typography: { ...customization.typography, [field]: value }
-      });
-    } else {
-      const currentSection = customization.typography[section as keyof typeof customization.typography];
-      if (typeof currentSection === 'object' && currentSection !== null) {
-        updateCustomization({
-          typography: { 
-            ...customization.typography, 
-            [section]: { 
-              ...currentSection, 
-              [field]: value 
-            }
-          }
-        });
-      }
-    }
-  };
-
-  const handleVisualChange = (field: string, value: any) => {
-    console.log('Visual change:', field, value);
-    updateCustomization({
-      visual: { ...customization.visual, [field]: value }
-    });
-  };
-
-  const handleBrandingChange = (field: string, value: any) => {
-    console.log('Branding change:', field, value);
-    updateCustomization({
-      branding: { ...customization.branding, [field]: value }
-    });
-  };
-
-  const handleColorsChange = (field: string, value: string) => {
-    console.log('Colors change:', field, value);
-    updateCustomization({
-      colors: { ...customization.colors, [field]: value }
-    });
-  };
-
-  const handleSectionsChange = (section: string, field: string, value: any) => {
-    console.log('Sections change:', section, field, value);
-    const currentSection = customization.sections[section as keyof typeof customization.sections];
-    if (typeof currentSection === 'object' && currentSection !== null) {
-      updateCustomization({
-        sections: { 
-          ...customization.sections, 
-          [section]: { 
-            ...currentSection, 
-            [field]: value 
-          }
-        }
-      });
-    }
-  };
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isExperimentalGenerating, setIsExperimentalGenerating] = useState(false);
 
   const handlePreviewPDF = async () => {
-    setPreviewLoading(true);
+    setIsGenerating(true);
     try {
-      console.log('Generating PDF preview with customization:', customization);
-      const pdfService = new ReactPDFService(customization);
-      await pdfService.previewPDF(callsheet);
-      toast({
-        title: "PDF Preview Generated",
-        description: "Opening PDF in new tab...",
-      });
+      await previewCallsheetPDF(callsheet, customization);
     } catch (error) {
-      console.error('Failed to generate PDF preview:', error);
-      toast({
-        title: "Preview Failed",
-        description: "Unable to generate PDF preview. Please check console for details.",
-        variant: "destructive",
-      });
+      console.error('Error previewing PDF:', error);
     } finally {
-      setPreviewLoading(false);
+      setIsGenerating(false);
     }
   };
 
-  const handleDownloadPDF = async () => {
-    setDownloadLoading(true);
+  const handleExperimentalPreviewPDF = async () => {
+    setIsExperimentalGenerating(true);
     try {
-      console.log('Downloading PDF with customization:', customization);
-      const pdfService = new ReactPDFService(customization);
-      await pdfService.savePDF(callsheet);
-      toast({
-        title: "PDF Downloaded",
-        description: "Your callsheet PDF has been downloaded successfully.",
-      });
+      await previewExperimentalCallsheetPDF(callsheet, customization);
     } catch (error) {
-      console.error('Failed to download PDF:', error);
-      toast({
-        title: "Download Failed",
-        description: "Unable to download PDF. Please check console for details.",
-        variant: "destructive",
-      });
+      console.error('Error previewing experimental PDF:', error);
     } finally {
-      setDownloadLoading(false);
+      setIsExperimentalGenerating(false);
     }
   };
 
-  const resetToDefaults = () => {
-    onCustomizationChange(DEFAULT_PDF_CUSTOMIZATION);
-    toast({
-      title: "Settings Reset",
-      description: "PDF appearance settings have been reset to defaults.",
+  const updateCustomization = (section: keyof PDFCustomization, updates: any) => {
+    onCustomizationChange({
+      ...customization,
+      [section]: {
+        ...customization[section],
+        ...updates
+      }
+    });
+  };
+
+  const updateNestedCustomization = (section: keyof PDFCustomization, subsection: string, updates: any) => {
+    onCustomizationChange({
+      ...customization,
+      [section]: {
+        ...customization[section],
+        [subsection]: {
+          ...(customization[section] as any)[subsection],
+          ...updates
+        }
+      }
     });
   };
 
   return (
     <div className="space-y-6">
-      {/* Action Bar */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-foreground tracking-tight">PDF Appearance</h3>
-        <div className="flex space-x-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetToDefaults}
-            className="font-normal"
-          >
-            Reset to Default
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePreviewPDF}
-            disabled={previewLoading}
-            className="font-normal"
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            {previewLoading ? 'Generating...' : 'Preview'}
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleDownloadPDF}
-            disabled={downloadLoading}
-            className="font-normal"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            {downloadLoading ? 'Downloading...' : 'Download PDF'}
-          </Button>
-        </div>
-      </div>
-
-      <Tabs defaultValue="themes" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 bg-muted/30 rounded-lg p-1">
-          <TabsTrigger value="themes" className="flex items-center space-x-2 data-[state=active]:bg-background">
-            <Sparkles className="w-4 h-4" />
-            <span className="hidden sm:inline">Themes</span>
-          </TabsTrigger>
-          <TabsTrigger value="layout" className="flex items-center space-x-2 data-[state=active]:bg-background">
+      <Tabs defaultValue="layout" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="layout" className="flex items-center gap-2">
             <Layout className="w-4 h-4" />
-            <span className="hidden sm:inline">Layout</span>
+            Layout
           </TabsTrigger>
-          <TabsTrigger value="typography" className="flex items-center space-x-2 data-[state=active]:bg-background">
+          <TabsTrigger value="typography" className="flex items-center gap-2">
             <Type className="w-4 h-4" />
-            <span className="hidden sm:inline">Typography</span>
+            Typography
           </TabsTrigger>
-          <TabsTrigger value="colors" className="flex items-center space-x-2 data-[state=active]:bg-background">
+          <TabsTrigger value="colors" className="flex items-center gap-2">
             <Palette className="w-4 h-4" />
-            <span className="hidden sm:inline">Colors</span>
+            Colors
           </TabsTrigger>
-          <TabsTrigger value="visual" className="flex items-center space-x-2 data-[state=active]:bg-background">
-            <Image className="w-4 h-4" />
-            <span className="hidden sm:inline">Visual</span>
-          </TabsTrigger>
-          <TabsTrigger value="sections" className="flex items-center space-x-2 data-[state=active]:bg-background">
+          <TabsTrigger value="sections" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
-            <span className="hidden sm:inline">Sections</span>
+            Sections
           </TabsTrigger>
         </TabsList>
 
-        {/* Themes Tab */}
-        <TabsContent value="themes" className="space-y-4 mt-6">
+        <TabsContent value="layout" className="space-y-6">
           <Card className="glass-effect border-border/30">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base font-medium tracking-tight">Choose a Theme</CardTitle>
-              <p className="text-sm text-muted-foreground">Pre-designed styles for different production types</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(PDF_THEMES).map(([key, theme]) => (
-                  <div
-                    key={key}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      customization.theme.name === theme.name
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-border/60'
-                    }`}
-                    onClick={() => handleThemeChange(key)}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium">{theme.name}</h4>
-                      <div className="flex space-x-1">
-                        <div 
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: theme.colors.primary }}
-                        />
-                        <div 
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: theme.colors.accent }}
-                        />
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {key === 'minimal' && 'Clean, simple design with plenty of whitespace'}
-                      {key === 'professional' && 'Traditional business style with clear hierarchy'}
-                      {key === 'creative' && 'Vibrant colors and modern gradients'}
-                      {key === 'cinematic' && 'Film industry standard with gold accents'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Layout Tab */}
-        <TabsContent value="layout" className="space-y-4 mt-6">
-          <Card className="glass-effect border-border/30">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base font-medium tracking-tight">Layout & Spacing</CardTitle>
+              <CardTitle className="text-lg font-medium tracking-tight">Layout Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div>
-                <Label className="text-sm font-medium mb-3 block">Header Style</Label>
-                <RadioGroup
-                  value={customization.layout.headerStyle}
-                  onValueChange={(value) => handleLayoutChange('headerStyle', value)}
-                  className="grid grid-cols-2 gap-4"
-                >
-                  {['minimal', 'professional', 'creative', 'cinematic'].map((style) => (
-                    <div key={style} className="flex items-center space-x-2">
-                      <RadioGroupItem value={style} id={style} />
-                      <Label htmlFor={style} className="font-normal capitalize">{style}</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label className="text-sm font-medium">Page Orientation</Label>
-                  <Select
-                    value={customization.layout.pageOrientation}
-                    onValueChange={(value) => handleLayoutChange('pageOrientation', value)}
+                  <Label className="text-sm font-medium mb-2 block">Header Style</Label>
+                  <Select 
+                    value={customization.layout.headerStyle} 
+                    onValueChange={(value: 'minimal' | 'professional' | 'creative' | 'cinematic') => 
+                      updateCustomization('layout', { headerStyle: value })
+                    }
                   >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="portrait">Portrait</SelectItem>
-                      <SelectItem value="landscape">Landscape</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Template</Label>
-                  <Select
-                    value={customization.layout.template}
-                    onValueChange={(value) => handleLayoutChange('template', value)}
-                  >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="bg-background border-border/50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -342,191 +124,38 @@ export const PDFAppearanceTab = ({
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <Separator />
-
-              <div>
-                <Label className="text-sm font-medium mb-4 block">Spacing Controls</Label>
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm text-muted-foreground mb-2 block">
-                      Section Gap: {customization.layout.spacing.sectionGap}pt
-                    </Label>
-                    <Slider
-                      value={[customization.layout.spacing.sectionGap]}
-                      onValueChange={([value]) => handleLayoutChange('spacing', {
-                        ...customization.layout.spacing,
-                        sectionGap: value
-                      })}
-                      max={40}
-                      min={8}
-                      step={2}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm text-muted-foreground mb-2 block">
-                      Item Gap: {customization.layout.spacing.itemGap}pt
-                    </Label>
-                    <Slider
-                      value={[customization.layout.spacing.itemGap]}
-                      onValueChange={([value]) => handleLayoutChange('spacing', {
-                        ...customization.layout.spacing,
-                        itemGap: value
-                      })}
-                      max={24}
-                      min={4}
-                      step={1}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm text-muted-foreground mb-2 block">
-                      Line Height: {customization.layout.spacing.lineHeight}
-                    </Label>
-                    <Slider
-                      value={[customization.layout.spacing.lineHeight]}
-                      onValueChange={([value]) => handleLayoutChange('spacing', {
-                        ...customization.layout.spacing,
-                        lineHeight: value
-                      })}
-                      max={2}
-                      min={1.2}
-                      step={0.1}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Typography Tab */}
-        <TabsContent value="typography" className="space-y-4 mt-6">
-          <Card className="glass-effect border-border/30">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base font-medium tracking-tight">Typography Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label className="text-sm font-medium">Font Family</Label>
-                <Select
-                  value={customization.typography.fontFamily}
-                  onValueChange={(value) => handleTypographyChange('', 'fontFamily', value)}
-                >
-                  <SelectTrigger className="mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="inter">Inter (Modern)</SelectItem>
-                    <SelectItem value="helvetica">Helvetica (Classic)</SelectItem>
-                    <SelectItem value="poppins">Poppins (Friendly)</SelectItem>
-                    <SelectItem value="montserrat">Montserrat (Professional)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Separator />
-
-              <div>
-                <Label className="text-sm font-medium mb-4 block">Font Sizes</Label>
-                <div className="grid grid-cols-1 gap-4">
-                  {Object.entries(customization.typography.fontSize).map(([key, value]) => (
-                    <div key={key}>
-                      <Label className="text-sm text-muted-foreground mb-2 block capitalize">
-                        {key}: {value}pt
-                      </Label>
-                      <Slider
-                        value={[value]}
-                        onValueChange={([newValue]) => handleTypographyChange('fontSize', key, newValue)}
-                        max={key === 'title' ? 32 : key === 'header' ? 20 : 16}
-                        min={key === 'caption' ? 6 : 8}
-                        step={1}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <Label className="text-sm font-medium mb-4 block">Font Weights</Label>
-                <div className="space-y-4">
-                  {Object.entries(customization.typography.fontWeight).map(([key, value]) => (
-                    <div key={key}>
-                      <Label className="text-sm font-medium mb-2 block capitalize">{key}</Label>
-                      <Select
-                        value={value}
-                        onValueChange={(newValue) => handleTypographyChange('fontWeight', key, newValue)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="normal">Normal</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="semibold">Semi Bold</SelectItem>
-                          <SelectItem value="bold">Bold</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Colors Tab */}
-        <TabsContent value="colors" className="space-y-4 mt-6">
-          <Card className="glass-effect border-border/30">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base font-medium tracking-tight">Color Palette</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                {Object.entries(customization.colors).filter(([key]) => key !== 'gradient').map(([key, value]) => (
-                  <div key={key}>
-                    <Label className="text-sm font-medium mb-2 block capitalize">
-                      {key.replace(/([A-Z])/g, ' $1')}
-                    </Label>
-                    <div className="flex space-x-2">
-                      <Input
-                        type="color"
-                        value={value}
-                        onChange={(e) => handleColorsChange(key, e.target.value)}
-                        className="w-16 h-10 p-1 border rounded"
-                      />
-                      <Input
-                        type="text"
-                        value={value}
-                        onChange={(e) => handleColorsChange(key, e.target.value)}
-                        className="flex-1"
-                        placeholder="#000000"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Visual Tab */}
-        <TabsContent value="visual" className="space-y-4 mt-6">
-          <Card className="glass-effect border-border/30">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base font-medium tracking-tight">Visual Style</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Card Style</Label>
-                  <Select
-                    value={customization.visual.cardStyle}
-                    onValueChange={(value) => handleVisualChange('cardStyle', value)}
+                  <Label className="text-sm font-medium mb-2 block">Page Orientation</Label>
+                  <RadioGroup 
+                    value={customization.layout.pageOrientation} 
+                    onValueChange={(value: 'portrait' | 'landscape') => 
+                      updateCustomization('layout', { pageOrientation: value })
+                    }
+                    className="flex flex-row space-x-8"
                   >
-                    <SelectTrigger className="mt-2">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="portrait" id="portrait" />
+                      <Label htmlFor="portrait" className="font-normal">Portrait</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="landscape" id="landscape" />
+                      <Label htmlFor="landscape" className="font-normal">Landscape</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Card Style</Label>
+                  <Select 
+                    value={customization.visual.cardStyle} 
+                    onValueChange={(value: 'minimal' | 'elevated' | 'bordered' | 'gradient') => 
+                      updateCustomization('visual', { cardStyle: value })
+                    }
+                  >
+                    <SelectTrigger className="bg-background border-border/50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -537,13 +166,16 @@ export const PDFAppearanceTab = ({
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
-                  <Label className="text-sm font-medium">Section Dividers</Label>
-                  <Select
-                    value={customization.visual.sectionDividers}
-                    onValueChange={(value) => handleVisualChange('sectionDividers', value)}
+                  <Label className="text-sm font-medium mb-2 block">Section Dividers</Label>
+                  <Select 
+                    value={customization.visual.sectionDividers} 
+                    onValueChange={(value: 'none' | 'line' | 'space' | 'accent') => 
+                      updateCustomization('visual', { sectionDividers: value })
+                    }
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="bg-background border-border/50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -556,120 +188,373 @@ export const PDFAppearanceTab = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Header Background</Label>
-                  <Select
-                    value={customization.visual.headerBackground}
-                    onValueChange={(value) => handleVisualChange('headerBackground', value)}
-                  >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="subtle">Subtle</SelectItem>
-                      <SelectItem value="gradient">Gradient</SelectItem>
-                      <SelectItem value="solid">Solid</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Shadow Intensity</Label>
-                  <Select
-                    value={customization.visual.shadowIntensity}
-                    onValueChange={(value) => handleVisualChange('shadowIntensity', value)}
-                  >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="subtle">Subtle</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
               <div>
-                <Label className="text-sm text-muted-foreground mb-2 block">
+                <Label className="text-sm font-medium mb-2 block">
                   Corner Radius: {customization.visual.cornerRadius}px
                 </Label>
                 <Slider
                   value={[customization.visual.cornerRadius]}
-                  onValueChange={([value]) => handleVisualChange('cornerRadius', value)}
-                  max={16}
+                  onValueChange={([value]) => updateCustomization('visual', { cornerRadius: value })}
+                  max={20}
                   min={0}
                   step={1}
+                  className="w-full"
                 />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Shadow Intensity</Label>
+                <Select 
+                  value={customization.visual.shadowIntensity} 
+                  onValueChange={(value: 'none' | 'subtle' | 'medium') => 
+                    updateCustomization('visual', { shadowIntensity: value })
+                  }
+                >
+                  <SelectTrigger className="bg-background border-border/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="subtle">Subtle</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Sections Tab */}
-        <TabsContent value="sections" className="space-y-4 mt-6">
+        <TabsContent value="typography" className="space-y-6">
           <Card className="glass-effect border-border/30">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base font-medium tracking-tight">Section Configuration</CardTitle>
+              <CardTitle className="text-lg font-medium tracking-tight">Typography Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label className="text-base font-medium mb-4 block">Section Visibility</Label>
-                <div className="space-y-3">
-                  {Object.entries(customization.sections.visibility).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
-                      <Label className="font-normal capitalize">
-                        Show {key.replace(/([A-Z])/g, ' $1')}
-                      </Label>
-                      <Switch
-                        checked={value}
-                        onCheckedChange={(checked) => handleSectionsChange('visibility', key, checked)}
-                      />
-                    </div>
-                  ))}
+                <Label className="text-sm font-medium mb-2 block">Font Family</Label>
+                <Select 
+                  value={customization.typography.fontFamily} 
+                  onValueChange={(value: 'inter' | 'helvetica' | 'poppins' | 'montserrat') => 
+                    updateCustomization('typography', { fontFamily: value })
+                  }
+                >
+                  <SelectTrigger className="bg-background border-border/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inter">Inter</SelectItem>
+                    <SelectItem value="helvetica">Helvetica</SelectItem>
+                    <SelectItem value="poppins">Poppins</SelectItem>
+                    <SelectItem value="montserrat">Montserrat</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">
+                    Title Size: {customization.typography.fontSize.title}px
+                  </Label>
+                  <Slider
+                    value={[customization.typography.fontSize.title]}
+                    onValueChange={([value]) => 
+                      updateNestedCustomization('typography', 'fontSize', { title: value })
+                    }
+                    max={48}
+                    min={16}
+                    step={2}
+                    className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">
+                    Header Size: {customization.typography.fontSize.header}px
+                  </Label>
+                  <Slider
+                    value={[customization.typography.fontSize.header]}
+                    onValueChange={([value]) => 
+                      updateNestedCustomization('typography', 'fontSize', { header: value })
+                    }
+                    max={24}
+                    min={8}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">
+                    Body Size: {customization.typography.fontSize.body}px
+                  </Label>
+                  <Slider
+                    value={[customization.typography.fontSize.body]}
+                    onValueChange={([value]) => 
+                      updateNestedCustomization('typography', 'fontSize', { body: value })
+                    }
+                    max={18}
+                    min={8}
+                    step={1}
+                    className="w-full"
+                  />
                 </div>
               </div>
 
-              <Separator />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Title Weight</Label>
+                  <Select 
+                    value={customization.typography.fontWeight.title} 
+                    onValueChange={(value: 'normal' | 'medium' | 'semibold' | 'bold') => 
+                      updateNestedCustomization('typography', 'fontWeight', { title: value })
+                    }
+                  >
+                    <SelectTrigger className="bg-background border-border/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="semibold">Semibold</SelectItem>
+                      <SelectItem value="bold">Bold</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Header Weight</Label>
+                  <Select 
+                    value={customization.typography.fontWeight.header} 
+                    onValueChange={(value: 'normal' | 'medium' | 'semibold' | 'bold') => 
+                      updateNestedCustomization('typography', 'fontWeight', { header: value })
+                    }
+                  >
+                    <SelectTrigger className="bg-background border-border/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="semibold">Semibold</SelectItem>
+                      <SelectItem value="bold">Bold</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Body Weight</Label>
+                  <Select 
+                    value={customization.typography.fontWeight.body} 
+                    onValueChange={(value: 'normal' | 'medium') => 
+                      updateNestedCustomization('typography', 'fontWeight', { body: value })
+                    }
+                  >
+                    <SelectTrigger className="bg-background border-border/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="colors" className="space-y-6">
+          <Card className="glass-effect border-border/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-medium tracking-tight">Color Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Primary Color</Label>
+                  <Input
+                    type="color"
+                    value={customization.colors.primary}
+                    onChange={(e) => updateCustomization('colors', { primary: e.target.value })}
+                    className="h-10 w-full"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Secondary Color</Label>
+                  <Input
+                    type="color"
+                    value={customization.colors.secondary}
+                    onChange={(e) => updateCustomization('colors', { secondary: e.target.value })}
+                    className="h-10 w-full"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Accent Color</Label>
+                  <Input
+                    type="color"
+                    value={customization.colors.accent}
+                    onChange={(e) => updateCustomization('colors', { accent: e.target.value })}
+                    className="h-10 w-full"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Text Color</Label>
+                  <Input
+                    type="color"
+                    value={customization.colors.text}
+                    onChange={(e) => updateCustomization('colors', { text: e.target.value })}
+                    className="h-10 w-full"
+                  />
+                </div>
+              </div>
 
               <div>
-                <Label className="text-base font-medium mb-4 block">Formatting Options</Label>
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium mb-3 block">Contact Layout</Label>
-                    <RadioGroup
-                      value={customization.sections.formatting.contactLayout}
-                      onValueChange={(value) => handleSectionsChange('formatting', 'contactLayout', value)}
-                      className="grid grid-cols-2 gap-4"
-                    >
-                      {['list', 'table', 'cards', 'compact'].map((layout) => (
-                        <div key={layout} className="flex items-center space-x-2">
-                          <RadioGroupItem value={layout} id={layout} />
-                          <Label htmlFor={layout} className="font-normal capitalize">{layout}</Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
+                <Label className="text-sm font-medium mb-2 block">Header Background</Label>
+                <Select 
+                  value={customization.visual.headerBackground} 
+                  onValueChange={(value: 'none' | 'subtle' | 'gradient' | 'solid') => 
+                    updateCustomization('visual', { headerBackground: value })
+                  }
+                >
+                  <SelectTrigger className="bg-background border-border/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="subtle">Subtle</SelectItem>
+                    <SelectItem value="solid">Solid</SelectItem>
+                    <SelectItem value="gradient">Gradient</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Logo Upload */}
+          <Card className="glass-effect border-border/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-medium tracking-tight">Company Logo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LogoUpload
+                onLogoChange={(logoData) => 
+                  updateCustomization('branding', { logo: logoData })
+                }
+                currentLogo={customization.branding.logo}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sections" className="space-y-6">
+          <Card className="glass-effect border-border/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-medium tracking-tight">Section Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="show-icons" className="text-sm font-medium">Show Section Icons</Label>
+                  <Switch
+                    id="show-icons"
+                    checked={customization.sections.formatting.showSectionIcons}
+                    onCheckedChange={(checked) => 
+                      updateNestedCustomization('sections', 'formatting', { showSectionIcons: checked })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="alternate-rows" className="text-sm font-medium">Alternate Row Colors</Label>
+                  <Switch
+                    id="alternate-rows"
+                    checked={customization.sections.formatting.alternateRowColors}
+                    onCheckedChange={(checked) => 
+                      updateNestedCustomization('sections', 'formatting', { alternateRowColors: checked })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="emergency-prominent" className="text-sm font-medium">Prominent Emergency Contacts</Label>
+                  <Switch
+                    id="emergency-prominent"
+                    checked={customization.sections.formatting.emergencyProminent}
+                    onCheckedChange={(checked) => 
+                      updateNestedCustomization('sections', 'formatting', { emergencyProminent: checked })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Contact Layout</Label>
+                <Select 
+                  value={customization.sections.formatting.contactLayout} 
+                  onValueChange={(value: 'list' | 'table' | 'cards' | 'compact') => 
+                    updateNestedCustomization('sections', 'formatting', { contactLayout: value })
+                  }
+                >
+                  <SelectTrigger className="bg-background border-border/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="list">List</SelectItem>
+                    <SelectItem value="table">Table</SelectItem>
+                    <SelectItem value="cards">Cards</SelectItem>
+                    <SelectItem value="compact">Compact</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium mb-3">Section Visibility</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-weather" className="text-sm font-normal">Weather</Label>
+                    <Switch
+                      id="show-weather"
+                      checked={customization.sections.visibility.weather}
+                      onCheckedChange={(checked) => 
+                        updateNestedCustomization('sections', 'visibility', { weather: checked })
+                      }
+                    />
                   </div>
 
-                  <div className="space-y-3">
-                    {Object.entries(customization.sections.formatting)
-                      .filter(([key]) => typeof customization.sections.formatting[key as keyof typeof customization.sections.formatting] === 'boolean')
-                      .map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
-                        <Label className="font-normal">
-                          {key === 'scheduleCompact' && 'Compact Schedule'}
-                          {key === 'emergencyProminent' && 'Prominent Emergency Contacts'}
-                          {key === 'showSectionIcons' && 'Show Section Icons'}
-                          {key === 'alternateRowColors' && 'Alternate Row Colors'}
-                        </Label>
-                        <Switch
-                          checked={value as boolean}
-                          onCheckedChange={(checked) => handleSectionsChange('formatting', key, checked)}
-                        />
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-emergency" className="text-sm font-normal">Emergency Contacts</Label>
+                    <Switch
+                      id="show-emergency"
+                      checked={customization.sections.visibility.emergencyContacts}
+                      onCheckedChange={(checked) => 
+                        updateNestedCustomization('sections', 'visibility', { emergencyContacts: checked })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-schedule" className="text-sm font-normal">Schedule</Label>
+                    <Switch
+                      id="show-schedule"
+                      checked={customization.sections.visibility.schedule}
+                      onCheckedChange={(checked) => 
+                        updateNestedCustomization('sections', 'visibility', { schedule: checked })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-notes" className="text-sm font-normal">Special Notes</Label>
+                    <Switch
+                      id="show-notes"
+                      checked={customization.sections.visibility.notes}
+                      onCheckedChange={(checked) => 
+                        updateNestedCustomization('sections', 'visibility', { notes: checked })
+                      }
+                    />
                   </div>
                 </div>
               </div>
@@ -677,6 +562,57 @@ export const PDFAppearanceTab = ({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Preview PDF */}
+      <Card className="glass-effect border-border/30">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-medium tracking-tight">Preview PDF</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              variant="outline"
+              onClick={() => setIsPreviewOpen(true)}
+              disabled={isGenerating || isExperimentalGenerating}
+              className="w-full font-normal"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Preview PDF
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={handleExperimentalPreviewPDF}
+              disabled={isExperimentalGenerating || isGenerating}
+              className="w-full font-normal bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+            >
+              <Beaker className="w-4 h-4 mr-2" />
+              {isExperimentalGenerating ? 'Generating...' : 'Experimental Preview'}
+            </Button>
+            
+            <Button 
+              onClick={handlePreviewPDF}
+              disabled={isGenerating || isExperimentalGenerating}
+              className="w-full font-normal"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              {isGenerating ? 'Generating...' : 'Preview in New Tab'}
+            </Button>
+          </div>
+          
+          <p className="text-sm text-muted-foreground font-normal">
+            Use the experimental preview to test new designs. Once satisfied, the regular preview will be updated.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* PDF Preview Dialog */}
+      <PDFPreviewDialog
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        callsheet={callsheet}
+        customization={customization}
+      />
     </div>
   );
 };
