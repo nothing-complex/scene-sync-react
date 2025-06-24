@@ -1,10 +1,13 @@
 
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { HTMLToPDFService } from './htmlToPdfService';
+import { ReactPDFService } from './pdf/service_backup';
+import { ExperimentalCallsheetPDFDocument } from './pdf/experimentalDocument';
+import { pdf } from '@react-pdf/renderer';
+import React from 'react';
 
 // Experimental PDF service for testing new designs
-export class ExperimentalPDFService extends HTMLToPDFService {
+export class ExperimentalPDFService extends ReactPDFService {
   protected experimentalCustomization: Partial<PDFCustomization>;
 
   constructor(customization: Partial<PDFCustomization> = {}) {
@@ -13,8 +16,33 @@ export class ExperimentalPDFService extends HTMLToPDFService {
     console.log('ExperimentalPDFService initialized with customization:', this.experimentalCustomization);
   }
 
-  // Override methods here for experimental features
-  // For now, just use the parent implementation
+  // Override the generatePDF method to use the experimental document
+  async generatePDF(callsheet: CallsheetData): Promise<Blob> {
+    console.log('Generating experimental PDF blob with timeline design for:', callsheet.projectTitle);
+    console.log('Using experimental customization:', this.experimentalCustomization);
+    
+    try {
+      // Validate callsheet data
+      if (!callsheet || !callsheet.projectTitle) {
+        throw new Error('Invalid callsheet data provided');
+      }
+
+      console.log('Creating experimental PDF document with timeline design...');
+      const pdfDocument = React.createElement(ExperimentalCallsheetPDFDocument, {
+        callsheet: callsheet,
+        customization: { ...this.customization, ...this.experimentalCustomization }
+      });
+
+      console.log('Generating experimental PDF blob...');
+      const blob = await pdf(pdfDocument).toBlob();
+      console.log('Experimental PDF blob generated successfully, size:', blob.size);
+      return blob;
+    } catch (error) {
+      console.error('Error generating experimental PDF blob:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      throw new Error(`Experimental PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }
 
 // Experimental PDF generation functions
