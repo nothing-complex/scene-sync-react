@@ -15,7 +15,7 @@ export class ReactPDFService {
     console.log('ReactPDFService initialized with customization:', this.customization);
   }
 
-  private async ensureFontsRegistered(): Promise<void> {
+  protected async ensureFontsRegistered(): Promise<void> {
     if (!this.fontsRegistered) {
       try {
         console.log('Registering PDF fonts...');

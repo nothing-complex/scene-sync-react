@@ -22,6 +22,9 @@ export class ExperimentalPDFService extends ReactPDFService {
     console.log('Using experimental customization:', this.experimentalCustomization);
     
     try {
+      // Ensure fonts are registered before generating PDF (same as parent class)
+      await this.ensureFontsRegistered();
+
       // Validate callsheet data
       if (!callsheet || !callsheet.projectTitle) {
         throw new Error('Invalid callsheet data provided');
@@ -44,6 +47,12 @@ export class ExperimentalPDFService extends ReactPDFService {
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       throw new Error(`Experimental PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  // Make ensureFontsRegistered accessible to this class
+  protected async ensureFontsRegistered(): Promise<void> {
+    // Call the parent's font registration method
+    return super['ensureFontsRegistered']();
   }
 }
 
