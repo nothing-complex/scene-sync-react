@@ -1,4 +1,3 @@
-
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -171,7 +170,7 @@ export class HTMLToPDFService {
     container.style.boxSizing = 'border-box';
     container.style.padding = '40px';
     
-    // Enhanced CSS for better page breaking - allow sections to break but protect individual cards
+    // Updated CSS for graceful page breaking - allow sections to break but protect individual items
     const style = document.createElement('style');
     style.textContent = `
       .pdf-page-content {
@@ -179,83 +178,62 @@ export class HTMLToPDFService {
         break-inside: auto;
       }
       
-      /* Allow sections to break between cards */
+      /* Allow sections to break naturally - removed page-break-inside: avoid */
       .pdf-section {
-        page-break-inside: auto;
-        break-inside: auto;
-        margin-bottom: 32px;
+        margin-bottom: 24px;
         position: relative;
       }
       
-      /* Keep section headers with their content */
+      /* Keep section headers with their first item */
       .pdf-section-header {
         page-break-after: avoid;
         break-after: avoid;
         margin-bottom: 16px;
       }
       
-      /* Protect individual cards from breaking */
-      .pdf-contact-item, .pdf-schedule-item, .pdf-info-card {
+      /* Protect individual items from breaking internally */
+      .pdf-contact-item, .pdf-schedule-row, .pdf-info-card {
         page-break-inside: avoid;
         break-inside: avoid;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         position: relative;
       }
       
-      /* Allow contact grids to break between items */
-      .pdf-contact-grid {
-        display: block !important;
+      /* Allow grids and containers to break between items */
+      .pdf-contact-grid, .pdf-basic-info, .pdf-schedule-table {
         page-break-inside: auto;
         break-inside: auto;
       }
       
-      .pdf-contact-grid .pdf-contact-item {
-        display: block;
-        margin-bottom: 20px;
-        width: 100% !important;
-        page-break-inside: avoid;
-        break-inside: avoid;
+      /* Encourage keeping section headers with at least one item */
+      .pdf-section-header + .pdf-contact-item:first-of-type,
+      .pdf-section-header + .pdf-contact-grid .pdf-contact-item:first-child,
+      .pdf-section-header + .pdf-schedule-table .pdf-schedule-row:first-child {
+        page-break-before: avoid;
+        break-before: avoid;
       }
       
-      /* Allow schedule tables to break between rows */
+      /* Basic orphan/widow control */
+      .pdf-contact-item:nth-last-child(1) {
+        page-break-before: avoid;
+        break-before: avoid;
+      }
+      
+      /* Allow natural breaking for schedule tables */
       .pdf-schedule-table {
-        page-break-inside: auto;
-        break-inside: auto;
+        border-collapse: separate;
+        border-spacing: 0;
       }
       
-      .pdf-schedule-row {
-        page-break-inside: avoid;
-        break-inside: avoid;
-      }
-      
-      /* Keep table header with at least one row */
+      /* Keep table header visible when breaking */
       .pdf-schedule-header {
         page-break-after: avoid;
         break-after: avoid;
       }
       
-      /* Basic info should stay together */
-      .pdf-basic-info {
-        display: block !important;
-        page-break-inside: avoid;
-        break-inside: avoid;
-      }
-      
-      .pdf-basic-info > div {
-        margin-bottom: 20px;
-        page-break-inside: avoid;
-        break-inside: avoid;
-      }
-      
-      /* Reduce excessive spacing while maintaining readability */
+      /* Reduce spacing to minimize white space */
       .pdf-section + .pdf-section {
-        margin-top: 24px;
-      }
-      
-      /* Orphan and widow control */
-      .pdf-contact-item:nth-last-child(-n+2) {
-        page-break-before: avoid;
-        break-before: avoid;
+        margin-top: 20px;
       }
     `;
     document.head.appendChild(style);
@@ -566,11 +544,11 @@ export class HTMLToPDFService {
 
         ${callsheet.schedule.length > 0 && this.customization.sections.visibility.schedule ? `
         <!-- Schedule -->
-        <div class="pdf-section" style="margin-bottom: 32px;">
-          <h3 class="pdf-section-header pdf-schedule-header" style="
+        <div class="pdf-section" style="margin-bottom: 24px;">
+          <h3 class="pdf-section-header" style="
             font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 20px; 
+            margin-bottom: 16px; 
             color: ${this.customization.colors.primary};
             display: flex;
             align-items: center;
@@ -622,11 +600,11 @@ export class HTMLToPDFService {
 
         ${callsheet.cast.length > 0 ? `
         <!-- Cast -->
-        <div class="pdf-section" style="margin-bottom: 32px;">
+        <div class="pdf-section" style="margin-bottom: 24px;">
           <h3 class="pdf-section-header" style="
             font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 20px; 
+            margin-bottom: 16px; 
             color: ${this.customization.colors.primary};
             display: flex;
             align-items: center;
@@ -644,7 +622,7 @@ export class HTMLToPDFService {
                 border: 1px solid ${this.customization.colors.border};
                 border-radius: ${this.customization.visual.cornerRadius}px;
                 border-left: 4px solid ${this.customization.colors.accent};
-                margin-bottom: 16px;
+                margin-bottom: 12px;
               ">
                 <div style="
                   font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -675,11 +653,11 @@ export class HTMLToPDFService {
 
         ${callsheet.crew.length > 0 ? `
         <!-- Crew -->
-        <div class="pdf-section" style="margin-bottom: 32px;">
+        <div class="pdf-section" style="margin-bottom: 24px;">
           <h3 class="pdf-section-header" style="
             font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 20px; 
+            margin-bottom: 16px; 
             color: ${this.customization.colors.primary};
             display: flex;
             align-items: center;
@@ -697,7 +675,7 @@ export class HTMLToPDFService {
                 border: 1px solid ${this.customization.colors.border};
                 border-radius: ${this.customization.visual.cornerRadius}px;
                 border-left: 4px solid ${this.customization.colors.accent};
-                margin-bottom: 16px;
+                margin-bottom: 12px;
               ">
                 <div style="
                   font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -728,11 +706,11 @@ export class HTMLToPDFService {
 
         ${callsheet.emergencyContacts.length > 0 && this.customization.sections.visibility.emergencyContacts ? `
         <!-- Emergency Contacts -->
-        <div class="pdf-section" style="margin-bottom: 32px;">
+        <div class="pdf-section" style="margin-bottom: 24px;">
           <h3 class="pdf-section-header" style="
             font-size: ${this.customization.typography.fontSize.header + 4}px; 
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 20px; 
+            margin-bottom: 16px; 
             color: ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.primary};
             display: flex;
             align-items: center;
@@ -750,7 +728,7 @@ export class HTMLToPDFService {
                 border: ${this.customization.sections.formatting.emergencyProminent ? '2px solid #fca5a5' : `1px solid ${this.customization.colors.border}`};
                 border-radius: ${this.customization.visual.cornerRadius}px;
                 border-left: 4px solid ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.accent};
-                margin-bottom: 16px;
+                margin-bottom: 12px;
               ">
                 <div style="
                   font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -835,8 +813,8 @@ export class HTMLToPDFService {
         // Single page - simple case
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       } else {
-        // Multi-page with smart content-aware breaking
-        await this.addContentAwarePages(pdf, canvas, pdfWidth, pdfHeight, element);
+        // Multi-page - use simpler approach that allows natural breaking
+        await this.addPages(pdf, canvas, pdfWidth, pdfHeight);
       }
 
       document.body.removeChild(element);
@@ -850,89 +828,56 @@ export class HTMLToPDFService {
     }
   }
 
-  private async addContentAwarePages(
+  private async addPages(
     pdf: jsPDF, 
     canvas: HTMLCanvasElement, 
     pdfWidth: number, 
-    pdfHeight: number, 
-    element: HTMLElement
+    pdfHeight: number
   ): Promise<void> {
-    // Get all sections and their positions
-    const sections = element.querySelectorAll('.pdf-section, .pdf-contact-item, .pdf-info-card');
-    const sectionPositions: { element: Element; top: number; height: number; }[] = [];
+    console.log('Creating multi-page PDF with natural breaking');
+
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+    const pageHeight = pdfHeight;
     
-    sections.forEach(section => {
-      const rect = section.getBoundingClientRect();
-      const elementRect = element.getBoundingClientRect();
-      sectionPositions.push({
-        element: section,
-        top: rect.top - elementRect.top,
-        height: rect.height
-      });
-    });
+    // Calculate how many pages we need
+    const totalPages = Math.ceil(imgHeight / pageHeight);
+    console.log('Total pages needed:', totalPages);
 
-    console.log('Found sections for smart page breaking:', sectionPositions.length);
-
-    // Calculate pages based on content positions
-    const pages: { startY: number; endY: number; }[] = [];
-    let currentPageStart = 0;
-    const pageContentHeight = pdfHeight - 80; // Leave margin for page breaks
-    
-    for (const section of sectionPositions) {
-      const sectionEnd = section.top + section.height;
-      const currentPageEnd = currentPageStart + pageContentHeight;
-      
-      // If this section would overflow the current page
-      if (sectionEnd > currentPageEnd && section.top > currentPageStart) {
-        // End current page at the previous section
-        pages.push({
-          startY: currentPageStart,
-          endY: Math.min(section.top, currentPageEnd)
-        });
-        currentPageStart = section.top;
-      }
-    }
-    
-    // Add the final page
-    pages.push({
-      startY: currentPageStart,
-      endY: canvas.height * (794 / canvas.width)
-    });
-
-    console.log('Generated smart page breaks:', pages.length, 'pages');
-
-    // Create pages
-    for (let i = 0; i < pages.length; i++) {
-      if (i > 0) {
+    for (let page = 0; page < totalPages; page++) {
+      if (page > 0) {
         pdf.addPage();
       }
-      
-      const page = pages[i];
-      const sourceY = page.startY * (canvas.height / (canvas.height * (794 / canvas.width)));
-      const sourceHeight = (page.endY - page.startY) * (canvas.height / (canvas.height * (794 / canvas.width)));
-      
-      // Create canvas for this page section
+
+      // Calculate the portion of the canvas for this page
+      const sourceY = (page * pageHeight * canvas.height) / imgHeight;
+      const sourceHeight = Math.min(
+        (pageHeight * canvas.height) / imgHeight,
+        canvas.height - sourceY
+      );
+
+      // Create a canvas for this page section
       const pageCanvas = document.createElement('canvas');
       pageCanvas.width = canvas.width;
-      pageCanvas.height = Math.min(sourceHeight, canvas.height - sourceY);
+      pageCanvas.height = sourceHeight;
       
       const pageCtx = pageCanvas.getContext('2d');
       if (pageCtx) {
+        // Fill with background color
         pageCtx.fillStyle = this.customization.colors.background;
         pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
         
+        // Draw the portion of the original canvas
         pageCtx.drawImage(
           canvas,
-          0, sourceY, canvas.width, pageCanvas.height,
-          0, 0, canvas.width, pageCanvas.height
+          0, sourceY, canvas.width, sourceHeight,
+          0, 0, canvas.width, sourceHeight
         );
         
         const pageImgData = pageCanvas.toDataURL('image/png', 0.95);
-        const pageImgHeight = (pageCanvas.height * pdfWidth) / canvas.width;
+        const pageImgHeight = (sourceHeight * pdfWidth) / canvas.width;
         
-        // Add with top margin on subsequent pages
-        const yOffset = i > 0 ? 40 : 0;
-        pdf.addImage(pageImgData, 'PNG', 0, yOffset, pdfWidth, pageImgHeight);
+        pdf.addImage(pageImgData, 'PNG', 0, 0, pdfWidth, pageImgHeight);
       }
     }
   }
