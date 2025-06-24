@@ -1,14 +1,14 @@
 
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { HTMLToPDFService } from './htmlToPdfService';
+import { ReactPDFService } from './reactPdfService';
 
-// Main PDF generation function using HTML-to-PDF
+// Main PDF generation function using React-PDF
 export const generateCallsheetPDF = async (callsheet: CallsheetData) => {
   console.log('Generating callsheet PDF for:', callsheet.projectTitle);
   
   try {
-    const service = new HTMLToPDFService();
+    const service = new ReactPDFService();
     await service.savePDF(callsheet);
   } catch (error) {
     console.error('Error generating PDF:', error);
@@ -24,7 +24,7 @@ export const generateCustomCallsheetPDF = async (
   console.log('Generating custom callsheet PDF for:', callsheet.projectTitle);
   
   try {
-    const service = new HTMLToPDFService(customization);
+    const service = new ReactPDFService(customization);
     await service.savePDF(callsheet);
   } catch (error) {
     console.error('Error generating custom PDF:', error);
@@ -40,7 +40,7 @@ export const previewCallsheetPDF = async (
   console.log('Previewing callsheet PDF for:', callsheet.projectTitle);
   
   try {
-    const service = new HTMLToPDFService(customization);
+    const service = new ReactPDFService(customization);
     await service.previewPDF(callsheet);
   } catch (error) {
     console.error('Error previewing PDF:', error);
@@ -49,4 +49,4 @@ export const previewCallsheetPDF = async (
 };
 
 // Export the service class for direct use
-export { HTMLToPDFService };
+export { ReactPDFService };
