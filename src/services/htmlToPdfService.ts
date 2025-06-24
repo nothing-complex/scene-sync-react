@@ -168,41 +168,61 @@ export class HTMLToPDFService {
     container.style.fontSize = `${this.customization.typography.fontSize.body}px`;
     container.style.lineHeight = this.customization.typography.lineHeight.body.toString();
     container.style.boxSizing = 'border-box';
-    container.style.padding = '40px';
+    container.style.padding = '48px'; // Increased padding for better margins
     
-    // Updated CSS for graceful page breaking - allow sections to break but protect individual items
+    // Updated CSS for proper page breaking with better margin handling
     const style = document.createElement('style');
     style.textContent = `
       .pdf-page-content {
         page-break-inside: auto;
         break-inside: auto;
+        margin: 0;
+        padding: 0;
       }
       
-      /* Allow sections to break naturally - removed page-break-inside: avoid */
+      /* Allow sections to break naturally but keep headers with content */
       .pdf-section {
-        margin-bottom: 24px;
+        margin-bottom: 28px;
         position: relative;
+        page-break-inside: auto;
+        break-inside: auto;
       }
       
       /* Keep section headers with their first item */
       .pdf-section-header {
         page-break-after: avoid;
         break-after: avoid;
-        margin-bottom: 16px;
-      }
-      
-      /* Protect individual items from breaking internally */
-      .pdf-contact-item, .pdf-schedule-row, .pdf-info-card {
+        margin-bottom: 18px;
         page-break-inside: avoid;
         break-inside: avoid;
-        margin-bottom: 12px;
+      }
+      
+      /* Protect individual items from breaking internally - this is crucial */
+      .pdf-contact-item, .pdf-schedule-row, .pdf-info-card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 14px;
         position: relative;
+        overflow: visible;
+        /* Ensure borders and backgrounds are preserved */
+        box-decoration-break: slice;
+        -webkit-box-decoration-break: slice;
       }
       
       /* Allow grids and containers to break between items */
       .pdf-contact-grid, .pdf-basic-info, .pdf-schedule-table {
         page-break-inside: auto;
         break-inside: auto;
+        display: block; /* Change from grid to block for better breaking */
+      }
+      
+      /* Style contact items as blocks instead of grid items */
+      .pdf-contact-grid .pdf-contact-item {
+        display: block;
+        width: 100%;
+        margin-bottom: 14px;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       
       /* Encourage keeping section headers with at least one item */
@@ -213,27 +233,53 @@ export class HTMLToPDFService {
         break-before: avoid;
       }
       
-      /* Basic orphan/widow control */
+      /* Prevent orphaning of last items */
       .pdf-contact-item:nth-last-child(1) {
         page-break-before: avoid;
         break-before: avoid;
       }
       
-      /* Allow natural breaking for schedule tables */
+      /* Better table handling */
       .pdf-schedule-table {
         border-collapse: separate;
         border-spacing: 0;
+        width: 100%;
+        display: table;
+      }
+      
+      .pdf-schedule-row {
+        display: table-row;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       
       /* Keep table header visible when breaking */
       .pdf-schedule-header {
         page-break-after: avoid;
         break-after: avoid;
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
       
-      /* Reduce spacing to minimize white space */
+      /* Improved spacing to reduce white space */
       .pdf-section + .pdf-section {
-        margin-top: 20px;
+        margin-top: 24px;
+      }
+      
+      /* Ensure proper margin handling at page boundaries */
+      .pdf-page-content > *:first-child {
+        margin-top: 0;
+      }
+      
+      .pdf-page-content > *:last-child {
+        margin-bottom: 0;
+      }
+      
+      /* Better handling of borders at page breaks */
+      .pdf-contact-item {
+        border-style: solid;
+        border-width: 1px 1px 1px 4px;
+        box-sizing: border-box;
       }
     `;
     document.head.appendChild(style);
@@ -303,6 +349,8 @@ export class HTMLToPDFService {
         line-height: ${this.customization.typography.lineHeight.body};
         width: 100%;
         box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       ">
         <!-- Header -->
         <div class="pdf-section pdf-section-header" style="
@@ -355,168 +403,23 @@ export class HTMLToPDFService {
           grid-template-columns: repeat(3, 1fr); 
           gap: 16px; 
           margin-bottom: 32px;
+          page-break-inside: avoid;
+          break-inside: avoid;
         ">
-          <!-- Shoot Date -->
-          <div class="pdf-info-card" style="
-            ${cardStyles} 
-            padding: 16px; 
-            background-color: ${this.customization.colors.surface};
-            border-radius: ${this.customization.visual.cornerRadius}px;
-            border: 1px solid ${this.customization.colors.border};
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">📅</span>' : ''}
-            <div style="flex: 1;">
-              <div style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-                margin-bottom: 6px;
-              ">
-                Shoot Date
-              </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${formatDate(callsheet.shootDate)}</div>
-            </div>
-          </div>
-          
-          <!-- Call Time -->
-          <div class="pdf-info-card" style="
-            ${cardStyles} 
-            padding: 16px; 
-            background-color: ${this.customization.colors.surface};
-            border-radius: ${this.customization.visual.cornerRadius}px;
-            border: 1px solid ${this.customization.colors.border};
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">🕐</span>' : ''}
-            <div style="flex: 1;">
-              <div style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-                margin-bottom: 6px;
-              ">
-                Call Time
-              </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.generalCallTime}</div>
-            </div>
-          </div>
-
-          <!-- Location -->
-          <div class="pdf-info-card" style="
-            ${cardStyles} 
-            padding: 16px; 
-            background-color: ${this.customization.colors.surface};
-            border-radius: ${this.customization.visual.cornerRadius}px;
-            border: 1px solid ${this.customization.colors.border};
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">📍</span>' : ''}
-            <div style="flex: 1;">
-              <div style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-                margin-bottom: 6px;
-              ">
-                Location
-              </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px; margin-bottom: 4px;">${callsheet.location}</div>
-              ${callsheet.locationAddress ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight};">${callsheet.locationAddress}</div>` : ''}
-            </div>
-          </div>
-
-          ${callsheet.weather && this.customization.sections.visibility.weather ? `
-          <!-- Weather -->
-          <div class="pdf-info-card" style="
-            ${cardStyles} 
-            padding: 16px; 
-            background-color: ${this.customization.colors.surface};
-            border-radius: ${this.customization.visual.cornerRadius}px;
-            border: 1px solid ${this.customization.colors.border};
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">🌤️</span>' : ''}
-            <div style="flex: 1;">
-              <div style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-                margin-bottom: 6px;
-              ">
-                Weather
-              </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.weather}</div>
-            </div>
-          </div>
-          ` : ''}
-
-          ${callsheet.parkingInstructions ? `
-          <!-- Parking Instructions -->
-          <div class="pdf-info-card" style="
-            ${cardStyles} 
-            padding: 16px; 
-            background-color: ${this.customization.colors.surface};
-            border-radius: ${this.customization.visual.cornerRadius}px;
-            border: 1px solid ${this.customization.colors.border};
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">🅿️</span>' : ''}
-            <div style="flex: 1;">
-              <div style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-                margin-bottom: 6px;
-              ">
-                Parking Instructions
-              </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.parkingInstructions}</div>
-            </div>
-          </div>
-          ` : ''}
-
-          ${callsheet.basecampLocation ? `
-          <!-- Basecamp Location -->
-          <div class="pdf-info-card" style="
-            ${cardStyles} 
-            padding: 16px; 
-            background-color: ${this.customization.colors.surface};
-            border-radius: ${this.customization.visual.cornerRadius}px;
-            border: 1px solid ${this.customization.colors.border};
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 18px;">🏕️</span>' : ''}
-            <div style="flex: 1;">
-              <div style="
-                font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                font-size: ${this.customization.typography.fontSize.header}px;
-                color: ${this.customization.colors.primary};
-                margin-bottom: 6px;
-              ">
-                Basecamp Location
-              </div>
-              <div style="font-size: ${this.customization.typography.fontSize.body}px;">${callsheet.basecampLocation}</div>
-            </div>
-          </div>
-          ` : ''}
+          ${this.generateInfoCard('📅', 'Shoot Date', formatDate(callsheet.shootDate))}
+          ${this.generateInfoCard('🕐', 'Call Time', callsheet.generalCallTime)}
+          ${this.generateInfoCard('📍', 'Location', callsheet.location, callsheet.locationAddress)}
+          ${callsheet.weather && this.customization.sections.visibility.weather ? 
+            this.generateInfoCard('🌤️', 'Weather', callsheet.weather) : ''}
+          ${callsheet.parkingInstructions ? 
+            this.generateInfoCard('🅿️', 'Parking Instructions', callsheet.parkingInstructions) : ''}
+          ${callsheet.basecampLocation ? 
+            this.generateInfoCard('🏕️', 'Basecamp Location', callsheet.basecampLocation) : ''}
         </div>
 
         ${callsheet.specialNotes && this.customization.sections.visibility.notes ? `
         <!-- Special Notes - moved to top but separate from grid -->
-        <div class="pdf-section" style="margin-bottom: 32px;">
+        <div class="pdf-section" style="margin-bottom: 32px; page-break-inside: avoid; break-inside: avoid;">
           <div class="pdf-info-card" style="
             ${cardStyles} 
             padding: 18px; 
@@ -542,216 +445,12 @@ export class HTMLToPDFService {
         </div>
         ` : ''}
 
-        ${callsheet.schedule.length > 0 && this.customization.sections.visibility.schedule ? `
-        <!-- Schedule -->
-        <div class="pdf-section" style="margin-bottom: 24px;">
-          <h3 class="pdf-section-header" style="
-            font-size: ${this.customization.typography.fontSize.header + 4}px; 
-            font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 16px; 
-            color: ${this.customization.colors.primary};
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 20px;">📋</span>' : ''}
-            SCHEDULE
-          </h3>
-          <div class="pdf-schedule-table" style="
-            ${cardStyles} 
-            background-color: ${this.customization.colors.surface}; 
-            overflow: hidden;
-            border-radius: ${this.customization.visual.cornerRadius}px;
-            border: 1px solid ${this.customization.colors.border};
-          ">
-            <div class="pdf-schedule-row pdf-schedule-header" style="
-              display: grid;
-              grid-template-columns: 80px 100px 1fr 120px;
-              gap: 0;
-              background-color: ${this.customization.colors.surfaceHover};
-              font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)};
-              font-size: ${this.customization.typography.fontSize.header}px;
-              border-bottom: 2px solid ${this.customization.colors.border};
-            ">
-              <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Scene</div>
-              <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Int/Ext</div>
-              <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Description</div>
-              <div style="padding: 16px 12px;">Time</div>
-            </div>
-            ${callsheet.schedule.map((item, index) => `
-              <div class="pdf-schedule-row" style="
-                display: grid;
-                grid-template-columns: 80px 100px 1fr 120px;
-                gap: 0;
-                background-color: ${this.customization.sections.formatting.alternateRowColors ? 
-                  (index % 2 === 0 ? this.customization.colors.background : this.customization.colors.surface) : 
-                  this.customization.colors.background};
-                border-bottom: 1px solid ${this.customization.colors.borderLight};
-              ">
-                <div style="padding: 14px 12px; font-weight: 500; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight};">${item.sceneNumber}</div>
-                <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight};">${item.intExt}</div>
-                <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight};">${item.description}</div>
-                <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px;">${item.estimatedTime}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-        ` : ''}
-
-        ${callsheet.cast.length > 0 ? `
-        <!-- Cast -->
-        <div class="pdf-section" style="margin-bottom: 24px;">
-          <h3 class="pdf-section-header" style="
-            font-size: ${this.customization.typography.fontSize.header + 4}px; 
-            font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 16px; 
-            color: ${this.customization.colors.primary};
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 20px;">🎭</span>' : ''}
-            CAST
-          </h3>
-          <div class="pdf-contact-grid">
-            ${callsheet.cast.map(member => `
-              <div class="pdf-contact-item" style="
-                ${cardStyles}
-                padding: 18px;
-                background-color: ${this.customization.colors.surface};
-                border: 1px solid ${this.customization.colors.border};
-                border-radius: ${this.customization.visual.cornerRadius}px;
-                border-left: 4px solid ${this.customization.colors.accent};
-                margin-bottom: 12px;
-              ">
-                <div style="
-                  font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                  font-size: ${this.customization.typography.fontSize.body}px; 
-                  margin-bottom: 6px;
-                  color: ${this.customization.colors.text};
-                ">${member.name}</div>
-                ${member.character ? `<div style="
-                  font-size: ${this.customization.typography.fontSize.small}px; 
-                  color: ${this.customization.colors.textLight}; 
-                  margin-bottom: 10px;
-                  font-style: italic;
-                ">as ${member.character}</div>` : ''}
-                <div style="
-                  font-size: ${this.customization.typography.fontSize.small}px; 
-                  margin-bottom: 4px;
-                  color: ${this.customization.colors.text};
-                ">${this.renderEmoji('📞')}${member.phone}</div>
-                <div style="
-                  font-size: ${this.customization.typography.fontSize.small}px;
-                  color: ${this.customization.colors.text};
-                ">${this.renderEmoji('📧')}${member.email}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-        ` : ''}
-
-        ${callsheet.crew.length > 0 ? `
-        <!-- Crew -->
-        <div class="pdf-section" style="margin-bottom: 24px;">
-          <h3 class="pdf-section-header" style="
-            font-size: ${this.customization.typography.fontSize.header + 4}px; 
-            font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 16px; 
-            color: ${this.customization.colors.primary};
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 20px;">🎬</span>' : ''}
-            CREW
-          </h3>
-          <div class="pdf-contact-grid">
-            ${callsheet.crew.map(member => `
-              <div class="pdf-contact-item" style="
-                ${cardStyles}
-                padding: 18px;
-                background-color: ${this.customization.colors.surface};
-                border: 1px solid ${this.customization.colors.border};
-                border-radius: ${this.customization.visual.cornerRadius}px;
-                border-left: 4px solid ${this.customization.colors.accent};
-                margin-bottom: 12px;
-              ">
-                <div style="
-                  font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                  font-size: ${this.customization.typography.fontSize.body}px; 
-                  margin-bottom: 6px;
-                  color: ${this.customization.colors.text};
-                ">${member.name}</div>
-                <div style="
-                  font-size: ${this.customization.typography.fontSize.small}px; 
-                  color: ${this.customization.colors.textLight}; 
-                  margin-bottom: 10px;
-                  font-style: italic;
-                ">${member.role}</div>
-                <div style="
-                  font-size: ${this.customization.typography.fontSize.small}px; 
-                  margin-bottom: 4px;
-                  color: ${this.customization.colors.text};
-                ">${this.renderEmoji('📞')}${member.phone}</div>
-                <div style="
-                  font-size: ${this.customization.typography.fontSize.small}px;
-                  color: ${this.customization.colors.text};
-                ">${this.renderEmoji('📧')}${member.email}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-        ` : ''}
-
-        ${callsheet.emergencyContacts.length > 0 && this.customization.sections.visibility.emergencyContacts ? `
-        <!-- Emergency Contacts -->
-        <div class="pdf-section" style="margin-bottom: 24px;">
-          <h3 class="pdf-section-header" style="
-            font-size: ${this.customization.typography.fontSize.header + 4}px; 
-            font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-            margin-bottom: 16px; 
-            color: ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.primary};
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          ">
-            ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 20px;">⚠️</span>' : ''}
-            EMERGENCY CONTACTS
-          </h3>
-          <div class="pdf-contact-grid">
-            ${callsheet.emergencyContacts.map(contact => `
-              <div class="pdf-contact-item" style="
-                ${cardStyles}
-                padding: 18px;
-                background-color: ${this.customization.sections.formatting.emergencyProminent ? '#fef2f2' : this.customization.colors.surface};
-                border: ${this.customization.sections.formatting.emergencyProminent ? '2px solid #fca5a5' : `1px solid ${this.customization.colors.border}`};
-                border-radius: ${this.customization.visual.cornerRadius}px;
-                border-left: 4px solid ${this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.accent};
-                margin-bottom: 12px;
-              ">
-                <div style="
-                  font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
-                  font-size: ${this.customization.typography.fontSize.body}px; 
-                  margin-bottom: 6px;
-                  color: ${this.customization.colors.text};
-                ">${contact.name}</div>
-                <div style="
-                  font-size: ${this.customization.typography.fontSize.small}px; 
-                  color: ${this.customization.colors.textLight}; 
-                  margin-bottom: 10px;
-                  font-style: italic;
-                ">${contact.role}</div>
-                <div style="
-                  font-size: ${this.customization.typography.fontSize.small}px; 
-                  font-weight: 500;
-                  color: ${this.customization.colors.text};
-                ">${this.renderEmoji('📞')}${contact.phone}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-        ` : ''}
+        ${callsheet.schedule.length > 0 && this.customization.sections.visibility.schedule ? 
+          this.generateScheduleSection(callsheet.schedule) : ''}
+        ${callsheet.cast.length > 0 ? this.generateContactSection('CAST', callsheet.cast, '🎭', 'cast') : ''}
+        ${callsheet.crew.length > 0 ? this.generateContactSection('CREW', callsheet.crew, '🎬', 'crew') : ''}
+        ${callsheet.emergencyContacts.length > 0 && this.customization.sections.visibility.emergencyContacts ? 
+          this.generateContactSection('EMERGENCY CONTACTS', callsheet.emergencyContacts, '⚠️', 'emergency') : ''}
 
         ${this.customization.branding.footer?.text ? `
         <!-- Footer -->
@@ -762,10 +461,184 @@ export class HTMLToPDFService {
           text-align: ${this.customization.branding.footer.position}; 
           font-size: ${this.customization.typography.fontSize.small}px; 
           color: ${this.customization.colors.textLight};
+          page-break-inside: avoid;
+          break-inside: avoid;
         ">
           ${this.customization.branding.footer.text}
         </div>
         ` : ''}
+      </div>
+    `;
+  }
+
+  private generateInfoCard(icon: string, title: string, value: string, subtitle?: string): string {
+    const cardStyles = this.getCardStyles();
+    return `
+      <div class="pdf-info-card" style="
+        ${cardStyles} 
+        padding: 16px; 
+        background-color: ${this.customization.colors.surface};
+        border-radius: ${this.customization.visual.cornerRadius}px;
+        border: 1px solid ${this.customization.colors.border};
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        box-sizing: border-box;
+      ">
+        ${this.customization.sections.formatting.showSectionIcons ? `<span style="font-size: 18px; flex-shrink: 0;">${icon}</span>` : ''}
+        <div style="flex: 1; min-width: 0;">
+          <div style="
+            font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+            font-size: ${this.customization.typography.fontSize.header}px;
+            color: ${this.customization.colors.primary};
+            margin-bottom: 6px;
+            word-wrap: break-word;
+          ">
+            ${title}
+          </div>
+          <div style="font-size: ${this.customization.typography.fontSize.body}px; word-wrap: break-word; margin-bottom: 4px;">${value}</div>
+          ${subtitle ? `<div style="font-size: ${this.customization.typography.fontSize.small}px; color: ${this.customization.colors.textLight}; word-wrap: break-word;">${subtitle}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  private generateContactSection(title: string, contacts: any[], icon: string, type: string): string {
+    return `
+      <!-- ${title} -->
+      <div class="pdf-section" style="margin-bottom: 24px;">
+        <h3 class="pdf-section-header" style="
+          font-size: ${this.customization.typography.fontSize.header + 4}px; 
+          font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+          margin-bottom: 16px; 
+          color: ${type === 'emergency' && this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.primary};
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        ">
+          ${this.customization.sections.formatting.showSectionIcons ? `<span style="font-size: 20px;">${icon}</span>` : ''}
+          ${title}
+        </h3>
+        <div class="pdf-contact-grid">
+          ${contacts.map(contact => this.generateContactCard(contact, type)).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  private generateContactCard(contact: any, type: string): string {
+    const cardStyles = this.getCardStyles();
+    const isEmergency = type === 'emergency';
+    
+    return `
+      <div class="pdf-contact-item" style="
+        ${cardStyles}
+        padding: 18px;
+        background-color: ${isEmergency && this.customization.sections.formatting.emergencyProminent ? '#fef2f2' : this.customization.colors.surface};
+        border-radius: ${this.customization.visual.cornerRadius}px;
+        border: 1px solid ${isEmergency && this.customization.sections.formatting.emergencyProminent ? '#fca5a5' : this.customization.colors.border};
+        border-left: 4px solid ${isEmergency && this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.accent};
+        margin-bottom: 14px;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        box-sizing: border-box;
+        overflow: visible;
+      ">
+        <div style="
+          font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+          font-size: ${this.customization.typography.fontSize.body}px; 
+          margin-bottom: 6px;
+          color: ${this.customization.colors.text};
+          word-wrap: break-word;
+        ">${contact.name}</div>
+        ${(contact.character || contact.role) ? `<div style="
+          font-size: ${this.customization.typography.fontSize.small}px; 
+          color: ${this.customization.colors.textLight}; 
+          margin-bottom: 10px;
+          font-style: italic;
+          word-wrap: break-word;
+        ">${contact.character ? `as ${contact.character}` : contact.role}</div>` : ''}
+        <div style="
+          font-size: ${this.customization.typography.fontSize.small}px; 
+          margin-bottom: 4px;
+          color: ${this.customization.colors.text};
+          ${isEmergency ? 'font-weight: 500;' : ''}
+          word-wrap: break-word;
+        ">${this.renderEmoji('📞')}${contact.phone}</div>
+        ${contact.email && !isEmergency ? `<div style="
+          font-size: ${this.customization.typography.fontSize.small}px;
+          color: ${this.customization.colors.text};
+          word-wrap: break-word;
+        ">${this.renderEmoji('📧')}${contact.email}</div>` : ''}
+      </div>
+    `;
+  }
+
+  private generateScheduleSection(schedule: any[]): string {
+    const cardStyles = this.getCardStyles();
+    
+    return `
+      <!-- Schedule -->
+      <div class="pdf-section" style="margin-bottom: 24px;">
+        <h3 class="pdf-section-header" style="
+          font-size: ${this.customization.typography.fontSize.header + 4}px; 
+          font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
+          margin-bottom: 16px; 
+          color: ${this.customization.colors.primary};
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        ">
+          ${this.customization.sections.formatting.showSectionIcons ? '<span style="font-size: 20px;">📋</span>' : ''}
+          SCHEDULE
+        </h3>
+        <div class="pdf-schedule-table" style="
+          ${cardStyles} 
+          background-color: ${this.customization.colors.surface}; 
+          overflow: hidden;
+          border-radius: ${this.customization.visual.cornerRadius}px;
+          border: 1px solid ${this.customization.colors.border};
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+        ">
+          <div class="pdf-schedule-row pdf-schedule-header" style="
+            display: grid;
+            grid-template-columns: 80px 100px 1fr 120px;
+            gap: 0;
+            background-color: ${this.customization.colors.surfaceHover};
+            font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)};
+            font-size: ${this.customization.typography.fontSize.header}px;
+            border-bottom: 2px solid ${this.customization.colors.border};
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          ">
+            <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Scene</div>
+            <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Int/Ext</div>
+            <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Description</div>
+            <div style="padding: 16px 12px;">Time</div>
+          </div>
+          ${schedule.map((item, index) => `
+            <div class="pdf-schedule-row" style="
+              display: grid;
+              grid-template-columns: 80px 100px 1fr 120px;
+              gap: 0;
+              background-color: ${this.customization.sections.formatting.alternateRowColors ? 
+                (index % 2 === 0 ? this.customization.colors.background : this.customization.colors.surface) : 
+                this.customization.colors.background};
+              border-bottom: 1px solid ${this.customization.colors.borderLight};
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            ">
+              <div style="padding: 14px 12px; font-weight: 500; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight}; word-wrap: break-word;">${item.sceneNumber}</div>
+              <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight}; word-wrap: break-word;">${item.intExt}</div>
+              <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight}; word-wrap: break-word;">${item.description}</div>
+              <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; word-wrap: break-word;">${item.estimatedTime}</div>
+            </div>
+          `).join('')}
+        </div>
       </div>
     `;
   }
