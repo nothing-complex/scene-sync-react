@@ -389,8 +389,12 @@ export class HTMLToPDFService {
       <!-- ${title} -->
       <div class="pdf-section pdf-contact-section" style="
         margin-bottom: 24px;
-        page-break-inside: avoid;
-        break-inside: avoid;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-before: auto;
+        page-break-after: auto;
+        display: block;
+        position: relative;
       ">
         <h3 class="pdf-section-header" style="
           font-size: ${this.customization.typography.fontSize.header + 4}px; 
@@ -400,6 +404,7 @@ export class HTMLToPDFService {
           display: flex;
           align-items: center;
           gap: 8px;
+          page-break-after: avoid !important;
         ">
           ${this.customization.sections.formatting.showSectionIcons ? `<span style="font-size: 20px;">${icon}</span>` : ''}
           ${title}
@@ -409,6 +414,8 @@ export class HTMLToPDFService {
           grid-template-columns: ${gridColumns};
           gap: 16px;
           width: 100%;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
         ">
           ${contacts.map(contact => this.generateContactCard(contact, type)).join('')}
         </div>
@@ -430,8 +437,14 @@ export class HTMLToPDFService {
         border-left: 4px solid ${isEmergency && this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.accent};
         box-sizing: border-box;
         overflow: visible;
-        page-break-inside: avoid;
-        break-inside: avoid;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-before: auto;
+        page-break-after: auto;
+        display: block;
+        position: relative;
+        min-height: 120px;
+        margin-bottom: 8px;
       ">
         <div style="
           font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -602,7 +615,7 @@ export class HTMLToPDFService {
   ): Promise<void> {
     console.log('Creating multi-page PDF with smart breaking');
 
-    // Get all sections and their positions with priority for contact sections
+    // Get all sections and their positions with enhanced priority for contact elements
     const allSections = element.querySelectorAll('.pdf-section');
     const contactSections = element.querySelectorAll('.pdf-contact-section');
     const contactGrids = element.querySelectorAll('.pdf-contact-grid');
@@ -618,7 +631,7 @@ export class HTMLToPDFService {
       priority: number;
     }> = [];
     
-    // Priority system: contact sections get highest priority to avoid splitting
+    // Priority system: contact items get highest priority to avoid splitting
     allSections.forEach(section => {
       const rect = section.getBoundingClientRect();
       const elementRect = element.getBoundingClientRect();
@@ -629,11 +642,11 @@ export class HTMLToPDFService {
         top: rect.top - elementRect.top,
         height: rect.height,
         isContactSection,
-        priority: isContactSection ? 3 : 1
+        priority: isContactSection ? 4 : 1
       });
     });
 
-    // Add contact grids as high priority break points
+    // Add contact grids as very high priority break points
     contactGrids.forEach(grid => {
       const rect = grid.getBoundingClientRect();
       const elementRect = element.getBoundingClientRect();
@@ -643,11 +656,11 @@ export class HTMLToPDFService {
         top: rect.top - elementRect.top,
         height: rect.height,
         isContactGrid: true,
-        priority: 4
+        priority: 5
       });
     });
 
-    // Add individual contact items as medium priority
+    // Add individual contact items as highest priority to prevent splitting
     contactItems.forEach(item => {
       const rect = item.getBoundingClientRect();
       const elementRect = element.getBoundingClientRect();
@@ -657,7 +670,7 @@ export class HTMLToPDFService {
         top: rect.top - elementRect.top,
         height: rect.height,
         isContactItem: true,
-        priority: 2
+        priority: 6  // Highest priority to prevent card splitting
       });
     });
 
@@ -680,7 +693,7 @@ export class HTMLToPDFService {
       
       // If this isn't the last page, find a good break point
       if (pageBottom < canvas.height) {
-        // Find sections that would be cut by this page break, prioritizing contact sections
+        // Find sections that would be cut by this page break, prioritizing contact elements
         const problematicSections = sectionPositions.filter(section => {
           const sectionTop = section.top;
           const sectionBottom = section.top + section.height;
@@ -695,15 +708,15 @@ export class HTMLToPDFService {
           
           const highestPrioritySection = problematicSections[0];
           
-          // For contact sections, be more aggressive about keeping them together
-          if (highestPrioritySection.isContactSection || highestPrioritySection.isContactGrid) {
-            // Move page break to start of the contact section
+          // For contact items (highest priority), be very aggressive about keeping them together
+          if (highestPrioritySection.isContactItem) {
+            // Always move page break to start of the contact item
+            const adjustedBreak = highestPrioritySection.top;
+            pageBottom = Math.max(currentPageTop + scaledContentHeight * 0.2, adjustedBreak);
+          } else if (highestPrioritySection.isContactGrid || highestPrioritySection.isContactSection) {
+            // For contact grids and sections, also be aggressive
             const adjustedBreak = highestPrioritySection.top;
             pageBottom = Math.max(currentPageTop + scaledContentHeight * 0.3, adjustedBreak);
-          } else if (highestPrioritySection.isContactItem) {
-            // For individual contact items, try to keep them on the current page if there's space
-            const adjustedBreak = Math.max(currentPageTop + scaledContentHeight * 0.6, highestPrioritySection.top);
-            pageBottom = Math.min(adjustedBreak, canvas.height);
           } else {
             // For other sections, use the original logic
             const adjustedBreak = Math.max(currentPageTop + scaledContentHeight * 0.5, highestPrioritySection.top);
