@@ -39,5 +39,4 @@ export interface CallsheetData {
   updatedAt: string;
   projectId?: string;
   userId: string;
-  emergencyNumber?: string; // Add this field to store the emergency number
 }
