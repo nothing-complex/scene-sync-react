@@ -1,4 +1,3 @@
-
 import { CallsheetData } from '@/types/callsheet';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { getEmergencyNumberFromLocation } from '@/utils/emergencyNumberUtils';
@@ -236,6 +235,26 @@ const generateContacts = (callsheet: CallsheetData, contacts: any[], title: stri
     contactLayout === 'cards' ? 'grid-template-columns: repeat(2, 1fr);' :
       'grid-template-columns: repeat(1, 1fr);';
 
+  // Add emergency number banner for emergency contacts
+  const emergencyBanner = isEmergency ? (() => {
+    const emergencyNumber = callsheet.emergencyNumber || getEmergencyNumberFromLocation(callsheet.location);
+    return `
+      <div style="
+        background-color: #fef2f2; 
+        border: 2px solid #fca5a5; 
+        border-radius: ${customization.visual.cornerRadius}px; 
+        padding: 16px; 
+        margin-bottom: 16px;
+        text-align: center;
+        font-weight: bold;
+        color: #dc2626;
+      ">
+        <div style="font-size: ${customization.typography.fontSize.small}px; margin-bottom: 4px;">Emergency Services</div>
+        <div style="font-size: ${customization.typography.fontSize.title}px; font-weight: bold;">${emergencyNumber}</div>
+      </div>
+    `;
+  })() : '';
+
   return `
     <div style="margin-bottom: 2rem;">
       <h3 style="
@@ -250,6 +269,7 @@ const generateContacts = (callsheet: CallsheetData, contacts: any[], title: stri
         ${showIcons ? `<span style="font-size: 1.2rem;">${icon}</span>` : ''}
         ${title}
       </h3>
+      ${emergencyBanner}
       <div style="display: grid; gap: 1rem; ${contactGridClass}">
         ${contacts.map(contact => `
           <div style="${Object.entries(cardStyle)
@@ -262,27 +282,6 @@ const generateContacts = (callsheet: CallsheetData, contacts: any[], title: stri
           </div>
         `).join('')}
       </div>
-    </div>
-  `;
-};
-
-const generateEmergencyNumberHeader = (callsheet: CallsheetData): string => {
-  // Use the stored emergency number if available, otherwise determine from location
-  const emergencyNumber = callsheet.emergencyNumber || getEmergencyNumberFromLocation(callsheet.location);
-  
-  return `
-    <div style="
-      background-color: #fef2f2; 
-      border: 2px solid #fca5a5; 
-      border-radius: 8px; 
-      padding: 16px; 
-      margin-bottom: 16px;
-      text-align: center;
-      font-weight: bold;
-      color: #dc2626;
-    ">
-      <div style="font-size: 14px; margin-bottom: 4px;">Emergency Services</div>
-      <div style="font-size: 28px; font-weight: bold;">${emergencyNumber}</div>
     </div>
   `;
 };
@@ -324,7 +323,6 @@ export const generateCallsheetHTML = (callsheet: CallsheetData, customization: P
       .map(([key, value]) => `${key}: ${value};`)
       .join(' ')}">
       ${generateHeader(callsheet, customization)}
-      ${generateEmergencyNumberHeader(callsheet)}
       ${generateProductionDetails(callsheet, customization)}
       ${generateSpecialNotes(callsheet, customization)}
       ${generateSchedule(callsheet, customization)}
