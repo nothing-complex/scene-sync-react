@@ -381,17 +381,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             SCHEDULE
           </h3>
           <div style={{...cardStyles, border: `1px solid ${colors.border}`}}>
-            <div className="grid grid-cols-5 font-semibold text-sm" style={{ backgroundColor: colors.surface }}>
+            <div className="grid grid-cols-6 font-semibold text-sm" style={{ backgroundColor: colors.surface }}>
               <div className="p-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.header}px` }}>Scene</div>
               <div className="p-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.header}px` }}>Int/Ext</div>
-              <div className="p-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.header}px` }}>Description</div>
-              <div className="p-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.header}px` }}>Location</div>
-              <div className="p-2" style={{ fontSize: `${typography.fontSize.header}px` }}>Time</div>
+              <div className="p-2 col-span-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.header}px` }}>Description</div>
+              <div className="p-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.header}px` }}>Time</div>
+              <div className="p-2" style={{ fontSize: `${typography.fontSize.header}px` }}>Pages</div>
             </div>
             {callsheet.schedule.map((item, index) => (
               <div 
                 key={item.id} 
-                className="grid grid-cols-5"
+                className="grid grid-cols-6"
                 style={{ 
                   backgroundColor: sections.formatting.alternateRowColors ? 
                     (index % 2 === 0 ? colors.background : colors.surface) : 
@@ -400,9 +400,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               >
                 <div className="p-2 font-medium" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.body}px` }}>{item.sceneNumber}</div>
                 <div className="p-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.body}px` }}>{item.intExt}</div>
-                <div className="p-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.body}px` }}>{item.description}</div>
-                <div className="p-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.body}px` }}>{item.location}</div>
-                <div className="p-2" style={{ fontSize: `${typography.fontSize.body}px` }}>{item.estimatedTime}</div>
+                <div className="p-2 col-span-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.body}px` }}>{item.description}</div>
+                <div className="p-2" style={{ borderRight: `1px solid ${colors.border}`, fontSize: `${typography.fontSize.body}px` }}>{item.estimatedTime}</div>
+                <div className="p-2" style={{ fontSize: `${typography.fontSize.body}px` }}>{item.pageCount || '-'}</div>
               </div>
             ))}
           </div>

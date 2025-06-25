@@ -506,7 +506,7 @@ export class HTMLToPDFService {
         ">
           <div class="pdf-schedule-row pdf-schedule-header" style="
             display: grid;
-            grid-template-columns: 80px 100px 1fr 120px;
+            grid-template-columns: 80px 100px 1fr 120px 80px;
             gap: 0;
             background-color: ${this.customization.colors.surfaceHover};
             font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)};
@@ -516,12 +516,13 @@ export class HTMLToPDFService {
             <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Scene</div>
             <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Int/Ext</div>
             <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Description</div>
-            <div style="padding: 16px 12px;">Time</div>
+            <div style="padding: 16px 12px; border-right: 1px solid ${this.customization.colors.border};">Time</div>
+            <div style="padding: 16px 12px;">Pages</div>
           </div>
           ${schedule.map((item, index) => `
             <div class="pdf-schedule-row" style="
               display: grid;
-              grid-template-columns: 80px 100px 1fr 120px;
+              grid-template-columns: 80px 100px 1fr 120px 80px;
               gap: 0;
               background-color: ${this.customization.sections.formatting.alternateRowColors ? 
                 (index % 2 === 0 ? this.customization.colors.background : this.customization.colors.surface) : 
@@ -532,6 +533,7 @@ export class HTMLToPDFService {
               <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight}; word-wrap: break-word;">${item.intExt}</div>
               <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; border-right: 1px solid ${this.customization.colors.borderLight}; word-wrap: break-word;">${item.description}</div>
               <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; word-wrap: break-word;">${item.estimatedTime}</div>
+              <div style="padding: 14px 12px; font-size: ${this.customization.typography.fontSize.body}px; word-wrap: break-word;">${item.pageCount || '-'}</div>
             </div>
           `).join('')}
         </div>
