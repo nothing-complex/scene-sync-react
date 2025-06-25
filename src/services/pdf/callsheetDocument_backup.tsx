@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, Text, View } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -12,7 +11,6 @@ interface CallsheetPDFDocumentProps {
 }
 
 export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ callsheet, customization = {} }) => {
-  // Ensure complete customization object with safe defaults
   const config: PDFCustomization = {
     ...DEFAULT_PDF_CUSTOMIZATION,
     ...customization,
@@ -65,7 +63,6 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
     </View>
   );
 
-  // Production Details Grid - matching preview layout
   const ProductionDetailsGrid = () => (
     <View style={[styles.sectionCard, { marginBottom: 16 }]}>
       <View style={styles.productionGrid}>
@@ -187,21 +184,51 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
             No contacts added
           </Text>
         ) : (
-          <View style={styles.contactTightGrid}>
+          <View style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 8,
+          }}>
             {contacts.map((contact, index) => (
-              <View key={contact.id || index} style={styles.contactTightGridItem}>
-                <SafeText style={styles.contactName}>{contact.name}</SafeText>
+              <View key={contact.id || index} style={{
+                width: '48%',
+                backgroundColor: config.colors.background,
+                padding: 10,
+                borderRadius: config.visual.cornerRadius - 2,
+                marginBottom: 6,
+                borderLeftWidth: 2,
+                borderLeftColor: config.colors.accent,
+              }}>
+                <SafeText style={{
+                  fontSize: config.typography.fontSize.body,
+                  fontWeight: 600,
+                  color: config.colors.text,
+                  marginBottom: 2,
+                }}>{contact.name}</SafeText>
                 {((contact.role && contact.role.trim()) || (contact.character && contact.character.trim())) && (
-                  <SafeText style={styles.contactRole}>
+                  <SafeText style={{
+                    fontSize: config.typography.fontSize.small,
+                    color: config.colors.textLight,
+                    marginBottom: 2,
+                    fontStyle: 'italic',
+                  }}>
                     {[
                       contact.role && contact.role.trim() ? contact.role.trim() : '',
                       contact.character && contact.character.trim() ? contact.character.trim() : ''
                     ].filter(Boolean).join(' • ')}
                   </SafeText>
                 )}
-                <SafeText style={styles.contactDetails}>{contact.phone}</SafeText>
+                <SafeText style={{
+                  fontSize: config.typography.fontSize.small,
+                  color: config.colors.textLight,
+                  lineHeight: 1.3,
+                }}>{contact.phone}</SafeText>
                 {contact.email && contact.email.trim() && (
-                  <SafeText style={styles.contactDetails}>{contact.email}</SafeText>
+                  <SafeText style={{
+                    fontSize: config.typography.fontSize.small,
+                    color: config.colors.textLight,
+                    lineHeight: 1.3,
+                  }}>{contact.email}</SafeText>
                 )}
               </View>
             ))}

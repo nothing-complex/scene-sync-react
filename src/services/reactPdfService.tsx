@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -75,7 +74,7 @@ export class ReactPDFService {
         throw new Error('Invalid callsheet data provided');
       }
 
-      console.log('Creating PDF document...');
+      console.log('Creating PDF document with tight grid layout...');
       const documentElement = (
         <CallsheetPDFDocument 
           callsheet={callsheet}
