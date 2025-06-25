@@ -387,7 +387,11 @@ export class HTMLToPDFService {
     
     return `
       <!-- ${title} -->
-      <div class="pdf-section" style="margin-bottom: 24px;">
+      <div class="pdf-section pdf-contact-section" style="
+        margin-bottom: 24px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      ">
         <h3 class="pdf-section-header" style="
           font-size: ${this.customization.typography.fontSize.header + 4}px; 
           font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -426,6 +430,8 @@ export class HTMLToPDFService {
         border-left: 4px solid ${isEmergency && this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.accent};
         box-sizing: border-box;
         overflow: visible;
+        page-break-inside: avoid;
+        break-inside: avoid;
       ">
         <div style="
           font-weight: ${this.getFontWeight(this.customization.typography.fontWeight.header)}; 
@@ -596,19 +602,67 @@ export class HTMLToPDFService {
   ): Promise<void> {
     console.log('Creating multi-page PDF with smart breaking');
 
-    // Get all sections and their positions
-    const sections = element.querySelectorAll('.pdf-section, .pdf-contact-item, .pdf-schedule-row, .pdf-info-card');
-    const sectionPositions: Array<{ element: Element; top: number; height: number }> = [];
+    // Get all sections and their positions with priority for contact sections
+    const allSections = element.querySelectorAll('.pdf-section');
+    const contactSections = element.querySelectorAll('.pdf-contact-section');
+    const contactGrids = element.querySelectorAll('.pdf-contact-grid');
+    const contactItems = element.querySelectorAll('.pdf-contact-item');
     
-    sections.forEach(section => {
+    const sectionPositions: Array<{ 
+      element: Element; 
+      top: number; 
+      height: number; 
+      isContactSection?: boolean;
+      isContactGrid?: boolean;
+      isContactItem?: boolean;
+      priority: number;
+    }> = [];
+    
+    // Priority system: contact sections get highest priority to avoid splitting
+    allSections.forEach(section => {
       const rect = section.getBoundingClientRect();
       const elementRect = element.getBoundingClientRect();
+      const isContactSection = section.classList.contains('pdf-contact-section');
+      
       sectionPositions.push({
         element: section,
         top: rect.top - elementRect.top,
-        height: rect.height
+        height: rect.height,
+        isContactSection,
+        priority: isContactSection ? 3 : 1
       });
     });
+
+    // Add contact grids as high priority break points
+    contactGrids.forEach(grid => {
+      const rect = grid.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
+      
+      sectionPositions.push({
+        element: grid,
+        top: rect.top - elementRect.top,
+        height: rect.height,
+        isContactGrid: true,
+        priority: 4
+      });
+    });
+
+    // Add individual contact items as medium priority
+    contactItems.forEach(item => {
+      const rect = item.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
+      
+      sectionPositions.push({
+        element: item,
+        top: rect.top - elementRect.top,
+        height: rect.height,
+        isContactItem: true,
+        priority: 2
+      });
+    });
+
+    // Sort by position to process in order
+    sectionPositions.sort((a, b) => a.top - b.top);
 
     const scaleFactor = contentWidth / canvas.width;
     const scaledContentHeight = contentHeight / scaleFactor;
@@ -626,7 +680,7 @@ export class HTMLToPDFService {
       
       // If this isn't the last page, find a good break point
       if (pageBottom < canvas.height) {
-        // Find sections that would be cut by this page break
+        // Find sections that would be cut by this page break, prioritizing contact sections
         const problematicSections = sectionPositions.filter(section => {
           const sectionTop = section.top;
           const sectionBottom = section.top + section.height;
@@ -635,15 +689,26 @@ export class HTMLToPDFService {
           return sectionTop < pageBottom && sectionBottom > pageBottom;
         });
 
-        // If we have problematic sections, move the page break to avoid splitting them
         if (problematicSections.length > 0) {
-          const earliestProblemSection = problematicSections.reduce((earliest, current) => 
-            current.top < earliest.top ? current : earliest
-          );
+          // Sort by priority (higher number = higher priority to avoid splitting)
+          problematicSections.sort((a, b) => b.priority - a.priority);
           
-          // Move page break to start of the problematic section
-          const adjustedBreak = Math.max(currentPageTop + scaledContentHeight * 0.5, earliestProblemSection.top);
-          pageBottom = Math.min(adjustedBreak, canvas.height);
+          const highestPrioritySection = problematicSections[0];
+          
+          // For contact sections, be more aggressive about keeping them together
+          if (highestPrioritySection.isContactSection || highestPrioritySection.isContactGrid) {
+            // Move page break to start of the contact section
+            const adjustedBreak = highestPrioritySection.top;
+            pageBottom = Math.max(currentPageTop + scaledContentHeight * 0.3, adjustedBreak);
+          } else if (highestPrioritySection.isContactItem) {
+            // For individual contact items, try to keep them on the current page if there's space
+            const adjustedBreak = Math.max(currentPageTop + scaledContentHeight * 0.6, highestPrioritySection.top);
+            pageBottom = Math.min(adjustedBreak, canvas.height);
+          } else {
+            // For other sections, use the original logic
+            const adjustedBreak = Math.max(currentPageTop + scaledContentHeight * 0.5, highestPrioritySection.top);
+            pageBottom = Math.min(adjustedBreak, canvas.height);
+          }
         }
       }
 
