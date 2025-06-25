@@ -72,18 +72,18 @@ export const createStyles = (customization: PDFCustomization) => {
     },
     
     title: {
-      fontSize: customization.typography.fontSize.title,
+      fontSize: customization.typography.fontSize.header,
       fontWeight: getFontWeight(customization.typography.fontWeight.title),
       color: customization.visual.headerBackground === 'gradient' ? '#ffffff' : customization.colors.primary,
       letterSpacing: 1,
       lineHeight: customization.typography.lineHeight.title,
+      marginTop: 4,
     },
     
     projectTitle: {
-      fontSize: customization.typography.fontSize.header + 2,
+      fontSize: customization.typography.fontSize.title,
       fontWeight: getFontWeight(customization.typography.fontWeight.header),
       color: customization.colors.text,
-      marginTop: 8,
       lineHeight: customization.typography.lineHeight.header,
     },
 
@@ -119,6 +119,32 @@ export const createStyles = (customization: PDFCustomization) => {
       padding: 16,
     },
 
+    // Production Details Grid
+    productionGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      padding: 16,
+    },
+
+    gridItem: {
+      flex: 1,
+      minWidth: '30%',
+      backgroundColor: customization.colors.background,
+      padding: 12,
+      borderRadius: customization.visual.cornerRadius - 2,
+      ...createBorderStyle(
+        customization.visual.cardStyle === 'bordered' ? 1 : 0,
+        customization.colors.borderLight
+      ),
+    },
+
+    locationAddress: {
+      fontSize: customization.typography.fontSize.small,
+      color: customization.colors.textLight,
+      marginTop: 2,
+    },
+
     sectionDivider: {
       height: customization.visual.sectionDividers === 'line' ? 1 : 0,
       backgroundColor: customization.visual.sectionDividers === 'accent' 
@@ -145,54 +171,15 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: getFontWeight(customization.typography.fontWeight.body),
     },
 
-    infoGrid: {
-      flexDirection: 'row',
-      gap: 12,
-      marginBottom: customization.layout.spacing.itemGap,
-    },
-    
-    infoCell: {
-      flex: 1,
-      backgroundColor: customization.colors.background,
-      padding: 12,
-      borderRadius: customization.visual.cornerRadius - 2,
-      ...createBorderStyle(
-        customization.visual.cardStyle === 'bordered' ? 1 : 0,
-        customization.colors.borderLight
-      ),
-    },
-    
-    infoCellAccent: {
-      flex: 1,
-      backgroundColor: customization.colors.accent + '10',
-      padding: 12,
-      borderRadius: customization.visual.cornerRadius - 2,
-      ...createPartialBorderStyle({ left: 3 }, customization.colors.accent),
-    },
-
-    contactGridContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-    },
-    
-    contactGridItem: {
-      width: '48%',
-      backgroundColor: customization.colors.background,
-      padding: 12,
-      borderRadius: customization.visual.cornerRadius - 2,
-      marginBottom: 8,
-      ...createPartialBorderStyle({ left: 2 }, customization.colors.accent),
-    },
-
-    contactGrid: {
+    // Tight grid layout for contacts - matching preview
+    contactTightGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: 8,
     },
     
-    contactCard: {
-      width: customization.sections.formatting.contactLayout === 'cards' ? '48%' : '100%',
+    contactTightGridItem: {
+      width: '48%',
       backgroundColor: customization.colors.background,
       padding: 10,
       borderRadius: customization.visual.cornerRadius - 2,
@@ -220,43 +207,43 @@ export const createStyles = (customization: PDFCustomization) => {
       lineHeight: 1.3,
     },
 
-    scheduleItem: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      marginBottom: 12,
-      padding: 12,
+    // Schedule table styles
+    scheduleTable: {
       backgroundColor: customization.colors.background,
       borderRadius: customization.visual.cornerRadius - 2,
-      ...createPartialBorderStyle({ left: 3 }, customization.colors.accent),
+      ...createBorderStyle(1, customization.colors.border),
     },
-    
-    sceneNumber: {
-      backgroundColor: customization.colors.accent,
-      color: '#ffffff',
-      padding: 6,
-      borderRadius: customization.visual.cornerRadius - 4,
+
+    scheduleTableHeader: {
+      flexDirection: 'row',
+      backgroundColor: customization.colors.surface,
+      paddingVertical: 8,
+      paddingHorizontal: 4,
+      borderBottomWidth: 1,
+      borderBottomColor: customization.colors.border,
+    },
+
+    scheduleHeaderCell: {
       fontSize: customization.typography.fontSize.small,
       fontWeight: getFontWeight('semibold'),
-      minWidth: 32,
-      textAlign: 'center',
-      marginRight: 12,
-    },
-    
-    scheduleContent: {
-      flex: 1,
-    },
-    
-    scheduleDescription: {
-      fontSize: customization.typography.fontSize.body,
       color: customization.colors.text,
-      marginBottom: 4,
-      fontWeight: getFontWeight('medium'),
+      paddingHorizontal: 6,
+      textAlign: 'center',
     },
-    
-    scheduleDetails: {
+
+    scheduleTableRow: {
+      flexDirection: 'row',
+      paddingVertical: 6,
+      paddingHorizontal: 4,
+      borderBottomWidth: 0.5,
+      borderBottomColor: customization.colors.borderLight,
+    },
+
+    scheduleCell: {
       fontSize: customization.typography.fontSize.small,
-      color: customization.colors.textLight,
-      lineHeight: 1.3,
+      color: customization.colors.text,
+      paddingHorizontal: 6,
+      textAlign: 'left',
     },
 
     notesContainer: {

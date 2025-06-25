@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, Text, View } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -58,75 +59,114 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
       )}
       
       <View style={styles.titleSection}>
-        <Text style={styles.title}>CALL SHEET</Text>
         <SafeText style={styles.projectTitle}>{callsheet.projectTitle}</SafeText>
+        <Text style={styles.title}>CALL SHEET</Text>
       </View>
     </View>
   );
 
-  const BasicInfo = () => (
-    <View style={styles.sectionCard}>
-      <View style={styles.sectionHeader}>
-        {config.sections.formatting.showSectionIcons && (
-          <SectionIcon type="calendar" color={config.colors.accent} />
-        )}
-        <Text style={styles.sectionTitle}>PRODUCTION DETAILS</Text>
-      </View>
-      <View style={styles.sectionContent}>
-        <View style={styles.infoGrid}>
-          <View style={styles.infoCell}>
-            <Text style={styles.label}>Call Time</Text>
-            <SafeText style={styles.value}>{callsheet.generalCallTime}</SafeText>
-          </View>
-          <View style={styles.infoCellAccent}>
-            <Text style={styles.label}>Location</Text>
-            <SafeText style={styles.value}>{callsheet.location}</SafeText>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-
-  const LocationDetails = () => (
-    <View style={styles.sectionCard}>
-      <View style={styles.sectionHeader}>
-        {config.sections.formatting.showSectionIcons && (
-          <SectionIcon type="location" color={config.colors.accent} />
-        )}
-        <Text style={styles.sectionTitle}>LOCATION & LOGISTICS</Text>
-      </View>
-      <View style={styles.sectionContent}>
-        <View style={styles.infoCell}>
-          <Text style={styles.label}>Address</Text>
-          <SafeText style={styles.value}>{callsheet.locationAddress}</SafeText>
+  // Production Details Grid - matching preview layout
+  const ProductionDetailsGrid = () => (
+    <View style={[styles.sectionCard, { marginBottom: 16 }]}>
+      <View style={styles.productionGrid}>
+        <View style={styles.gridItem}>
+          <Text style={styles.label}>Shoot Date</Text>
+          <SafeText style={styles.value}>
+            {new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </SafeText>
         </View>
         
-        {config.sections.visibility.weather && callsheet.weather && callsheet.weather.trim() && (
-          <View style={[styles.infoCellAccent, { marginTop: 12 }]}>
-            <Text style={styles.label}>Weather Forecast</Text>
+        <View style={styles.gridItem}>
+          <Text style={styles.label}>Call Time</Text>
+          <SafeText style={styles.value}>{callsheet.generalCallTime}</SafeText>
+        </View>
+
+        <View style={styles.gridItem}>
+          <Text style={styles.label}>Location</Text>
+          <SafeText style={styles.value}>{callsheet.location}</SafeText>
+          {callsheet.locationAddress && (
+            <SafeText style={styles.locationAddress}>{callsheet.locationAddress}</SafeText>
+          )}
+        </View>
+
+        {callsheet.weather && config.sections.visibility.weather && (
+          <View style={styles.gridItem}>
+            <Text style={styles.label}>Weather</Text>
             <SafeText style={styles.value}>{callsheet.weather}</SafeText>
           </View>
         )}
-        
-        {((callsheet.parkingInstructions && callsheet.parkingInstructions.trim()) || 
-          (callsheet.basecampLocation && callsheet.basecampLocation.trim())) && (
-          <View style={[styles.infoGrid, { marginTop: 12 }]}>
-            {callsheet.parkingInstructions && callsheet.parkingInstructions.trim() && (
-              <View style={styles.infoCell}>
-                <Text style={styles.label}>Parking</Text>
-                <SafeText style={styles.value}>{callsheet.parkingInstructions}</SafeText>
-              </View>
-            )}
-            {callsheet.basecampLocation && callsheet.basecampLocation.trim() && (
-              <View style={styles.infoCell}>
-                <Text style={styles.label}>Basecamp</Text>
-                <SafeText style={styles.value}>{callsheet.basecampLocation}</SafeText>
-              </View>
-            )}
+
+        {callsheet.parkingInstructions && (
+          <View style={styles.gridItem}>
+            <Text style={styles.label}>Parking Instructions</Text>
+            <SafeText style={styles.value}>{callsheet.parkingInstructions}</SafeText>
+          </View>
+        )}
+
+        {callsheet.basecampLocation && (
+          <View style={styles.gridItem}>
+            <Text style={styles.label}>Basecamp Location</Text>
+            <SafeText style={styles.value}>{callsheet.basecampLocation}</SafeText>
           </View>
         )}
       </View>
     </View>
+  );
+
+  const Notes = () => (
+    config.sections.visibility.notes && callsheet.specialNotes && callsheet.specialNotes.trim() && (
+      <View style={[styles.sectionCard, { marginBottom: 16 }]}>
+        <View style={styles.sectionHeader}>
+          {config.sections.formatting.showSectionIcons && (
+            <SectionIcon type="notes" color={config.colors.accent} />
+          )}
+          <Text style={styles.sectionTitle}>SPECIAL NOTES</Text>
+        </View>
+        <View style={styles.sectionContent}>
+          <View style={styles.notesContainer}>
+            <SafeText style={styles.value}>{callsheet.specialNotes}</SafeText>
+          </View>
+        </View>
+      </View>
+    )
+  );
+
+  const Schedule = () => (
+    config.sections.visibility.schedule && callsheet.schedule && callsheet.schedule.length > 0 && (
+      <View style={[styles.sectionCard, { marginBottom: 16 }]}>
+        <View style={styles.sectionHeader}>
+          {config.sections.formatting.showSectionIcons && (
+            <SectionIcon type="clock" color={config.colors.accent} />
+          )}
+          <Text style={styles.sectionTitle}>SCHEDULE</Text>
+        </View>
+        <View style={styles.sectionContent}>
+          <View style={styles.scheduleTable}>
+            <View style={styles.scheduleTableHeader}>
+              <Text style={[styles.scheduleHeaderCell, { flex: 1 }]}>Scene</Text>
+              <Text style={[styles.scheduleHeaderCell, { flex: 1 }]}>Int/Ext</Text>
+              <Text style={[styles.scheduleHeaderCell, { flex: 2 }]}>Description</Text>
+              <Text style={[styles.scheduleHeaderCell, { flex: 2 }]}>Location</Text>
+              <Text style={[styles.scheduleHeaderCell, { flex: 1 }]}>Time</Text>
+            </View>
+            {callsheet.schedule.map((item, index) => (
+              <View key={index} style={styles.scheduleTableRow}>
+                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.sceneNumber}</SafeText>
+                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.intExt}</SafeText>
+                <SafeText style={[styles.scheduleCell, { flex: 2 }]}>{item.description}</SafeText>
+                <SafeText style={[styles.scheduleCell, { flex: 2 }]}>{item.location}</SafeText>
+                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.estimatedTime}</SafeText>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+    )
   );
 
   const ContactSection = ({ title, contacts, iconType }: { 
@@ -134,7 +174,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
     contacts: any[]; 
     iconType: string;
   }) => (
-    <View style={styles.sectionCard}>
+    <View style={[styles.sectionCard, { marginBottom: 16 }]}>
       <View style={styles.sectionHeader}>
         {config.sections.formatting.showSectionIcons && (
           <SectionIcon type={iconType} color={config.colors.accent} />
@@ -147,9 +187,9 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
             No contacts added
           </Text>
         ) : (
-          <View style={styles.contactGridContainer}>
+          <View style={styles.contactTightGrid}>
             {contacts.map((contact, index) => (
-              <View key={contact.id || index} style={styles.contactGridItem}>
+              <View key={contact.id || index} style={styles.contactTightGridItem}>
                 <SafeText style={styles.contactName}>{contact.name}</SafeText>
                 {((contact.role && contact.role.trim()) || (contact.character && contact.character.trim())) && (
                   <SafeText style={styles.contactRole}>
@@ -171,67 +211,6 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
     </View>
   );
 
-  const Schedule = () => (
-    config.sections.visibility.schedule && (
-      <View style={styles.sectionCard}>
-        <View style={styles.sectionHeader}>
-          {config.sections.formatting.showSectionIcons && (
-            <SectionIcon type="clock" color={config.colors.accent} />
-          )}
-          <Text style={styles.sectionTitle}>SHOOTING SCHEDULE</Text>
-        </View>
-        <View style={styles.sectionContent}>
-          {(!callsheet.schedule || callsheet.schedule.length === 0) ? (
-            <Text style={[styles.value, { fontStyle: 'italic', color: config.colors.textLight }]}>
-              No schedule items added
-            </Text>
-          ) : (
-            callsheet.schedule.map((item, index) => (
-              <View key={index} style={styles.scheduleItem}>
-                <SafeText style={styles.sceneNumber}>{item.sceneNumber}</SafeText>
-                <View style={styles.scheduleContent}>
-                  <SafeText style={styles.scheduleDescription}>
-                    {[
-                      item.intExt && item.intExt.trim() ? item.intExt.trim() : '',
-                      item.description && item.description.trim() ? item.description.trim() : ''
-                    ].filter(Boolean).join(' • ')}
-                  </SafeText>
-                  <SafeText style={styles.scheduleDetails}>
-                    {[
-                      item.estimatedTime && item.estimatedTime.trim() ? item.estimatedTime.trim() : '',
-                      item.pageCount && item.pageCount.trim() ? `${item.pageCount.trim()} pages` : ''
-                    ].filter(Boolean).join(' • ')}
-                  </SafeText>
-                  {item.location && item.location.trim() && (
-                    <SafeText style={styles.scheduleDetails}>{`📍 ${item.location}`}</SafeText>
-                  )}
-                </View>
-              </View>
-            ))
-          )}
-        </View>
-      </View>
-    )
-  );
-
-  const Notes = () => (
-    config.sections.visibility.notes && callsheet.specialNotes && callsheet.specialNotes.trim() && (
-      <View style={styles.sectionCard}>
-        <View style={styles.sectionHeader}>
-          {config.sections.formatting.showSectionIcons && (
-            <SectionIcon type="notes" color={config.colors.accent} />
-          )}
-          <Text style={styles.sectionTitle}>SPECIAL NOTES</Text>
-        </View>
-        <View style={styles.sectionContent}>
-          <View style={styles.notesContainer}>
-            <SafeText style={styles.value}>{callsheet.specialNotes}</SafeText>
-          </View>
-        </View>
-      </View>
-    )
-  );
-
   const Footer = () => (
     config.branding.footer?.text && config.branding.footer.text.trim() && (
       <View style={styles.footer}>
@@ -244,8 +223,9 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
     <Document>
       <Page size="A4" style={styles.page} orientation={config.layout.pageOrientation}>
         <Header />
-        <BasicInfo />
-        <LocationDetails />
+        <ProductionDetailsGrid />
+        <Notes />
+        <Schedule />
         <ContactSection title="CAST" contacts={callsheet.cast || []} iconType="users" />
         <ContactSection title="CREW" contacts={callsheet.crew || []} iconType="users" />
         {config.sections.visibility.emergencyContacts && (
@@ -255,8 +235,6 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
             iconType="emergency"
           />
         )}
-        <Schedule />
-        <Notes />
         <Footer />
       </Page>
     </Document>
