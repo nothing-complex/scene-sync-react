@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { EmergencyNumbers } from '../EmergencyNumbers';
+import { getEmergencyNumberFromLocation, getCountryCodeFromLocation } from '@/utils/emergencyNumberUtils';
 import { EmergencyServiceApi } from '@/services/emergencyService';
 
 interface CallsheetPDFPreviewProps {
@@ -17,68 +18,6 @@ interface ContactCardProps {
   isEmergency?: boolean;
   customization: PDFCustomization;
 }
-
-const getCountryCodeFromLocation = (location: string): string => {
-  // Extract country from location string - this is a simplified approach
-  const locationLower = location.toLowerCase();
-  
-  // European countries that use 112
-  if (locationLower.includes('denmark') || locationLower.includes('copenhagen')) return 'DK';
-  if (locationLower.includes('germany') || locationLower.includes('deutschland')) return 'DE';
-  if (locationLower.includes('france') || locationLower.includes('paris')) return 'FR';
-  if (locationLower.includes('spain') || locationLower.includes('españa')) return 'ES';
-  if (locationLower.includes('italy') || locationLower.includes('italia')) return 'IT';
-  if (locationLower.includes('netherlands') || locationLower.includes('holland')) return 'NL';
-  if (locationLower.includes('sweden') || locationLower.includes('sverige')) return 'SE';
-  if (locationLower.includes('norway') || locationLower.includes('norge')) return 'NO';
-  if (locationLower.includes('finland') || locationLower.includes('suomi')) return 'FI';
-  if (locationLower.includes('austria') || locationLower.includes('österreich')) return 'AT';
-  if (locationLower.includes('switzerland') || locationLower.includes('schweiz')) return 'CH';
-  if (locationLower.includes('belgium') || locationLower.includes('belgië')) return 'BE';
-  if (locationLower.includes('portugal')) return 'PT';
-  if (locationLower.includes('greece') || locationLower.includes('ελλάδα')) return 'GR';
-  if (locationLower.includes('poland') || locationLower.includes('polska')) return 'PL';
-  if (locationLower.includes('czech') || locationLower.includes('czechia')) return 'CZ';
-  if (locationLower.includes('slovakia') || locationLower.includes('slovensko')) return 'SK';
-  if (locationLower.includes('hungary') || locationLower.includes('magyarország')) return 'HU';
-  if (locationLower.includes('romania') || locationLower.includes('românia')) return 'RO';
-  if (locationLower.includes('bulgaria') || locationLower.includes('българия')) return 'BG';
-  if (locationLower.includes('croatia') || locationLower.includes('hrvatska')) return 'HR';
-  if (locationLower.includes('slovenia') || locationLower.includes('slovenija')) return 'SI';
-  if (locationLower.includes('estonia') || locationLower.includes('eesti')) return 'EE';
-  if (locationLower.includes('latvia') || locationLower.includes('latvija')) return 'LV';
-  if (locationLower.includes('lithuania') || locationLower.includes('lietuva')) return 'LT';
-  if (locationLower.includes('ireland') || locationLower.includes('éire')) return 'IE';
-  if (locationLower.includes('luxembourg')) return 'LU';
-  if (locationLower.includes('malta')) return 'MT';
-  if (locationLower.includes('cyprus') || locationLower.includes('κύπρος')) return 'CY_SOUTH';
-  if (locationLower.includes('iceland') || locationLower.includes('ísland')) return 'IS';
-  
-  // UK uses 999
-  if (locationLower.includes('united kingdom') || locationLower.includes('england') || 
-      locationLower.includes('scotland') || locationLower.includes('wales') || 
-      locationLower.includes('northern ireland') || locationLower.includes('britain')) return 'GB';
-  
-  // North American countries that use 911
-  if (locationLower.includes('canada')) return 'CA';
-  if (locationLower.includes('mexico') || locationLower.includes('méxico')) return 'MX';
-  
-  // Other countries
-  if (locationLower.includes('australia')) return 'AU';
-  if (locationLower.includes('new zealand')) return 'NZ';
-  if (locationLower.includes('japan') || locationLower.includes('日本')) return 'JP';
-  if (locationLower.includes('south korea') || locationLower.includes('korea')) return 'KR';
-  if (locationLower.includes('china') || locationLower.includes('中国')) return 'CN';
-  if (locationLower.includes('india')) return 'IN';
-  if (locationLower.includes('brazil') || locationLower.includes('brasil')) return 'BR';
-  if (locationLower.includes('argentina')) return 'AR';
-  if (locationLower.includes('chile')) return 'CL';
-  if (locationLower.includes('colombia')) return 'CO';
-  if (locationLower.includes('south africa')) return 'ZA';
-  
-  // Default to US if country can't be determined
-  return 'US';
-};
 
 const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false, customization }) => {
   const cardStyle = {
@@ -145,8 +84,8 @@ const ContactSection: React.FC<{
   icon: string;
   isEmergency?: boolean;
   customization: PDFCustomization;
-  emergencyNumbers?: any;
-}> = ({ title, contacts, icon, isEmergency = false, customization, emergencyNumbers }) => {
+  emergencyNumber?: string;
+}> = ({ title, contacts, icon, isEmergency = false, customization, emergencyNumber }) => {
   const showIcons = customization.sections.formatting.showSectionIcons;
   const isEmergencyProminent = isEmergency && customization.sections.formatting.emergencyProminent;
   
@@ -154,6 +93,19 @@ const ContactSection: React.FC<{
   const gridClass = contactLayout === 'compact' ? 'grid-cols-3' :
                    contactLayout === 'cards' ? 'grid-cols-2' :
                    contactLayout === 'table' ? 'grid-cols-1' : 'grid-cols-2';
+
+  // Create emergency numbers object for the EmergencyNumbers component
+  const emergencyNumbers = emergencyNumber ? {
+    general: emergencyNumber,
+    police: emergencyNumber,
+    fire: emergencyNumber,
+    medical: emergencyNumber
+  } : {
+    general: '911',
+    police: '911',
+    fire: '911',
+    medical: '911'
+  };
 
   return (
     <div className="mb-6">
@@ -168,7 +120,7 @@ const ContactSection: React.FC<{
         {title}
       </h3>
       
-      {isEmergency && emergencyNumbers && (
+      {isEmergency && emergencyNumber && (
         <div className="mb-4">
           <EmergencyNumbers emergencyNumbers={emergencyNumbers} />
         </div>
@@ -274,6 +226,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     });
   };
 
+  // Get emergency number from callsheet data or calculate from location
+  const emergencyNumber = callsheet.emergencyNumber || getEmergencyNumberFromLocation(callsheet.location);
+  
   // Determine country code from location for emergency numbers
   const countryCode = getCountryCodeFromLocation(callsheet.location);
   const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers(countryCode);
@@ -617,7 +572,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           icon="⚠️"
           isEmergency={true}
           customization={customization}
-          emergencyNumbers={emergencyNumbers}
+          emergencyNumber={emergencyNumber}
         />
       )}
 

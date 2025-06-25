@@ -2,7 +2,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
-import { EmergencyServiceApi } from './emergencyService';
+import { getEmergencyNumberFromLocation } from '@/utils/emergencyNumberUtils';
 
 export class HTMLToPDFService {
   private customization: PDFCustomization;
@@ -223,6 +223,9 @@ export class HTMLToPDFService {
       });
     };
 
+    // Get emergency number from callsheet data or calculate from location
+    const emergencyNumber = callsheet.emergencyNumber || getEmergencyNumberFromLocation(callsheet.location);
+
     const isHeaderCentered = this.customization.layout.headerStyle === 'minimal' || 
                             this.customization.layout.headerStyle === 'creative';
     
@@ -334,7 +337,7 @@ export class HTMLToPDFService {
         ${callsheet.cast.length > 0 ? this.generateContactSection('CAST', callsheet.cast, '🎭', 'cast') : ''}
         ${callsheet.crew.length > 0 ? this.generateContactSection('CREW', callsheet.crew, '🎬', 'crew') : ''}
         ${callsheet.emergencyContacts.length > 0 && this.customization.sections.visibility.emergencyContacts ? 
-          this.generateContactSection('EMERGENCY CONTACTS', callsheet.emergencyContacts, '⚠️', 'emergency') : ''}
+          this.generateContactSection('EMERGENCY CONTACTS', callsheet.emergencyContacts, '⚠️', 'emergency', emergencyNumber) : ''}
 
         ${this.customization.branding.footer?.text ? `
         <!-- Footer -->
@@ -387,13 +390,40 @@ export class HTMLToPDFService {
     `;
   }
 
-  private generateContactSection(title: string, contacts: any[], icon: string, type: string): string {
+  private generateContactSection(title: string, contacts: any[], icon: string, type: string, emergencyNumber?: string): string {
     // Use CSS Grid layout to match the preview
     const gridColumns = this.customization.sections.formatting.contactLayout === 'compact' ? 
       'repeat(3, 1fr)' : 'repeat(2, 1fr)';
     
     // Add emergency number header for emergency contacts
-    const emergencyNumberHeader = type === 'emergency' ? this.generateEmergencyNumberHeader() : '';
+    const emergencyNumberHeader = type === 'emergency' && emergencyNumber ? `
+      <div class="pdf-emergency-header" style="
+        background-color: #fef2f2;
+        border: 2px solid #fca5a5;
+        border-radius: ${this.customization.visual.cornerRadius}px;
+        padding: 16px;
+        margin-bottom: 16px;
+        text-align: center;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      ">
+        <div style="
+          font-size: ${this.customization.typography.fontSize.small}px;
+          color: #991b1b;
+          font-weight: ${this.getFontWeight('medium')};
+          margin-bottom: 4px;
+        ">
+          Emergency Services
+        </div>
+        <div style="
+          font-size: ${this.customization.typography.fontSize.header + 8}px;
+          color: #dc2626;
+          font-weight: ${this.getFontWeight('bold')};
+        ">
+          ${emergencyNumber}
+        </div>
+      </div>
+    ` : '';
     
     return `
       <!-- ${title} -->
@@ -429,54 +459,6 @@ export class HTMLToPDFService {
           break-inside: avoid !important;
         ">
           ${contacts.map(contact => this.generateContactCard(contact, type)).join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  private generateEmergencyNumberHeader(): string {
-    // Get the current callsheet being processed - we need to pass this from the parent method
-    // For now, we'll use a fallback approach by checking if we have access to location data
-    let countryCode = 'US'; // Default fallback
-    
-    // Try to get country code from the current context
-    // This is a temporary solution - ideally we'd pass the callsheet data to this method
-    const tempElement = document.querySelector('#temp-pdf-content');
-    if (tempElement) {
-      const locationElements = tempElement.querySelectorAll('[data-location]');
-      if (locationElements.length > 0) {
-        const location = locationElements[0].getAttribute('data-location') || '';
-        countryCode = this.getCountryCodeFromLocation(location);
-      }
-    }
-    
-    const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers(countryCode);
-    
-    return `
-      <div class="pdf-emergency-header" style="
-        background-color: #fef2f2;
-        border: 2px solid #fca5a5;
-        border-radius: ${this.customization.visual.cornerRadius}px;
-        padding: 16px;
-        margin-bottom: 16px;
-        text-align: center;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-      ">
-        <div style="
-          font-size: ${this.customization.typography.fontSize.small}px;
-          color: #991b1b;
-          font-weight: ${this.getFontWeight('medium')};
-          margin-bottom: 4px;
-        ">
-          Emergency Services
-        </div>
-        <div style="
-          font-size: ${this.customization.typography.fontSize.header + 8}px;
-          color: #dc2626;
-          font-weight: ${this.getFontWeight('bold')};
-        ">
-          ${emergencyNumbers.general}
         </div>
       </div>
     `;
