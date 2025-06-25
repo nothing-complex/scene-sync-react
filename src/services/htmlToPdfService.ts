@@ -2,6 +2,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
+import { EmergencyServiceApi } from './emergencyService';
 
 export class HTMLToPDFService {
   private customization: PDFCustomization;
@@ -385,6 +386,9 @@ export class HTMLToPDFService {
     const gridColumns = this.customization.sections.formatting.contactLayout === 'compact' ? 
       'repeat(3, 1fr)' : 'repeat(2, 1fr)';
     
+    // Add emergency number header for emergency contacts
+    const emergencyNumberHeader = type === 'emergency' ? this.generateEmergencyNumberHeader() : '';
+    
     return `
       <!-- ${title} -->
       <div class="pdf-section pdf-contact-section" style="
@@ -409,6 +413,7 @@ export class HTMLToPDFService {
           ${this.customization.sections.formatting.showSectionIcons ? `<span style="font-size: 20px;">${icon}</span>` : ''}
           ${title}
         </h3>
+        ${emergencyNumberHeader}
         <div class="pdf-contact-grid" style="
           display: grid;
           grid-template-columns: ${gridColumns};
@@ -418,6 +423,40 @@ export class HTMLToPDFService {
           break-inside: avoid !important;
         ">
           ${contacts.map(contact => this.generateContactCard(contact, type)).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  private generateEmergencyNumberHeader(): string {
+    // Get emergency numbers for US (default) - in a real app, this would be based on location
+    const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers('US');
+    
+    return `
+      <div class="pdf-emergency-header" style="
+        background-color: #fef2f2;
+        border: 2px solid #fca5a5;
+        border-radius: ${this.customization.visual.cornerRadius}px;
+        padding: 16px;
+        margin-bottom: 16px;
+        text-align: center;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      ">
+        <div style="
+          font-size: ${this.customization.typography.fontSize.small}px;
+          color: #991b1b;
+          font-weight: ${this.getFontWeight('medium')};
+          margin-bottom: 4px;
+        ">
+          Emergency Services
+        </div>
+        <div style="
+          font-size: ${this.customization.typography.fontSize.header + 8}px;
+          color: #dc2626;
+          font-weight: ${this.getFontWeight('bold')};
+        ">
+          ${emergencyNumbers.general}
         </div>
       </div>
     `;
