@@ -235,26 +235,6 @@ const generateContacts = (callsheet: CallsheetData, contacts: any[], title: stri
     contactLayout === 'cards' ? 'grid-template-columns: repeat(2, 1fr);' :
       'grid-template-columns: repeat(1, 1fr);';
 
-  // Add emergency number banner for emergency contacts
-  const emergencyBanner = isEmergency ? (() => {
-    const emergencyNumber = callsheet.emergencyNumber || getEmergencyNumberFromLocation(callsheet.location);
-    return `
-      <div style="
-        background-color: #fef2f2; 
-        border: 2px solid #fca5a5; 
-        border-radius: ${customization.visual.cornerRadius}px; 
-        padding: 16px; 
-        margin-bottom: 16px;
-        text-align: center;
-        font-weight: bold;
-        color: #dc2626;
-      ">
-        <div style="font-size: ${customization.typography.fontSize.small}px; margin-bottom: 4px;">Emergency Services</div>
-        <div style="font-size: ${customization.typography.fontSize.title}px; font-weight: bold;">${emergencyNumber}</div>
-      </div>
-    `;
-  })() : '';
-
   return `
     <div style="margin-bottom: 2rem;">
       <h3 style="
@@ -269,7 +249,6 @@ const generateContacts = (callsheet: CallsheetData, contacts: any[], title: stri
         ${showIcons ? `<span style="font-size: 1.2rem;">${icon}</span>` : ''}
         ${title}
       </h3>
-      ${emergencyBanner}
       <div style="display: grid; gap: 1rem; ${contactGridClass}">
         ${contacts.map(contact => `
           <div style="${Object.entries(cardStyle)
@@ -282,6 +261,27 @@ const generateContacts = (callsheet: CallsheetData, contacts: any[], title: stri
           </div>
         `).join('')}
       </div>
+    </div>
+  `;
+};
+
+const generateEmergencyNumberHeader = (callsheet: CallsheetData): string => {
+  // Use the stored emergency number if available, otherwise determine from location
+  const emergencyNumber = callsheet.emergencyNumber || getEmergencyNumberFromLocation(callsheet.location);
+  
+  return `
+    <div style="
+      background-color: #fef2f2; 
+      border: 2px solid #fca5a5; 
+      border-radius: 8px; 
+      padding: 16px; 
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: bold;
+      color: #dc2626;
+    ">
+      <div style="font-size: 14px; margin-bottom: 4px;">Emergency Services</div>
+      <div style="font-size: 28px; font-weight: bold;">${emergencyNumber}</div>
     </div>
   `;
 };
@@ -323,6 +323,7 @@ export const generateCallsheetHTML = (callsheet: CallsheetData, customization: P
       .map(([key, value]) => `${key}: ${value};`)
       .join(' ')}">
       ${generateHeader(callsheet, customization)}
+      ${generateEmergencyNumberHeader(callsheet)}
       ${generateProductionDetails(callsheet, customization)}
       ${generateSpecialNotes(callsheet, customization)}
       ${generateSchedule(callsheet, customization)}
@@ -333,109 +334,3 @@ export const generateCallsheetHTML = (callsheet: CallsheetData, customization: P
     </div>
   `;
 };
-
-export class HTMLToPDFService {
-  protected customization: PDFCustomization;
-
-  constructor(customization: PDFCustomization) {
-    this.customization = customization;
-  }
-
-  async generatePDF(callsheet: CallsheetData): Promise<Blob> {
-    console.log('Generating PDF blob using HTML to PDF service');
-    
-    try {
-      const html = generateCallsheetHTML(callsheet, this.customization);
-      
-      // Create a temporary iframe to render the HTML
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'absolute';
-      iframe.style.left = '-9999px';
-      iframe.style.width = '794px'; // A4 width in pixels at 96 DPI
-      iframe.style.height = '1123px'; // A4 height in pixels at 96 DPI
-      document.body.appendChild(iframe);
-
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (!iframeDoc) {
-        throw new Error('Could not access iframe document');
-      }
-
-      iframeDoc.open();
-      iframeDoc.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <style>
-              * { box-sizing: border-box; }
-              body { margin: 0; padding: 0; }
-            </style>
-          </head>
-          <body>${html}</body>
-        </html>
-      `);
-      iframeDoc.close();
-
-      // Wait for content to render
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Use html2canvas to capture the content
-      const { default: html2canvas } = await import('html2canvas');
-      const canvas = await html2canvas(iframeDoc.body, {
-        width: 794,
-        height: 1123,
-        scale: 2
-      });
-
-      // Convert canvas to PDF using jsPDF
-      const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF('p', 'pt', 'a4');
-      
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, 594, 841); // A4 size in points
-      
-      // Clean up
-      document.body.removeChild(iframe);
-      
-      return pdf.output('blob');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      throw error;
-    }
-  }
-
-  async savePDF(callsheet: CallsheetData, filename?: string): Promise<void> {
-    const blob = await this.generatePDF(callsheet);
-    const fileName = filename || `${(callsheet.projectTitle || 'callsheet').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_callsheet.pdf`;
-    
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 1000);
-  }
-
-  async previewPDF(callsheet: CallsheetData): Promise<void> {
-    const blob = await this.generatePDF(callsheet);
-    const url = URL.createObjectURL(blob);
-    const newWindow = window.open(url, '_blank');
-    if (!newWindow) {
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.click();
-    }
-    
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 5000);
-  }
-}
