@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -74,18 +75,13 @@ export class ReactPDFService {
         throw new Error('Invalid callsheet data provided');
       }
 
-      console.log('Creating PDF document with tight grid layout...');
-      const documentElement = (
-        <CallsheetPDFDocument 
-          callsheet={callsheet}
-          customization={this.customization}
-        />
-      );
-
-      console.log('Generating PDF blob...');
-      const blob = await pdf(documentElement).toBlob();
-      console.log('PDF blob generated successfully, size:', blob.size);
-      return blob;
+      console.log('Creating PDF document with grid layout matching preview...');
+      
+      // Import HTMLToPDFService to use the same rendering as preview
+      const { HTMLToPDFService } = await import('./htmlToPdfService');
+      const htmlService = new HTMLToPDFService(this.customization);
+      return await htmlService.generatePDF(callsheet);
+      
     } catch (error) {
       console.error('Error generating PDF blob:', error);
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
