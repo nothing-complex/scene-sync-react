@@ -1,3 +1,4 @@
+
 import { CallsheetData } from '@/types/callsheet';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { getEmergencyNumberFromLocation } from '@/utils/emergencyNumberUtils';
@@ -334,3 +335,109 @@ export const generateCallsheetHTML = (callsheet: CallsheetData, customization: P
     </div>
   `;
 };
+
+export class HTMLToPDFService {
+  protected customization: PDFCustomization;
+
+  constructor(customization: PDFCustomization) {
+    this.customization = customization;
+  }
+
+  async generatePDF(callsheet: CallsheetData): Promise<Blob> {
+    console.log('Generating PDF blob using HTML to PDF service');
+    
+    try {
+      const html = generateCallsheetHTML(callsheet, this.customization);
+      
+      // Create a temporary iframe to render the HTML
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.left = '-9999px';
+      iframe.style.width = '794px'; // A4 width in pixels at 96 DPI
+      iframe.style.height = '1123px'; // A4 height in pixels at 96 DPI
+      document.body.appendChild(iframe);
+
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) {
+        throw new Error('Could not access iframe document');
+      }
+
+      iframeDoc.open();
+      iframeDoc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              * { box-sizing: border-box; }
+              body { margin: 0; padding: 0; }
+            </style>
+          </head>
+          <body>${html}</body>
+        </html>
+      `);
+      iframeDoc.close();
+
+      // Wait for content to render
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Use html2canvas to capture the content
+      const { default: html2canvas } = await import('html2canvas');
+      const canvas = await html2canvas(iframeDoc.body, {
+        width: 794,
+        height: 1123,
+        scale: 2
+      });
+
+      // Convert canvas to PDF using jsPDF
+      const { jsPDF } = await import('jspdf');
+      const pdf = new jsPDF('p', 'pt', 'a4');
+      
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, 594, 841); // A4 size in points
+      
+      // Clean up
+      document.body.removeChild(iframe);
+      
+      return pdf.output('blob');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw error;
+    }
+  }
+
+  async savePDF(callsheet: CallsheetData, filename?: string): Promise<void> {
+    const blob = await this.generatePDF(callsheet);
+    const fileName = filename || `${(callsheet.projectTitle || 'callsheet').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_callsheet.pdf`;
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }
+
+  async previewPDF(callsheet: CallsheetData): Promise<void> {
+    const blob = await this.generatePDF(callsheet);
+    const url = URL.createObjectURL(blob);
+    const newWindow = window.open(url, '_blank');
+    if (!newWindow) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.click();
+    }
+    
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 5000);
+  }
+}
