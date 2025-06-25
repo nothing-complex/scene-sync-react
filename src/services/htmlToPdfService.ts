@@ -381,6 +381,10 @@ export class HTMLToPDFService {
   }
 
   private generateContactSection(title: string, contacts: any[], icon: string, type: string): string {
+    // Use CSS Grid layout to match the preview
+    const gridColumns = this.customization.sections.formatting.contactLayout === 'compact' ? 
+      'repeat(3, 1fr)' : 'repeat(2, 1fr)';
+    
     return `
       <!-- ${title} -->
       <div class="pdf-section" style="margin-bottom: 24px;">
@@ -396,7 +400,12 @@ export class HTMLToPDFService {
           ${this.customization.sections.formatting.showSectionIcons ? `<span style="font-size: 20px;">${icon}</span>` : ''}
           ${title}
         </h3>
-        <div class="pdf-contact-grid">
+        <div class="pdf-contact-grid" style="
+          display: grid;
+          grid-template-columns: ${gridColumns};
+          gap: 16px;
+          width: 100%;
+        ">
           ${contacts.map(contact => this.generateContactCard(contact, type)).join('')}
         </div>
       </div>
@@ -415,7 +424,6 @@ export class HTMLToPDFService {
         border-radius: ${this.customization.visual.cornerRadius}px;
         border: 1px solid ${isEmergency && this.customization.sections.formatting.emergencyProminent ? '#fca5a5' : this.customization.colors.border};
         border-left: 4px solid ${isEmergency && this.customization.sections.formatting.emergencyProminent ? '#dc2626' : this.customization.colors.accent};
-        margin-bottom: 14px;
         box-sizing: border-box;
         overflow: visible;
       ">
