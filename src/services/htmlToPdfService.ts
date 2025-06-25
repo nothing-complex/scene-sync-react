@@ -173,6 +173,10 @@ export class HTMLToPDFService {
     
     container.id = 'temp-pdf-content';
     container.className = 'pdf-page-content';
+    
+    // Store the location data for emergency number detection
+    container.setAttribute('data-location', callsheet.location);
+    
     container.innerHTML = this.generateHTMLContent(callsheet);
     
     document.body.appendChild(container);
@@ -288,7 +292,7 @@ export class HTMLToPDFService {
         ">
           ${this.generateInfoCard('📅', 'Shoot Date', formatDate(callsheet.shootDate))}
           ${this.generateInfoCard('🕐', 'Call Time', callsheet.generalCallTime)}
-          ${this.generateInfoCard('📍', 'Location', callsheet.location, callsheet.locationAddress)}
+          ${this.generateInfoCard('📍', 'Location', callsheet.location, callsheet.locationAddress, callsheet.location)}
           ${callsheet.weather && this.customization.sections.visibility.weather ? 
             this.generateInfoCard('🌤️', 'Weather', callsheet.weather) : ''}
           ${callsheet.parkingInstructions ? 
@@ -349,10 +353,12 @@ export class HTMLToPDFService {
     `;
   }
 
-  private generateInfoCard(icon: string, title: string, value: string, subtitle?: string): string {
+  private generateInfoCard(icon: string, title: string, value: string, subtitle?: string, location?: string): string {
     const cardStyles = this.getCardStyles();
+    const locationData = location ? `data-location="${location}"` : '';
+    
     return `
-      <div class="pdf-info-card" style="
+      <div class="pdf-info-card" ${locationData} style="
         ${cardStyles} 
         padding: 16px; 
         background-color: ${this.customization.colors.surface};
@@ -429,8 +435,22 @@ export class HTMLToPDFService {
   }
 
   private generateEmergencyNumberHeader(): string {
-    // Get emergency numbers for US (default) - in a real app, this would be based on location
-    const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers('US');
+    // Get the current callsheet being processed - we need to pass this from the parent method
+    // For now, we'll use a fallback approach by checking if we have access to location data
+    let countryCode = 'US'; // Default fallback
+    
+    // Try to get country code from the current context
+    // This is a temporary solution - ideally we'd pass the callsheet data to this method
+    const tempElement = document.querySelector('#temp-pdf-content');
+    if (tempElement) {
+      const locationElements = tempElement.querySelectorAll('[data-location]');
+      if (locationElements.length > 0) {
+        const location = locationElements[0].getAttribute('data-location') || '';
+        countryCode = this.getCountryCodeFromLocation(location);
+      }
+    }
+    
+    const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers(countryCode);
     
     return `
       <div class="pdf-emergency-header" style="
@@ -578,6 +598,69 @@ export class HTMLToPDFService {
         </div>
       </div>
     `;
+  }
+
+  private getCountryCodeFromLocation(location: string): string {
+    // Extract country from location string - this is a simplified approach
+    // In a production app, you might want to use a geocoding service for more accuracy
+    const locationLower = location.toLowerCase();
+    
+    // European countries that use 112
+    if (locationLower.includes('denmark') || locationLower.includes('copenhagen')) return 'DK';
+    if (locationLower.includes('germany') || locationLower.includes('deutschland')) return 'DE';
+    if (locationLower.includes('france') || locationLower.includes('paris')) return 'FR';
+    if (locationLower.includes('spain') || locationLower.includes('españa')) return 'ES';
+    if (locationLower.includes('italy') || locationLower.includes('italia')) return 'IT';
+    if (locationLower.includes('netherlands') || locationLower.includes('holland')) return 'NL';
+    if (locationLower.includes('sweden') || locationLower.includes('sverige')) return 'SE';
+    if (locationLower.includes('norway') || locationLower.includes('norge')) return 'NO';
+    if (locationLower.includes('finland') || locationLower.includes('suomi')) return 'FI';
+    if (locationLower.includes('austria') || locationLower.includes('österreich')) return 'AT';
+    if (locationLower.includes('switzerland') || locationLower.includes('schweiz')) return 'CH';
+    if (locationLower.includes('belgium') || locationLower.includes('belgië')) return 'BE';
+    if (locationLower.includes('portugal')) return 'PT';
+    if (locationLower.includes('greece') || locationLower.includes('ελλάδα')) return 'GR';
+    if (locationLower.includes('poland') || locationLower.includes('polska')) return 'PL';
+    if (locationLower.includes('czech') || locationLower.includes('czechia')) return 'CZ';
+    if (locationLower.includes('slovakia') || locationLower.includes('slovensko')) return 'SK';
+    if (locationLower.includes('hungary') || locationLower.includes('magyarország')) return 'HU';
+    if (locationLower.includes('romania') || locationLower.includes('românia')) return 'RO';
+    if (locationLower.includes('bulgaria') || locationLower.includes('българия')) return 'BG';
+    if (locationLower.includes('croatia') || locationLower.includes('hrvatska')) return 'HR';
+    if (locationLower.includes('slovenia') || locationLower.includes('slovenija')) return 'SI';
+    if (locationLower.includes('estonia') || locationLower.includes('eesti')) return 'EE';
+    if (locationLower.includes('latvia') || locationLower.includes('latvija')) return 'LV';
+    if (locationLower.includes('lithuania') || locationLower.includes('lietuva')) return 'LT';
+    if (locationLower.includes('ireland') || locationLower.includes('éire')) return 'IE';
+    if (locationLower.includes('luxembourg')) return 'LU';
+    if (locationLower.includes('malta')) return 'MT';
+    if (locationLower.includes('cyprus') || locationLower.includes('κύπρος')) return 'CY_SOUTH';
+    if (locationLower.includes('iceland') || locationLower.includes('ísland')) return 'IS';
+    
+    // UK uses 999
+    if (locationLower.includes('united kingdom') || locationLower.includes('england') || 
+        locationLower.includes('scotland') || locationLower.includes('wales') || 
+        locationLower.includes('northern ireland') || locationLower.includes('britain')) return 'GB';
+    
+    // North American countries that use 911
+    if (locationLower.includes('canada')) return 'CA';
+    if (locationLower.includes('mexico') || locationLower.includes('méxico')) return 'MX';
+    
+    // Other countries
+    if (locationLower.includes('australia')) return 'AU';
+    if (locationLower.includes('new zealand')) return 'NZ';
+    if (locationLower.includes('japan') || locationLower.includes('日本')) return 'JP';
+    if (locationLower.includes('south korea') || locationLower.includes('korea')) return 'KR';
+    if (locationLower.includes('china') || locationLower.includes('中国')) return 'CN';
+    if (locationLower.includes('india')) return 'IN';
+    if (locationLower.includes('brazil') || locationLower.includes('brasil')) return 'BR';
+    if (locationLower.includes('argentina')) return 'AR';
+    if (locationLower.includes('chile')) return 'CL';
+    if (locationLower.includes('colombia')) return 'CO';
+    if (locationLower.includes('south africa')) return 'ZA';
+    
+    // Default to US if country can't be determined
+    return 'US';
   }
 
   async generatePDF(callsheet: CallsheetData): Promise<Blob> {
