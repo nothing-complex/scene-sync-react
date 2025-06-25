@@ -9,6 +9,7 @@ import { EmergencyServiceApi } from '@/services/emergencyService';
 interface CallsheetPDFPreviewProps {
   callsheet: CallsheetData;
   customization: PDFCustomization;
+  className?: string;
 }
 
 interface ContactCardProps {
@@ -261,7 +262,8 @@ const ScheduleSection: React.FC<{
 
 export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({ 
   callsheet, 
-  customization 
+  customization,
+  className = ""
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -334,7 +336,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   };
 
   const headerStyles = {
-    textAlign: isHeaderCentered ? 'center' : 'left',
+    textAlign: (isHeaderCentered ? 'center' : 'left') as 'center' | 'left',
     ...getHeaderBackgroundStyle()
   };
 
@@ -359,7 +361,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white" style={containerStyles}>
+    <div className={`max-w-4xl mx-auto bg-white ${className}`} style={containerStyles}>
       {/* Header Section */}
       <div style={headerStyles}>
         {customization.branding.logo && (
@@ -625,7 +627,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           borderColor: customization.colors.border,
           fontSize: `${customization.typography.fontSize.small}px`,
           color: customization.colors.textLight,
-          textAlign: customization.branding.footer.position
+          textAlign: customization.branding.footer.position as 'center' | 'left' | 'right'
         }}>
           {customization.branding.footer.text}
         </div>
