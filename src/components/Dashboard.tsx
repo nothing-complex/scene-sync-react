@@ -145,22 +145,6 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                 </p>
               </div>
               <div className="flex items-center space-x-3">
-                {callsheets.length > 0 && (
-                  <Button 
-                    onClick={handleBulkExportExcel}
-                    variant="outline"
-                    className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3"
-                    size="lg"
-                    disabled={actionLoading !== null}
-                  >
-                    {actionLoading === 'bulk-excel' ? (
-                      <LoadingSpinner size="sm" />
-                    ) : (
-                      <FileSpreadsheet className="w-5 h-5 mr-2" />
-                    )}
-                    Export All to Excel
-                  </Button>
-                )}
                 <Button 
                   onClick={onCreateNew} 
                   className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3"
