@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,9 +36,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
     fontFamily: customization.typography.fontFamily === 'inter' ? 'Inter' :
                 customization.typography.fontFamily === 'helvetica' ? 'Helvetica' :
                 customization.typography.fontFamily === 'poppins' ? 'Poppins' :
-                customization.typography.fontFamily === 'montserrat' ? 'Montserrat' : 'Inter',
-    breakInside: 'avoid',
-    pageBreakInside: 'avoid'
+                customization.typography.fontFamily === 'montserrat' ? 'Montserrat' : 'Inter'
   };
 
   const showIcons = customization.sections.formatting.showSectionIcons;
@@ -113,7 +110,7 @@ const ContactSection: React.FC<{
   };
 
   return (
-    <div className="mb-6" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+    <div className="mb-6 avoid-break">
       <h3 className={`text-lg font-semibold mb-4 ${isEmergencyProminent ? 'text-red-800' : ''} flex items-center gap-2`} style={{
         color: isEmergencyProminent ? '#dc2626' : '#1f2937',
         fontSize: `${customization.typography.fontSize.header + 4}px`,
@@ -126,7 +123,7 @@ const ContactSection: React.FC<{
       </h3>
       
       {isEmergency && emergencyNumber && (
-        <div className="mb-4" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+        <div className="mb-4 avoid-break">
           <EmergencyNumbers emergencyNumbers={emergencyNumbers} />
         </div>
       )}
@@ -159,13 +156,11 @@ const ScheduleSection: React.FC<{
     fontFamily: customization.typography.fontFamily === 'inter' ? 'Inter' :
                 customization.typography.fontFamily === 'helvetica' ? 'Helvetica' :
                 customization.typography.fontFamily === 'poppins' ? 'Poppins' :
-                customization.typography.fontFamily === 'montserrat' ? 'Montserrat' : 'Inter',
-    breakInside: 'avoid',
-    pageBreakInside: 'avoid'
+                customization.typography.fontFamily === 'montserrat' ? 'Montserrat' : 'Inter'
   };
 
   return (
-    <div className="mb-6" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+    <div className="mb-6 avoid-break">
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{
         color: '#1f2937',
         fontSize: `${customization.typography.fontSize.header + 4}px`,
@@ -427,13 +422,11 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       </div>
 
       {/* Production Details Grid */}
-      <div className="grid grid-cols-3 gap-4 mb-8" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+      <div className="grid grid-cols-3 gap-4 mb-8 avoid-break">
         <Card style={{ 
           borderRadius: `${customization.visual.cornerRadius}px`,
           backgroundColor: customization.colors.surface,
-          borderColor: customization.colors.border,
-          breakInside: 'avoid',
-          pageBreakInside: 'avoid'
+          borderColor: customization.colors.border
         }}>
           <CardContent className="p-4 flex items-start gap-2">
             {showSectionIcons && <span className="text-lg flex-shrink-0">📅</span>}
@@ -454,9 +447,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         <Card style={{ 
           borderRadius: `${customization.visual.cornerRadius}px`,
           backgroundColor: customization.colors.surface,
-          borderColor: customization.colors.border,
-          breakInside: 'avoid',
-          pageBreakInside: 'avoid'
+          borderColor: customization.colors.border
         }}>
           <CardContent className="p-4 flex items-start gap-2">
             {showSectionIcons && <span className="text-lg flex-shrink-0">🕐</span>}
@@ -477,9 +468,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         <Card style={{ 
           borderRadius: `${customization.visual.cornerRadius}px`,
           backgroundColor: customization.colors.surface,
-          borderColor: customization.colors.border,
-          breakInside: 'avoid',
-          pageBreakInside: 'avoid'
+          borderColor: customization.colors.border
         }}>
           <CardContent className="p-4 flex items-start gap-2">
             {showSectionIcons && <span className="text-lg flex-shrink-0">📍</span>}
@@ -509,9 +498,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
-            borderColor: customization.colors.border,
-            breakInside: 'avoid',
-            pageBreakInside: 'avoid'
+            borderColor: customization.colors.border
           }}>
             <CardContent className="p-4 flex items-start gap-2">
               {showSectionIcons && <span className="text-lg flex-shrink-0">🌤️</span>}
@@ -534,9 +521,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
-            borderColor: customization.colors.border,
-            breakInside: 'avoid',
-            pageBreakInside: 'avoid'
+            borderColor: customization.colors.border
           }}>
             <CardContent className="p-4 flex items-start gap-2">
               {showSectionIcons && <span className="text-lg flex-shrink-0">🅿️</span>}
@@ -559,9 +544,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
-            borderColor: customization.colors.border,
-            breakInside: 'avoid',
-            pageBreakInside: 'avoid'
+            borderColor: customization.colors.border
           }}>
             <CardContent className="p-4 flex items-start gap-2">
               {showSectionIcons && <span className="text-lg flex-shrink-0">🏕️</span>}
@@ -583,7 +566,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
       {/* Special Notes */}
       {callsheet.specialNotes && customization.sections.visibility.notes && (
-        <div className="mb-8" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+        <div className="mb-8 avoid-break">
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,

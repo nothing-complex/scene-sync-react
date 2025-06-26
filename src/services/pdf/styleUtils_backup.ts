@@ -33,7 +33,7 @@ export const createStyles = (customization: PDFCustomization) => {
       padding: customization.layout.margins.top,
       paddingLeft: customization.layout.margins.left,
       paddingRight: customization.layout.margins.right,
-      paddingBottom: customization.layout.margins.bottom,
+      paddingBottom: customization.layout.margins.bottom + 60, // Extra space for footer
       fontFamily,
       fontSize: customization.typography.fontSize.body,
       color: customization.colors.text,
@@ -43,6 +43,7 @@ export const createStyles = (customization: PDFCustomization) => {
     headerContainer: {
       marginBottom: customization.layout.spacing.sectionGap,
       alignItems: customization.layout.headerStyle === 'minimal' ? 'flex-start' : 'center',
+      position: 'relative',
     },
     
     brandingRow: {
