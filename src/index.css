@@ -52,45 +52,45 @@
   }
 
   .dark {
-    /* Softer dark mode */
-    --background: 30 25% 8%;
-    --foreground: 45 25% 92%;
+    /* Improved dark mode with better contrast */
+    --background: 240 10% 8%;
+    --foreground: 0 0% 95%;
 
-    --card: 30 20% 10%;
-    --card-foreground: 45 20% 90%;
+    --card: 240 10% 12%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 30 20% 10%;
-    --popover-foreground: 45 20% 90%;
+    --popover: 240 10% 12%;
+    --popover-foreground: 0 0% 95%;
 
-    /* Softer sand primary for dark mode */
-    --primary: 40 55% 70%;
-    --primary-foreground: 30 25% 8%;
+    /* Better primary contrast for dark mode */
+    --primary: 40 55% 60%;
+    --primary-foreground: 240 10% 8%;
 
-    --secondary: 30 15% 15%;
-    --secondary-foreground: 45 20% 88%;
+    --secondary: 240 8% 18%;
+    --secondary-foreground: 0 0% 90%;
 
-    --muted: 30 15% 15%;
-    --muted-foreground: 40 15% 60%;
+    --muted: 240 8% 18%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 30 20% 18%;
-    --accent-foreground: 45 20% 88%;
+    --accent: 240 8% 20%;
+    --accent-foreground: 0 0% 90%;
 
     --destructive: 0 65% 65%;
-    --destructive-foreground: 45 25% 92%;
+    --destructive-foreground: 0 0% 95%;
 
-    --border: 30 15% 18%;
-    --input: 30 15% 18%;
-    --ring: 40 55% 70%;
+    --border: 240 8% 20%;
+    --input: 240 8% 20%;
+    --ring: 40 55% 60%;
 
-    /* Softer sidebar colors for dark mode */
-    --sidebar-background: 30 25% 7%;
-    --sidebar-foreground: 45 25% 85%;
-    --sidebar-primary: 40 55% 70%;
-    --sidebar-primary-foreground: 30 25% 8%;
-    --sidebar-accent: 30 20% 12%;
-    --sidebar-accent-foreground: 45 20% 82%;
-    --sidebar-border: 30 15% 15%;
-    --sidebar-ring: 40 55% 70%;
+    /* Better sidebar colors for dark mode */
+    --sidebar-background: 240 10% 6%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 40 55% 60%;
+    --sidebar-primary-foreground: 240 10% 8%;
+    --sidebar-accent: 240 8% 15%;
+    --sidebar-accent-foreground: 0 0% 85%;
+    --sidebar-border: 240 8% 18%;
+    --sidebar-ring: 40 55% 60%;
   }
 }
 
@@ -108,20 +108,20 @@
 
   /* Softer Typography Scale */
   h1 {
-    @apply font-medium tracking-tight;
+    @apply font-medium tracking-tight text-foreground;
   }
 
   h2 {
-    @apply font-medium tracking-tight;
+    @apply font-medium tracking-tight text-foreground;
   }
 
   h3 {
-    @apply font-normal tracking-tight;
+    @apply font-normal tracking-tight text-foreground;
   }
 
   /* Softer link styles */
   a {
-    @apply transition-colors duration-200;
+    @apply transition-colors duration-200 text-foreground;
   }
 }
 
@@ -136,7 +136,7 @@
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:shadow-neutral-200/50 hover:-translate-y-1;
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-neutral-200/50 dark:hover:shadow-neutral-800/50 hover:-translate-y-1;
   }
 
   .glass-effect {
@@ -152,7 +152,7 @@
   }
 
   .btn-secondary {
-    @apply border border-foreground/20 text-foreground hover:bg-foreground/5 font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:-translate-y-0.5;
+    @apply border border-border text-foreground hover:bg-accent font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:-translate-y-0.5;
   }
 
   .feature-card {
@@ -166,6 +166,24 @@
   /* Softer interactive elements */
   .interactive-underline {
     @apply relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary/60 after:origin-bottom-right after:transition-transform after:duration-300 after:scale-x-100 after:origin-bottom-left;
+  }
+
+  /* Better form elements for dark mode */
+  .form-input {
+    @apply bg-input border-border text-foreground placeholder:text-muted-foreground;
+  }
+
+  .form-textarea {
+    @apply bg-input border-border text-foreground placeholder:text-muted-foreground resize-none;
+  }
+
+  /* Ensure cards have proper dark mode styling */
+  .contact-card {
+    @apply bg-card text-card-foreground border-border;
+  }
+
+  .emergency-card {
+    @apply bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800/50;
   }
 }
 
@@ -193,5 +211,14 @@
 
   .animate-scroll-follow.scrolling {
     transform: translateY(10px);
+  }
+
+  /* Text color utilities that respect dark mode */
+  .text-adaptive {
+    @apply text-foreground;
+  }
+
+  .text-adaptive-muted {
+    @apply text-muted-foreground;
   }
 }
