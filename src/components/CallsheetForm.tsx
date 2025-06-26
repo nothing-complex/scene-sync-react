@@ -521,9 +521,9 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
         <TabsContent value="basic" className="space-y-8">
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information */}
-            <Card>
+            <Card className="bg-card text-card-foreground border-border">
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className="flex items-center text-foreground">
                   <Calendar className="w-5 h-5 mr-2" />
                   Production Details
                 </CardTitle>
@@ -531,35 +531,37 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="projectTitle">Project Title *</Label>
+                    <Label htmlFor="projectTitle" className="text-foreground">Project Title *</Label>
                     <Input
                       id="projectTitle"
                       value={formData.projectTitle || ''}
                       onChange={(e) => handleInputChange('projectTitle', e.target.value)}
                       placeholder="Enter project title"
+                      className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="shootDate">Shoot Date *</Label>
+                    <Label htmlFor="shootDate" className="text-foreground">Shoot Date *</Label>
                     <Input
                       id="shootDate"
                       type="date"
                       value={formData.shootDate || ''}
                       onChange={(e) => handleInputChange('shootDate', e.target.value)}
+                      className="bg-input border-border text-foreground"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="generalCallTime">General Call Time *</Label>
+                  <Label htmlFor="generalCallTime" className="text-foreground">General Call Time *</Label>
                   <Input
                     id="generalCallTime"
                     type="time"
                     value={formData.generalCallTime || ''}
                     onChange={(e) => handleInputChange('generalCallTime', e.target.value)}
+                    className="md:w-1/2 bg-input border-border text-foreground"
                     required
-                    className="md:w-1/2"
                   />
                 </div>
               </CardContent>
@@ -571,9 +573,9 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
             )}
 
             {/* Location Information */}
-            <Card>
+            <Card className="bg-card text-card-foreground border-border">
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className="flex items-center text-foreground">
                   <MapPin className="w-5 h-5 mr-2" />
                   Location Details
                 </CardTitle>
@@ -589,12 +591,13 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                     id="location"
                   />
                   <div>
-                    <Label htmlFor="locationAddress">Location Address</Label>
+                    <Label htmlFor="locationAddress" className="text-foreground">Location Address</Label>
                     <Input
                       id="locationAddress"
                       value={formData.locationAddress || ''}
                       onChange={(e) => handleInputChange('locationAddress', e.target.value)}
                       placeholder="Full address with zip code"
+                      className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
                 </div>
@@ -602,7 +605,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 {/* Weather Units Selection */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Weather Units</Label>
+                    <Label className="text-foreground">Weather Units</Label>
                     <RadioGroup 
                       value={weatherUnits} 
                       onValueChange={handleWeatherUnitsChange}
@@ -610,23 +613,23 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="metric" id="metric" />
-                        <Label htmlFor="metric" className="font-normal">Metric (°C, km/h)</Label>
+                        <Label htmlFor="metric" className="font-normal text-foreground">Metric (°C, km/h)</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="imperial" id="imperial" />
-                        <Label htmlFor="imperial" className="font-normal">Imperial (°F, mph)</Label>
+                        <Label htmlFor="imperial" className="font-normal text-foreground">Imperial (°F, mph)</Label>
                       </div>
                     </RadioGroup>
                   </div>
                   <div>
-                    <Label htmlFor="weather">Weather</Label>
+                    <Label htmlFor="weather" className="text-foreground">Weather</Label>
                     <div className="relative">
                       <Input
                         id="weather"
                         value={formData.weather || ''}
                         onChange={(e) => handleInputChange('weather', e.target.value)}
                         placeholder="Auto-populated from location and date or enter manually"
-                        className="pr-20"
+                        className="pr-20 bg-input border-border text-foreground placeholder:text-muted-foreground"
                       />
                       <Button
                         type="button"
@@ -655,34 +658,34 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 {/* Emergency Services Section - Two Column Layout */}
                 {emergencyServices.length > 0 && (
                   <div className="mt-6">
-                    <Label className="text-base font-medium flex items-center mb-3">
+                    <Label className="text-base font-medium flex items-center mb-3 text-foreground">
                       <AlertTriangle className="w-4 h-4 mr-2" />
                       Nearby Emergency Services
                     </Label>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
                       {emergencyServices.map((service) => (
-                        <div key={service.id} className="flex items-start justify-between p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div key={service.id} className="flex items-start justify-between p-4 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/50 rounded-lg">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center mb-2">
                               <span className="mr-2 text-lg">{EmergencyServiceApi.getServiceIcon(service.type)}</span>
                               <div className="min-w-0 flex-1">
-                                <div className="font-medium text-sm text-gray-900 truncate">{service.name}</div>
-                                <div className="text-xs text-gray-600">{EmergencyServiceApi.formatServiceType(service.type)}</div>
+                                <div className="font-medium text-sm text-orange-900 dark:text-orange-100 truncate">{service.name}</div>
+                                <div className="text-xs text-orange-700 dark:text-orange-200">{EmergencyServiceApi.formatServiceType(service.type)}</div>
                               </div>
-                              <div className="ml-2 text-xs text-gray-500 whitespace-nowrap">
+                              <div className="ml-2 text-xs text-orange-600 dark:text-orange-300 whitespace-nowrap">
                                 {service.distance}{weatherUnits === 'imperial' ? 'mi' : 'km'} away
                               </div>
                             </div>
                             {service.address && (
-                              <div className="text-sm text-gray-700 mb-2 bg-white p-2 rounded border">
+                              <div className="text-sm text-orange-800 dark:text-orange-200 mb-2 bg-white dark:bg-orange-900/30 p-2 rounded border border-orange-100 dark:border-orange-800/30">
                                 <div className="flex items-start">
-                                  <MapPin className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0 text-gray-500" />
+                                  <MapPin className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0 text-orange-600 dark:text-orange-400" />
                                   <span className="text-xs leading-relaxed">{service.address}</span>
                                 </div>
                               </div>
                             )}
                             {service.phone && (
-                              <div className="text-xs text-gray-600 flex items-center">
+                              <div className="text-xs text-orange-700 dark:text-orange-300 flex items-center">
                                 <span className="mr-1">📞</span>
                                 {service.phone}
                               </div>
@@ -693,7 +696,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleAddEmergencyService(service)}
-                            className="text-orange-600 hover:text-orange-700 ml-3 flex-shrink-0"
+                            className="text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 ml-3 flex-shrink-0"
                             title="Add to emergency contacts"
                           >
                             <Plus className="w-4 h-4" />
@@ -709,22 +712,24 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="parkingInstructions">Parking Instructions</Label>
+                    <Label htmlFor="parkingInstructions" className="text-foreground">Parking Instructions</Label>
                     <Textarea
                       id="parkingInstructions"
                       value={formData.parkingInstructions || ''}
                       onChange={(e) => handleInputChange('parkingInstructions', e.target.value)}
                       placeholder="Parking details and restrictions"
+                      className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                       rows={3}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="basecampLocation">Basecamp Location</Label>
+                    <Label htmlFor="basecampLocation" className="text-foreground">Basecamp Location</Label>
                     <Textarea
                       id="basecampLocation"
                       value={formData.basecampLocation || ''}
                       onChange={(e) => handleInputChange('basecampLocation', e.target.value)}
                       placeholder="Craft services, trailers, equipment staging"
+                      className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                       rows={3}
                     />
                   </div>
@@ -735,9 +740,9 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
             {/* Cast & Crew */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Cast */}
-              <Card>
+              <Card className="bg-card text-card-foreground border-border">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle className="flex items-center justify-between text-foreground">
                     <span className="flex items-center">
                       <Users className="w-5 h-5 mr-2" />
                       Cast ({(formData.cast || []).length})
@@ -756,11 +761,11 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 <CardContent>
                   <div className="space-y-3">
                     {(formData.cast || []).map((castMember) => (
-                      <div key={castMember.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={castMember.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
-                          <div className="font-medium">{castMember.name}</div>
-                          <div className="text-sm text-gray-600">{castMember.character || castMember.role}</div>
-                          <div className="text-sm text-gray-500">{castMember.phone}</div>
+                          <div className="font-medium text-foreground">{castMember.name}</div>
+                          <div className="text-sm text-muted-foreground">{castMember.character || castMember.role}</div>
+                          <div className="text-sm text-muted-foreground">{castMember.phone}</div>
                         </div>
                         <Button
                           type="button"
@@ -774,16 +779,16 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                       </div>
                     ))}
                     {(formData.cast || []).length === 0 && (
-                      <p className="text-gray-500 text-center py-4">No cast members added yet</p>
+                      <p className="text-muted-foreground text-center py-4">No cast members added yet</p>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Crew */}
-              <Card>
+              <Card className="bg-card text-card-foreground border-border">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle className="flex items-center justify-between text-foreground">
                     <span className="flex items-center">
                       <Users className="w-5 h-5 mr-2" />
                       Crew ({(formData.crew || []).length})
@@ -802,11 +807,11 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 <CardContent>
                   <div className="space-y-3">
                     {(formData.crew || []).map((crewMember) => (
-                      <div key={crewMember.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={crewMember.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
-                          <div className="font-medium">{crewMember.name}</div>
-                          <div className="text-sm text-gray-600">{crewMember.role}</div>
-                          <div className="text-sm text-gray-500">{crewMember.phone}</div>
+                          <div className="font-medium text-foreground">{crewMember.name}</div>
+                          <div className="text-sm text-muted-foreground">{crewMember.role}</div>
+                          <div className="text-sm text-muted-foreground">{crewMember.phone}</div>
                         </div>
                         <Button
                           type="button"
@@ -820,7 +825,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                       </div>
                     ))}
                     {(formData.crew || []).length === 0 && (
-                      <p className="text-gray-500 text-center py-4">No crew members added yet</p>
+                      <p className="text-muted-foreground text-center py-4">No crew members added yet</p>
                     )}
                   </div>
                 </CardContent>
@@ -828,9 +833,9 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
             </div>
 
             {/* Schedule */}
-            <Card>
+            <Card className="bg-card text-card-foreground border-border">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex items-center justify-between text-foreground">
                   <span>Shooting Schedule</span>
                   <Button
                     type="button"
@@ -846,47 +851,50 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
               <CardContent>
                 <div className="space-y-4">
                   {(formData.schedule || []).map((item) => (
-                    <div key={item.id} className="p-4 border border-gray-200 rounded-lg">
+                    <div key={item.id} className="p-4 border border-border rounded-lg bg-muted">
                       <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                         <div>
-                          <Label>Scene #</Label>
+                          <Label className="text-foreground">Scene #</Label>
                           <Input
                             value={item.sceneNumber}
                             onChange={(e) => handleUpdateScheduleItem(item.id, 'sceneNumber', e.target.value)}
                             placeholder="1A"
+                            className="bg-input border-border text-foreground"
                           />
                         </div>
                         <div>
-                          <Label>INT/EXT</Label>
+                          <Label className="text-foreground">INT/EXT</Label>
                           <Select
                             value={item.intExt}
                             onValueChange={(value: 'INT' | 'EXT') => 
                               handleUpdateScheduleItem(item.id, 'intExt', value)
                             }
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="bg-input border-border text-foreground">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="INT">INT</SelectItem>
-                              <SelectItem value="EXT">EXT</SelectItem>
+                            <SelectContent className="bg-popover border-border">
+                              <SelectItem value="INT" className="text-popover-foreground">INT</SelectItem>
+                              <SelectItem value="EXT" className="text-popover-foreground">EXT</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="md:col-span-2">
-                          <Label>Description</Label>
+                          <Label className="text-foreground">Description</Label>
                           <Input
                             value={item.description}
                             onChange={(e) => handleUpdateScheduleItem(item.id, 'description', e.target.value)}
                             placeholder="Kitchen - Morning coffee"
+                            className="bg-input border-border text-foreground"
                           />
                         </div>
                         <div>
-                          <Label>Pages</Label>
+                          <Label className="text-foreground">Pages</Label>
                           <Input
                             value={item.pageCount}
                             onChange={(e) => handleUpdateScheduleItem(item.id, 'pageCount', e.target.value)}
                             placeholder="2/8"
+                            className="bg-input border-border text-foreground"
                           />
                         </div>
                         <div className="flex items-end">
@@ -903,26 +911,28 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
-                          <Label>Location</Label>
+                          <Label className="text-foreground">Location</Label>
                           <Input
                             value={item.location}
                             onChange={(e) => handleUpdateScheduleItem(item.id, 'location', e.target.value)}
                             placeholder="Studio Kitchen Set"
+                            className="bg-input border-border text-foreground"
                           />
                         </div>
                         <div>
-                          <Label>Estimated Time</Label>
+                          <Label className="text-foreground">Estimated Time</Label>
                           <Input
                             value={item.estimatedTime}
                             onChange={(e) => handleUpdateScheduleItem(item.id, 'estimatedTime', e.target.value)}
                             placeholder="9:00 AM - 11:00 AM"
+                            className="bg-input border-border text-foreground"
                           />
                         </div>
                       </div>
                     </div>
                   ))}
                   {(formData.schedule || []).length === 0 && (
-                    <p className="text-gray-500 text-center py-8">No scenes added yet</p>
+                    <p className="text-muted-foreground text-center py-8">No scenes added yet</p>
                   )}
                 </div>
               </CardContent>
@@ -930,9 +940,9 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
 
             {/* Emergency Contacts & Notes */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
+              <Card className="bg-card text-card-foreground border-border">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle className="flex items-center justify-between text-foreground">
                     <span>Emergency Contacts</span>
                     <Button
                       type="button"
@@ -948,39 +958,40 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
                 <CardContent>
                   <div className="space-y-3">
                     {(formData.emergencyContacts || []).map((contact) => (
-                      <div key={contact.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                      <div key={contact.id} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-lg">
                         <div>
-                          <div className="font-medium">{contact.name}</div>
-                          <div className="text-sm text-gray-600">{contact.role}</div>
-                          <div className="text-sm text-gray-500">{contact.phone}</div>
+                          <div className="font-medium text-red-800 dark:text-red-200">{contact.name}</div>
+                          <div className="text-sm text-red-700 dark:text-red-300">{contact.role}</div>
+                          <div className="text-sm text-red-600 dark:text-red-400">{contact.phone}</div>
                         </div>
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveContact(contact.id, 'emergency')}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     ))}
                     {(formData.emergencyContacts || []).length === 0 && (
-                      <p className="text-gray-500 text-center py-4">No emergency contacts added</p>
+                      <p className="text-muted-foreground text-center py-4">No emergency contacts added</p>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-card text-card-foreground border-border">
                 <CardHeader>
-                  <CardTitle>Special Notes</CardTitle>
+                  <CardTitle className="text-foreground">Special Notes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Textarea
                     value={formData.specialNotes || ''}
                     onChange={(e) => handleInputChange('specialNotes', e.target.value)}
                     placeholder="Additional production notes, safety information, special instructions..."
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                     rows={8}
                   />
                 </CardContent>
@@ -988,7 +999,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
             </div>
 
             {/* Submit Buttons */}
-            <div className="flex justify-end space-x-4 pt-6 border-t">
+            <div className="flex justify-end space-x-4 pt-6 border-t border-border">
               <Button type="button" variant="outline" onClick={onBack}>
                 Cancel
               </Button>
@@ -1007,7 +1018,7 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
               onCustomizationChange={setPdfCustomization}
             />
           ) : (
-            <Card>
+            <Card className="bg-card text-card-foreground border-border">
               <CardContent className="p-8 text-center">
                 <p className="text-muted-foreground">
                   Please fill in the basic callsheet details first to customize PDF appearance.
