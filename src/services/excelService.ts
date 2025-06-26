@@ -1,10 +1,14 @@
 
 import * as XLSX from 'xlsx';
 import { CallsheetData } from '@/types/callsheet';
+import { getEmergencyNumberFromLocation } from '@/utils/emergencyNumberUtils';
 
 export class ExcelExportService {
   static exportSingleCallsheet(callsheet: CallsheetData): void {
     const workbook = XLSX.utils.book_new();
+
+    // Get emergency number for the location
+    const emergencyNumber = getEmergencyNumberFromLocation(callsheet.location);
 
     // Summary worksheet
     const summaryData = [
@@ -13,6 +17,7 @@ export class ExcelExportService {
       ['General Call Time', callsheet.generalCallTime],
       ['Location', callsheet.location],
       ['Location Address', callsheet.locationAddress],
+      ['Emergency Services Number', emergencyNumber],
       ['Parking Instructions', callsheet.parkingInstructions],
       ['Basecamp Location', callsheet.basecampLocation],
       ['Weather', callsheet.weather],
@@ -77,21 +82,31 @@ export class ExcelExportService {
       XLSX.utils.book_append_sheet(workbook, scheduleWs, 'Schedule');
     }
 
-    // Emergency Contacts worksheet
+    // Emergency Services & Contacts worksheet
+    const emergencyData = [
+      ['Emergency Services'],
+      ['Location Emergency Number', emergencyNumber],
+      [''],
+      ['Emergency Contacts']
+    ];
+
     if (callsheet.emergencyContacts.length > 0) {
       const emergencyHeaders = ['Name', 'Role', 'Phone', 'Email'];
-      const emergencyData = [
-        emergencyHeaders,
-        ...callsheet.emergencyContacts.map(contact => [
+      emergencyData.push(emergencyHeaders);
+      callsheet.emergencyContacts.forEach(contact => {
+        emergencyData.push([
           contact.name,
           contact.role,
           contact.phone,
           contact.email || ''
-        ])
-      ];
-      const emergencyWs = XLSX.utils.aoa_to_sheet(emergencyData);
-      XLSX.utils.book_append_sheet(workbook, emergencyWs, 'Emergency Contacts');
+        ]);
+      });
+    } else {
+      emergencyData.push(['No emergency contacts added']);
     }
+
+    const emergencyWs = XLSX.utils.aoa_to_sheet(emergencyData);
+    XLSX.utils.book_append_sheet(workbook, emergencyWs, 'Emergency Info');
 
     // Apply basic formatting
     this.applyWorkbookFormatting(workbook);
@@ -109,7 +124,7 @@ export class ExcelExportService {
     const workbook = XLSX.utils.book_new();
 
     // Overview worksheet with all callsheets
-    const overviewHeaders = ['Project Title', 'Shoot Date', 'Call Time', 'Location', 'Cast Count', 'Crew Count', 'Scenes Count'];
+    const overviewHeaders = ['Project Title', 'Shoot Date', 'Call Time', 'Location', 'Emergency Number', 'Cast Count', 'Crew Count', 'Scenes Count'];
     const overviewData = [
       overviewHeaders,
       ...callsheets.map(cs => [
@@ -117,6 +132,7 @@ export class ExcelExportService {
         cs.shootDate,
         cs.generalCallTime,
         cs.location,
+        getEmergencyNumberFromLocation(cs.location),
         cs.cast.length,
         cs.crew.length,
         cs.schedule.length
@@ -165,6 +181,42 @@ export class ExcelExportService {
       const allCrewWs = XLSX.utils.aoa_to_sheet(allCrewData);
       XLSX.utils.book_append_sheet(workbook, allCrewWs, 'All Crew');
     }
+
+    // All Emergency Information worksheet
+    const allEmergencyData = [
+      ['Project', 'Location', 'Emergency Number', 'Contact Name', 'Contact Role', 'Contact Phone', 'Contact Email']
+    ];
+    
+    callsheets.forEach(cs => {
+      const emergencyNumber = getEmergencyNumberFromLocation(cs.location);
+      
+      if (cs.emergencyContacts.length > 0) {
+        cs.emergencyContacts.forEach(contact => {
+          allEmergencyData.push([
+            cs.projectTitle,
+            cs.location,
+            emergencyNumber,
+            contact.name,
+            contact.role,
+            contact.phone,
+            contact.email || ''
+          ]);
+        });
+      } else {
+        allEmergencyData.push([
+          cs.projectTitle,
+          cs.location,
+          emergencyNumber,
+          'No contacts',
+          '',
+          '',
+          ''
+        ]);
+      }
+    });
+
+    const allEmergencyWs = XLSX.utils.aoa_to_sheet(allEmergencyData);
+    XLSX.utils.book_append_sheet(workbook, allEmergencyWs, 'All Emergency Info');
 
     this.applyWorkbookFormatting(workbook);
 
