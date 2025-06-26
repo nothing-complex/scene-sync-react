@@ -12,7 +12,7 @@ export const generateCallsheetPDF = async (callsheet: CallsheetData) => {
     await service.savePDF(callsheet);
   } catch (error) {
     console.error('Error generating PDF:', error);
-    alert('Failed to generate PDF. Please try again.');
+    throw error; // Re-throw instead of just alerting
   }
 };
 
@@ -28,7 +28,7 @@ export const generateCustomCallsheetPDF = async (
     await service.savePDF(callsheet);
   } catch (error) {
     console.error('Error generating custom PDF:', error);
-    alert('Failed to generate PDF. Please try again.');
+    throw error; // Re-throw instead of just alerting
   }
 };
 
@@ -44,7 +44,7 @@ export const previewCallsheetPDF = async (
     await service.previewPDF(callsheet);
   } catch (error) {
     console.error('Error previewing PDF:', error);
-    alert('Failed to preview PDF. Please try again.');
+    throw error; // Re-throw instead of just alerting
   }
 };
 

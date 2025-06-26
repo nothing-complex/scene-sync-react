@@ -7,6 +7,7 @@ import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetPDFPreview } from './CallsheetPDFPreview';
 import { ReactPDFService } from '@/services/pdf/service_backup';
 import { Download, Eye, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PDFPreviewDialogProps {
   isOpen: boolean;
@@ -26,11 +27,13 @@ export const PDFPreviewDialog: React.FC<PDFPreviewDialogProps> = ({
   const handleDownload = async () => {
     setIsGenerating(true);
     try {
+      console.log('Starting PDF download with customization:', customization);
       const service = new ReactPDFService(customization);
       await service.savePDF(callsheet);
+      toast.success('PDF downloaded successfully!');
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      alert('Failed to download PDF. Please try again.');
+      toast.error('Failed to download PDF. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -39,11 +42,13 @@ export const PDFPreviewDialog: React.FC<PDFPreviewDialogProps> = ({
   const handlePreview = async () => {
     setIsGenerating(true);
     try {
+      console.log('Starting PDF preview with customization:', customization);
       const service = new ReactPDFService(customization);
       await service.previewPDF(callsheet);
+      toast.success('PDF preview opened in new tab!');
     } catch (error) {
       console.error('Error previewing PDF:', error);
-      alert('Failed to preview PDF. Please try again.');
+      toast.error('Failed to preview PDF. Please try again.');
     } finally {
       setIsGenerating(false);
     }
