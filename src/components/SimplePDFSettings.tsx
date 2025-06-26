@@ -15,6 +15,7 @@ import { generateExperimentalCallsheetPDF, previewExperimentalCallsheetPDF } fro
 import { PDFPreviewDialog } from './pdf/PDFPreviewDialog';
 import { Eye, Download, Palette, Type, Layout, Settings, Beaker } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 interface SimplePDFSettingsProps {
   callsheet: CallsheetData;
@@ -33,10 +34,46 @@ export const SimplePDFSettings = ({
   
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
+    console.log('=== Download PDF Button Clicked ===');
+    console.log('Callsheet data:', callsheet);
+    console.log('Customization:', customization);
+    
     try {
+      // DEBUGGING: Add validation before attempting PDF generation
+      if (!callsheet) {
+        throw new Error('No callsheet data available');
+      }
+      if (!callsheet.projectTitle) {
+        throw new Error('Project title is required');
+      }
+      if (!callsheet.shootDate) {
+        throw new Error('Shoot date is required');
+      }
+      
+      console.log('Starting PDF generation...');
       await generateCustomCallsheetPDF(callsheet, customization);
+      console.log('PDF generation successful, download should have started');
+      toast.success('PDF downloaded successfully!');
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('=== PDF Download Error Caught in Component ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      
+      // IMPROVED: More specific error messages for users
+      let errorMessage = 'Failed to download PDF. Please try again.';
+      if (error instanceof Error) {
+        if (error.message.includes('projectTitle')) {
+          errorMessage = 'Project title is missing. Please ensure your callsheet has a title.';
+        } else if (error.message.includes('shootDate')) {
+          errorMessage = 'Shoot date is missing. Please ensure your callsheet has a date.';
+        } else if (error.message.includes('Font')) {
+          errorMessage = 'Font loading error. Please try again in a moment.';
+        } else {
+          errorMessage = `PDF Error: ${error.message}`;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
     }
@@ -44,10 +81,28 @@ export const SimplePDFSettings = ({
 
   const handlePreviewPDF = async () => {
     setIsGenerating(true);
+    console.log('=== Preview PDF Button Clicked ===');
+    
     try {
+      // DEBUGGING: Same validation for preview
+      if (!callsheet || !callsheet.projectTitle || !callsheet.shootDate) {
+        throw new Error('Missing required callsheet data for preview');
+      }
+      
+      console.log('Starting PDF preview...');
       await previewCallsheetPDF(callsheet, customization);
+      console.log('PDF preview successful');
+      toast.success('PDF preview opened in new tab!');
     } catch (error) {
-      console.error('Error previewing PDF:', error);
+      console.error('=== PDF Preview Error Caught in Component ===');
+      console.error('Error details:', error);
+      
+      let errorMessage = 'Failed to preview PDF. Please try again.';
+      if (error instanceof Error && error.message) {
+        errorMessage = `Preview Error: ${error.message}`;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
     }
@@ -57,8 +112,10 @@ export const SimplePDFSettings = ({
     setIsExperimentalGenerating(true);
     try {
       await previewExperimentalCallsheetPDF(callsheet, customization);
+      toast.success('Experimental PDF preview opened!');
     } catch (error) {
       console.error('Error previewing experimental PDF:', error);
+      toast.error('Failed to preview experimental PDF. Please try again.');
     } finally {
       setIsExperimentalGenerating(false);
     }
@@ -68,8 +125,10 @@ export const SimplePDFSettings = ({
     setIsExperimentalGenerating(true);
     try {
       await generateExperimentalCallsheetPDF(callsheet, customization);
+      toast.success('Experimental PDF downloaded successfully!');
     } catch (error) {
       console.error('Error generating experimental PDF:', error);
+      toast.error('Failed to download experimental PDF. Please try again.');
     } finally {
       setIsExperimentalGenerating(false);
     }
