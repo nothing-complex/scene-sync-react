@@ -17,36 +17,50 @@ export const LogoUpload = ({ onLogoChange, currentLogo }: LogoUploadProps) => {
 
   const validateImage = (file: File): Promise<boolean> => {
     return new Promise((resolve) => {
-      // Check file type
-      if (file.type !== 'image/png') {
-        setError('Only PNG files are allowed');
+      // Check file type - allow PNG and SVG
+      if (!['image/png', 'image/svg+xml'].includes(file.type)) {
+        setError('Only PNG and SVG files are allowed');
         resolve(false);
         return;
       }
 
-      // Check file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('File size must be less than 5MB');
-        resolve(false);
-        return;
-      }
-
-      // Check image dimensions
-      const img = new Image();
-      img.onload = () => {
-        if (img.width > 300 || img.height > 300) {
-          setError('Image dimensions must not exceed 300x300 pixels');
+      // For SVG files, check file size (1MB max for SVG)
+      if (file.type === 'image/svg+xml') {
+        if (file.size > 1 * 1024 * 1024) {
+          setError('SVG file size must be less than 1MB');
           resolve(false);
-        } else {
-          setError(null);
-          resolve(true);
+          return;
         }
-      };
-      img.onerror = () => {
-        setError('Invalid image file');
-        resolve(false);
-      };
-      img.src = URL.createObjectURL(file);
+        setError(null);
+        resolve(true);
+        return;
+      }
+
+      // For PNG files, check file size (5MB max) and dimensions
+      if (file.type === 'image/png') {
+        if (file.size > 5 * 1024 * 1024) {
+          setError('PNG file size must be less than 5MB');
+          resolve(false);
+          return;
+        }
+
+        // Check PNG image dimensions
+        const img = new Image();
+        img.onload = () => {
+          if (img.width > 400 || img.height > 400) {
+            setError('PNG image dimensions must not exceed 400x400 pixels');
+            resolve(false);
+          } else {
+            setError(null);
+            resolve(true);
+          }
+        };
+        img.onerror = () => {
+          setError('Invalid PNG image file');
+          resolve(false);
+        };
+        img.src = URL.createObjectURL(file);
+      }
     });
   };
 
@@ -106,7 +120,7 @@ export const LogoUpload = ({ onLogoChange, currentLogo }: LogoUploadProps) => {
       <div>
         <Label>Company Logo</Label>
         <p className="text-sm text-muted-foreground">
-          Upload a PNG image (max 300x300 pixels, 5MB)
+          Upload a PNG image (max 400x400 pixels, 5MB) or SVG file (max 1MB)
         </p>
       </div>
 
@@ -121,7 +135,7 @@ export const LogoUpload = ({ onLogoChange, currentLogo }: LogoUploadProps) => {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/png"
+          accept="image/png,image/svg+xml"
           onChange={handleFileSelect}
           className="hidden"
           id="logo-upload"
@@ -144,7 +158,7 @@ export const LogoUpload = ({ onLogoChange, currentLogo }: LogoUploadProps) => {
               <img
                 src={currentLogo.url}
                 alt="Company logo"
-                className="w-16 h-16 object-contain border rounded"
+                className="w-16 h-16 object-contain border rounded bg-background"
               />
               <Button
                 type="button"
