@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, Users, Camera, AlertCircle, RefreshCw, Share2 } from 'lucide-react';
+import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, Users, Camera, AlertCircle, RefreshCw, Share2, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCallsheet } from '@/contexts/CallsheetContext';
@@ -12,6 +12,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { NetworkStatus } from '@/components/ui/network-status';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ExcelExportService } from '@/services/excelService';
 
 interface DashboardProps {
   onCreateNew: () => void;
@@ -85,6 +86,37 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
     });
   };
 
+  const handleExportExcel = async (callsheetId: string) => {
+    const callsheet = callsheets.find(cs => cs.id === callsheetId);
+    if (callsheet) {
+      console.log('Exporting Excel for callsheet:', callsheetId);
+      setActionLoading(`excel-${callsheetId}`);
+      try {
+        ExcelExportService.exportSingleCallsheet(callsheet);
+      } catch (error) {
+        console.error('Error exporting Excel:', error);
+        alert('Failed to export Excel. Please try again.');
+      } finally {
+        setActionLoading(null);
+      }
+    }
+  };
+
+  const handleBulkExportExcel = () => {
+    if (callsheets.length === 0) return;
+    
+    console.log('Exporting all callsheets to Excel');
+    setActionLoading('bulk-excel');
+    try {
+      ExcelExportService.exportMultipleCallsheets(callsheets);
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      alert('Failed to export Excel. Please try again.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
   
@@ -112,15 +144,33 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                   Ready to create amazing productions today?
                 </p>
               </div>
-              <Button 
-                onClick={onCreateNew} 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3"
-                size="lg"
-                disabled={loading}
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                New Callsheet
-              </Button>
+              <div className="flex items-center space-x-3">
+                {callsheets.length > 0 && (
+                  <Button 
+                    onClick={handleBulkExportExcel}
+                    variant="outline"
+                    className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3"
+                    size="lg"
+                    disabled={actionLoading !== null}
+                  >
+                    {actionLoading === 'bulk-excel' ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <FileSpreadsheet className="w-5 h-5 mr-2" />
+                    )}
+                    Export All to Excel
+                  </Button>
+                )}
+                <Button 
+                  onClick={onCreateNew} 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3"
+                  size="lg"
+                  disabled={loading}
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  New Callsheet
+                </Button>
+              </div>
             </div>
 
             {/* Share Invitations */}
@@ -354,6 +404,19 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                                   <LoadingSpinner size="sm" />
                                 ) : (
                                   <Copy className="w-4 h-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 w-9 p-0 hover:bg-accent"
+                                onClick={() => handleExportExcel(callsheet.id)}
+                                disabled={actionLoading !== null}
+                              >
+                                {actionLoading === `excel-${callsheet.id}` ? (
+                                  <LoadingSpinner size="sm" />
+                                ) : (
+                                  <FileSpreadsheet className="w-4 h-4" />
                                 )}
                               </Button>
                               <Button
