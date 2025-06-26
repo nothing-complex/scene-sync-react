@@ -384,6 +384,7 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
                         <SelectItem value="top-center">Top Center</SelectItem>
                         <SelectItem value="top-right">Top Right</SelectItem>
                         <SelectItem value="header-left">Header Left</SelectItem>
+                        <SelectItem value="header-center">Header Center</SelectItem>
                         <SelectItem value="header-right">Header Right</SelectItem>
                       </SelectContent>
                     </Select>

@@ -51,7 +51,7 @@ export interface PDFBranding {
   companyName?: string;
   logo?: {
     url: string;
-    position: 'top-left' | 'top-center' | 'top-right' | 'header-left' | 'header-right';
+    position: 'top-left' | 'top-center' | 'top-right' | 'header-left' | 'header-center' | 'header-right';
     size: 'small' | 'medium' | 'large';
     opacity: number;
   };
