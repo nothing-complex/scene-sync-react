@@ -63,7 +63,7 @@ export class ReactPDFService {
   }
 
   async generatePDF(callsheet: CallsheetData): Promise<Blob> {
-    console.log('Generating PDF blob with full callsheet data:', callsheet);
+    console.log('Generating PDF blob with React PDF Document:', callsheet);
     console.log('Using customization:', this.customization);
     
     try {
@@ -75,12 +75,21 @@ export class ReactPDFService {
         throw new Error('Invalid callsheet data provided');
       }
 
-      console.log('Creating PDF document with grid layout matching preview...');
+      console.log('Creating React PDF document...');
       
-      // Import HTMLToPDFService to use the same rendering as preview
-      const { HTMLToPDFService } = await import('./htmlToPdfService');
-      const htmlService = new HTMLToPDFService(this.customization);
-      return await htmlService.generatePDF(callsheet);
+      // Create the document using JSX syntax which returns the Document element directly
+      const documentElement = (
+        <CallsheetPDFDocument
+          callsheet={callsheet}
+          customization={this.customization}
+        />
+      );
+
+      console.log('Generating PDF blob...');
+      // Pass the document element directly to pdf()
+      const blob = await pdf(documentElement).toBlob();
+      console.log('PDF blob generated successfully, size:', blob.size);
+      return blob;
       
     } catch (error) {
       console.error('Error generating PDF blob:', error);

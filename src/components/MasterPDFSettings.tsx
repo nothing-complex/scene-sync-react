@@ -1,11 +1,13 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
+import { PDFCustomization } from '@/types/pdfTypes';
 import { PDFAppearanceTab } from './PDFAppearanceTab';
 import { CallsheetData } from '@/contexts/CallsheetContext';
+import { MasterPDFSettingsService } from '@/services/masterPdfSettingsService';
+import { toast } from 'sonner';
 
 interface MasterPDFSettingsProps {
   onBack: () => void;
@@ -128,13 +130,19 @@ const DUMMY_CALLSHEET: CallsheetData = {
 };
 
 export const MasterPDFSettings = ({ onBack }: MasterPDFSettingsProps) => {
-  const [masterCustomization, setMasterCustomization] = useState<PDFCustomization>(DEFAULT_PDF_CUSTOMIZATION);
+  const [masterCustomization, setMasterCustomization] = useState<PDFCustomization>(() => {
+    return MasterPDFSettingsService.loadMasterSettings();
+  });
 
   const handleSave = () => {
-    // TODO: Save master settings to user preferences/database
-    console.log('Saving master PDF settings:', masterCustomization);
-    // Show success toast or feedback
-    onBack();
+    try {
+      MasterPDFSettingsService.saveMasterSettings(masterCustomization);
+      toast.success('Master PDF settings saved successfully!');
+      console.log('Saving master PDF settings:', masterCustomization);
+    } catch (error) {
+      toast.error('Failed to save master PDF settings');
+      console.error('Error saving master PDF settings:', error);
+    }
   };
 
   return (
@@ -161,6 +169,9 @@ export const MasterPDFSettings = ({ onBack }: MasterPDFSettingsProps) => {
           <CardTitle className="text-lg font-medium tracking-tight">PDF Appearance Settings</CardTitle>
           <p className="text-sm text-muted-foreground font-normal">
             These settings will be applied as defaults to all new callsheets. Preview uses enhanced sample data.
+            {MasterPDFSettingsService.hasMasterSettings() && (
+              <span className="block mt-1 text-green-600">✓ Master settings are currently saved</span>
+            )}
           </p>
         </CardHeader>
         <CardContent>
