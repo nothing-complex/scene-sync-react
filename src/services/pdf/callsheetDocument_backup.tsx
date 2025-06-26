@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, Text, View, Image } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -11,6 +12,8 @@ interface CallsheetPDFDocumentProps {
 }
 
 export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ callsheet, customization = {} }) => {
+  console.log('CallsheetPDFDocument rendering with callsheet:', callsheet.projectTitle);
+  
   const config: PDFCustomization = {
     ...DEFAULT_PDF_CUSTOMIZATION,
     ...customization,
@@ -104,7 +107,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
       <LogoComponent position="top-left" />
       <LogoComponent position="top-right" />
       
-      {/* Company Name Header */}
+      {/* Company Name Header - FIXED: Use SafeText and check for content */}
       {config.branding.companyName && config.branding.companyName.trim() && (
         <View style={{ alignItems: 'center', marginBottom: 16 }}>
           <SafeText style={{
@@ -113,7 +116,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
             color: config.colors.text,
             textAlign: 'center'
           }}>
-            {config.branding.companyName}
+            {config.branding.companyName.trim()}
           </SafeText>
         </View>
       )}
@@ -130,6 +133,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
         <LogoComponent position="header-right" />
         <LogoComponent position="header-center" />
         
+        {/* FIXED: Use SafeText for all text content */}
         <SafeText style={[
           styles.projectTitle,
           config.branding.logo && ['header-left', 'header-right'].includes(config.branding.logo.position) && { 
@@ -139,6 +143,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
         ]}>
           {callsheet.projectTitle}
         </SafeText>
+        
         <Text style={[
           styles.title,
           config.branding.logo && ['header-left', 'header-right'].includes(config.branding.logo.position) && { 
@@ -149,15 +154,15 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
           CALL SHEET
         </Text>
         
-        {/* Date in header */}
-        <Text style={styles.companyName}>
+        {/* Date in header - FIXED: Use SafeText */}
+        <SafeText style={styles.companyName}>
           {new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
             weekday: 'short', 
             month: 'short', 
             day: 'numeric',
             year: 'numeric'
           })}
-        </Text>
+        </SafeText>
       </View>
     </View>
   );
@@ -185,29 +190,29 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
         <View style={styles.gridItem}>
           <Text style={styles.label}>Location</Text>
           <SafeText style={styles.value}>{callsheet.location}</SafeText>
-          {callsheet.locationAddress && (
-            <SafeText style={styles.locationAddress}>{callsheet.locationAddress}</SafeText>
+          {callsheet.locationAddress && callsheet.locationAddress.trim() && (
+            <SafeText style={styles.locationAddress}>{callsheet.locationAddress.trim()}</SafeText>
           )}
         </View>
 
-        {callsheet.weather && config.sections.visibility.weather && (
+        {callsheet.weather && callsheet.weather.trim() && config.sections.visibility.weather && (
           <View style={styles.gridItem}>
             <Text style={styles.label}>Weather</Text>
-            <SafeText style={styles.value}>{callsheet.weather}</SafeText>
+            <SafeText style={styles.value}>{callsheet.weather.trim()}</SafeText>
           </View>
         )}
 
-        {callsheet.parkingInstructions && (
+        {callsheet.parkingInstructions && callsheet.parkingInstructions.trim() && (
           <View style={styles.gridItem}>
             <Text style={styles.label}>Parking Instructions</Text>
-            <SafeText style={styles.value}>{callsheet.parkingInstructions}</SafeText>
+            <SafeText style={styles.value}>{callsheet.parkingInstructions.trim()}</SafeText>
           </View>
         )}
 
-        {callsheet.basecampLocation && (
+        {callsheet.basecampLocation && callsheet.basecampLocation.trim() && (
           <View style={styles.gridItem}>
             <Text style={styles.label}>Basecamp Location</Text>
-            <SafeText style={styles.value}>{callsheet.basecampLocation}</SafeText>
+            <SafeText style={styles.value}>{callsheet.basecampLocation.trim()}</SafeText>
           </View>
         )}
       </View>
@@ -225,7 +230,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
         </View>
         <View style={styles.sectionContent}>
           <View style={styles.notesContainer}>
-            <SafeText style={styles.value}>{callsheet.specialNotes}</SafeText>
+            <SafeText style={styles.value}>{callsheet.specialNotes.trim()}</SafeText>
           </View>
         </View>
       </View>
@@ -252,11 +257,11 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
             </View>
             {callsheet.schedule.map((item, index) => (
               <View key={index} style={styles.scheduleTableRow}>
-                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.sceneNumber}</SafeText>
-                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.intExt}</SafeText>
-                <SafeText style={[styles.scheduleCell, { flex: 2 }]}>{item.description}</SafeText>
-                <SafeText style={[styles.scheduleCell, { flex: 2 }]}>{item.location}</SafeText>
-                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.estimatedTime}</SafeText>
+                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.sceneNumber || 'N/A'}</SafeText>
+                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.intExt || 'N/A'}</SafeText>
+                <SafeText style={[styles.scheduleCell, { flex: 2 }]}>{item.description || 'N/A'}</SafeText>
+                <SafeText style={[styles.scheduleCell, { flex: 2 }]}>{item.location || 'N/A'}</SafeText>
+                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.estimatedTime || 'N/A'}</SafeText>
               </View>
             ))}
           </View>
@@ -286,7 +291,8 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
           <View style={styles.contactTightGrid}>
             {contacts.map((contact, index) => (
               <View key={contact.id || index} style={styles.contactTightGridItem}>
-                <SafeText style={styles.contactName}>{contact.name}</SafeText>
+                <SafeText style={styles.contactName}>{contact.name || 'Unknown'}</SafeText>
+                {/* FIXED: Check for both role and character, handle empty strings */}
                 {((contact.role && contact.role.trim()) || (contact.character && contact.character.trim())) && (
                   <SafeText style={styles.contactRole}>
                     {[
@@ -295,9 +301,9 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
                     ].filter(Boolean).join(' • ')}
                   </SafeText>
                 )}
-                <SafeText style={styles.contactDetails}>{contact.phone}</SafeText>
+                <SafeText style={styles.contactDetails}>{contact.phone || 'No phone'}</SafeText>
                 {contact.email && contact.email.trim() && (
-                  <SafeText style={styles.contactDetails}>{contact.email}</SafeText>
+                  <SafeText style={styles.contactDetails}>{contact.email.trim()}</SafeText>
                 )}
               </View>
             ))}
@@ -310,11 +316,13 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
   const Footer = () => (
     config.branding.footer?.text && config.branding.footer.text.trim() && (
       <View style={styles.footer} fixed>
-        <SafeText style={styles.footerText}>{config.branding.footer.text}</SafeText>
+        <SafeText style={styles.footerText}>{config.branding.footer.text.trim()}</SafeText>
       </View>
     )
   );
 
+  console.log('CallsheetPDFDocument: Rendering complete PDF structure');
+  
   return (
     <Document>
       <Page size="A4" style={styles.page} orientation={config.layout.pageOrientation}>

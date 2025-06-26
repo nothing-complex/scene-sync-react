@@ -24,8 +24,11 @@ export const createPartialBorderStyle = (sides: { top?: number; right?: number; 
   };
 };
 
+// FIXED: Updated createStyles to avoid problematic fontStyle usage
+// This prevents the "Could not resolve font for Inter, fontWeight 400, fontStyle italic" error
 export const createStyles = (customization: PDFCustomization) => {
   const fontFamily = getFontFamily(customization.typography.fontFamily);
+  console.log('Creating styles with font family:', fontFamily);
   
   return StyleSheet.create({
     page: {
@@ -199,7 +202,8 @@ export const createStyles = (customization: PDFCustomization) => {
       fontSize: customization.typography.fontSize.small,
       color: customization.colors.textLight,
       marginBottom: 2,
-      fontStyle: 'italic',
+      // FIXED: Removed fontStyle: 'italic' which was causing the font resolution error
+      fontWeight: getFontWeight('normal'),
     },
     
     contactDetails: {
