@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetPDFPreview } from './CallsheetPDFPreview';
-import { HTMLToPDFService } from '@/services/htmlToPdfService';
+import { ReactPDFService } from '@/services/reactPdfService';
 import { Download, Eye, X } from 'lucide-react';
 
 interface PDFPreviewDialogProps {
@@ -26,7 +26,7 @@ export const PDFPreviewDialog: React.FC<PDFPreviewDialogProps> = ({
   const handleDownload = async () => {
     setIsGenerating(true);
     try {
-      const service = new HTMLToPDFService(customization);
+      const service = new ReactPDFService(customization);
       await service.savePDF(callsheet);
     } catch (error) {
       console.error('Error downloading PDF:', error);
@@ -39,7 +39,7 @@ export const PDFPreviewDialog: React.FC<PDFPreviewDialogProps> = ({
   const handlePreview = async () => {
     setIsGenerating(true);
     try {
-      const service = new HTMLToPDFService(customization);
+      const service = new ReactPDFService(customization);
       await service.previewPDF(callsheet);
     } catch (error) {
       console.error('Error previewing PDF:', error);
