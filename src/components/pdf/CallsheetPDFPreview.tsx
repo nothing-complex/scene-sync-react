@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +33,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
       ? '#dc2626' 
       : customization.colors.accent,
     borderLeftWidth: '4px',
-    color: customization.colors.text,
+    color: '#1f2937', // Force dark text color
     fontFamily: customization.typography.fontFamily === 'inter' ? 'Inter' :
                 customization.typography.fontFamily === 'helvetica' ? 'Helvetica' :
                 customization.typography.fontFamily === 'poppins' ? 'Poppins' :
@@ -48,13 +49,14 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
           fontSize: `${customization.typography.fontSize.body}px`,
           fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
                      customization.typography.fontWeight.header === 'medium' ? '500' :
-                     customization.typography.fontWeight.header === 'semibold' ? '600' : '700'
+                     customization.typography.fontWeight.header === 'semibold' ? '600' : '700',
+          color: '#1f2937' // Force dark text color
         }}>
           {contact.name}
         </div>
         {(contact.character || contact.role) && (
           <div className="text-sm mb-2 italic" style={{ 
-            color: customization.colors.textLight,
+            color: '#6b7280', // Slightly lighter but still readable
             fontSize: `${customization.typography.fontSize.small}px`
           }}>
             {contact.character ? `as ${contact.character}` : contact.role}
@@ -62,13 +64,15 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
         )}
         <div className="text-sm mb-1" style={{ 
           fontSize: `${customization.typography.fontSize.small}px`,
-          fontWeight: isEmergency ? '500' : 'normal'
+          fontWeight: isEmergency ? '500' : 'normal',
+          color: '#1f2937' // Force dark text color
         }}>
           {showIcons && '📞 '}{contact.phone}
         </div>
         {contact.email && !isEmergency && (
           <div className="text-sm" style={{ 
-            fontSize: `${customization.typography.fontSize.small}px`
+            fontSize: `${customization.typography.fontSize.small}px`,
+            color: '#1f2937' // Force dark text color
           }}>
             {showIcons && '📧 '}{contact.email}
           </div>
@@ -110,7 +114,7 @@ const ContactSection: React.FC<{
   return (
     <div className="mb-6">
       <h3 className={`text-lg font-semibold mb-4 ${isEmergencyProminent ? 'text-red-800' : ''} flex items-center gap-2`} style={{
-        color: isEmergencyProminent ? '#dc2626' : customization.colors.primary,
+        color: isEmergencyProminent ? '#dc2626' : '#1f2937', // Force dark color
         fontSize: `${customization.typography.fontSize.header + 4}px`,
         fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
                    customization.typography.fontWeight.header === 'medium' ? '500' :
@@ -160,7 +164,7 @@ const ScheduleSection: React.FC<{
   return (
     <div className="mb-6">
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{
-        color: customization.colors.primary,
+        color: '#1f2937', // Force dark color
         fontSize: `${customization.typography.fontSize.header + 4}px`,
         fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
                    customization.typography.fontWeight.header === 'medium' ? '500' :
@@ -175,7 +179,8 @@ const ScheduleSection: React.FC<{
           <div className="grid grid-cols-5 gap-0 font-medium border-b-2" style={{
             backgroundColor: customization.colors.surfaceHover,
             borderColor: customization.colors.border,
-            fontSize: `${customization.typography.fontSize.header}px`
+            fontSize: `${customization.typography.fontSize.header}px`,
+            color: '#1f2937' // Force dark text color
           }}>
             <div className="p-4 border-r" style={{ borderColor: customization.colors.border }}>Scene</div>
             <div className="p-4 border-r" style={{ borderColor: customization.colors.border }}>Int/Ext</div>
@@ -187,7 +192,8 @@ const ScheduleSection: React.FC<{
             <div key={index} className="grid grid-cols-5 gap-0 border-b" style={{
               backgroundColor: alternateRows && index % 2 === 1 ? customization.colors.surface : customization.colors.background,
               borderColor: customization.colors.borderLight,
-              fontSize: `${customization.typography.fontSize.body}px`
+              fontSize: `${customization.typography.fontSize.body}px`,
+              color: '#1f2937' // Force dark text color
             }}>
               <div className="p-3 font-medium border-r" style={{ borderColor: customization.colors.borderLight }}>
                 {item.sceneNumber}
@@ -246,7 +252,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
   const containerStyles = {
     backgroundColor: customization.colors.background,
-    color: customization.colors.text,
+    color: '#1f2937', // Force dark text color
     fontFamily: customization.typography.fontFamily === 'inter' ? 'Inter' :
                 customization.typography.fontFamily === 'helvetica' ? 'Helvetica' :
                 customization.typography.fontFamily === 'poppins' ? 'Poppins' :
@@ -302,7 +308,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       return customization.colors.background;
     }
     
-    return isHeaderWithBackground ? customization.colors.background : customization.colors.primary;
+    return isHeaderWithBackground ? customization.colors.background : '#1f2937'; // Force dark color
   };
 
   const getSubtitleColor = () => {
@@ -312,7 +318,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       return customization.colors.background;
     }
     
-    return isHeaderWithBackground ? customization.colors.background : customization.colors.secondary;
+    return isHeaderWithBackground ? customization.colors.background : '#374151'; // Force dark color
   };
 
   return (
@@ -373,12 +379,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             {showSectionIcons && <span className="text-lg flex-shrink-0">📅</span>}
             <div className="flex-1">
               <div className="font-medium mb-1" style={{ 
-                color: customization.colors.primary,
+                color: '#1f2937', // Force dark color
                 fontSize: `${customization.typography.fontSize.header}px`
               }}>
                 Shoot Date
               </div>
-              <div style={{ fontSize: `${customization.typography.fontSize.body}px` }}>
+              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
                 {formatDate(callsheet.shootDate)}
               </div>
             </div>
@@ -394,12 +400,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             {showSectionIcons && <span className="text-lg flex-shrink-0">🕐</span>}
             <div className="flex-1">
               <div className="font-medium mb-1" style={{ 
-                color: customization.colors.primary,
+                color: '#1f2937', // Force dark color
                 fontSize: `${customization.typography.fontSize.header}px`
               }}>
                 Call Time
               </div>
-              <div style={{ fontSize: `${customization.typography.fontSize.body}px` }}>
+              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
                 {callsheet.generalCallTime}
               </div>
             </div>
@@ -415,17 +421,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             {showSectionIcons && <span className="text-lg flex-shrink-0">📍</span>}
             <div className="flex-1">
               <div className="font-medium mb-1" style={{ 
-                color: customization.colors.primary,
+                color: '#1f2937', // Force dark color
                 fontSize: `${customization.typography.fontSize.header}px`
               }}>
                 Location
               </div>
-              <div style={{ fontSize: `${customization.typography.fontSize.body}px` }}>
+              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
                 {callsheet.location}
               </div>
               {callsheet.locationAddress && (
                 <div className="text-sm" style={{ 
-                  color: customization.colors.textLight,
+                  color: '#6b7280', // Slightly lighter but still readable
                   fontSize: `${customization.typography.fontSize.small}px`
                 }}>
                   {callsheet.locationAddress}
@@ -445,12 +451,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               {showSectionIcons && <span className="text-lg flex-shrink-0">🌤️</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
-                  color: customization.colors.primary,
+                  color: '#1f2937', // Force dark color
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
                   Weather
                 </div>
-                <div style={{ fontSize: `${customization.typography.fontSize.body}px` }}>
+                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
                   {callsheet.weather}
                 </div>
               </div>
@@ -468,12 +474,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               {showSectionIcons && <span className="text-lg flex-shrink-0">🅿️</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
-                  color: customization.colors.primary,
+                  color: '#1f2937', // Force dark color
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
                   Parking Instructions
                 </div>
-                <div style={{ fontSize: `${customization.typography.fontSize.body}px` }}>
+                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
                   {callsheet.parkingInstructions}
                 </div>
               </div>
@@ -491,12 +497,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               {showSectionIcons && <span className="text-lg flex-shrink-0">🏕️</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
-                  color: customization.colors.primary,
+                  color: '#1f2937', // Force dark color
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
                   Basecamp Location
                 </div>
-                <div style={{ fontSize: `${customization.typography.fontSize.body}px` }}>
+                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
                   {callsheet.basecampLocation}
                 </div>
               </div>
@@ -517,7 +523,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           }}>
             <CardContent className="p-5">
               <h4 className="font-medium mb-3 flex items-center gap-2" style={{
-                color: customization.colors.primary,
+                color: '#1f2937', // Force dark color
                 fontSize: `${customization.typography.fontSize.header}px`
               }}>
                 {showSectionIcons && <span className="text-lg">📝</span>}
@@ -525,7 +531,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               </h4>
               <p className="leading-relaxed" style={{ 
                 fontSize: `${customization.typography.fontSize.body}px`,
-                color: customization.colors.text,
+                color: '#1f2937', // Force dark color
                 margin: 0,
                 lineHeight: 1.5
               }}>
@@ -581,7 +587,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         <div className="mt-8 pt-5 border-t text-center" style={{
           borderColor: customization.colors.border,
           fontSize: `${customization.typography.fontSize.small}px`,
-          color: customization.colors.textLight,
+          color: '#6b7280', // Slightly lighter but still readable
           textAlign: customization.branding.footer.position as 'center' | 'left' | 'right'
         }}>
           {customization.branding.footer.text}
