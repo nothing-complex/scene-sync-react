@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetPDFPreview } from './CallsheetPDFPreview';
-import { ReactPDFService } from '@/services/reactPdfService';
+import { ReactPDFService } from '@/services/pdf/service_backup';
 import { Download, Eye, X } from 'lucide-react';
 
 interface PDFPreviewDialogProps {
