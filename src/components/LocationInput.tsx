@@ -97,7 +97,7 @@ export const LocationInput = ({
 
   return (
     <div className="relative">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-foreground">{label}</Label>
       <div className="relative">
         <Input
           ref={inputRef}
@@ -107,17 +107,17 @@ export const LocationInput = ({
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
           placeholder={placeholder}
-          className="pr-8"
+          className="pr-8 bg-input border-border text-foreground placeholder:text-muted-foreground"
         />
-        <MapPin className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <MapPin className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
             {suggestions.map((location, index) => (
               <button
                 key={`${location.latitude}-${location.longitude}`}
                 ref={(el) => (suggestionRefs.current[index] = el)}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                className="w-full px-4 py-2 text-left hover:bg-accent focus:bg-accent focus:outline-none border-b border-border last:border-b-0"
                 onClick={() => handleLocationSelect(location)}
                 type="button"
               >
@@ -126,7 +126,7 @@ export const LocationInput = ({
                     {getLocationTypeIcon(location)}
                   </span>
                   <div>
-                    <div className="font-medium text-sm">
+                    <div className="font-medium text-sm text-popover-foreground">
                       {WeatherService.formatLocationName(location)}
                     </div>
                   </div>
@@ -138,7 +138,7 @@ export const LocationInput = ({
         
         {loading && (
           <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
           </div>
         )}
       </div>
