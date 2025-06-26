@@ -1,7 +1,7 @@
 
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { ReactPDFService } from './reactPdfService';
+import { ReactPDFService } from './pdf/service_backup';
 
 // Main PDF generation function - now uses React-PDF by default
 export const generateCallsheetPDF = async (callsheet: CallsheetData) => {
