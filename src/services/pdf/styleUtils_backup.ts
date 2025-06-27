@@ -85,6 +85,21 @@ export const createStyles = (customization: PDFCustomization) => {
       color: '#666666',
       letterSpacing: 1,
     },
+
+    // Legacy styles for backup compatibility
+    title: {
+      fontSize: 14,
+      fontWeight: 500,
+      color: '#666666',
+      letterSpacing: 1,
+    },
+
+    companyName: {
+      fontSize: 12,
+      fontWeight: 400,
+      color: '#666666',
+      marginTop: 4,
+    },
     
     // Production details grid
     productionGrid: {
@@ -103,8 +118,29 @@ export const createStyles = (customization: PDFCustomization) => {
       borderWidth: 1,
       borderColor: '#e9ecef',
     },
+
+    // Legacy grid styles for backup compatibility
+    gridItem: {
+      flex: 1,
+      minWidth: '30%',
+      backgroundColor: '#f8f9fa',
+      padding: 15,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: '#e9ecef',
+    },
     
     gridLabel: {
+      fontSize: 9,
+      fontWeight: 600,
+      color: '#666666',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginBottom: 6,
+    },
+
+    // Legacy label style
+    label: {
       fontSize: 9,
       fontWeight: 600,
       color: '#666666',
@@ -117,6 +153,21 @@ export const createStyles = (customization: PDFCustomization) => {
       fontSize: 11,
       fontWeight: 500,
       color: '#1a1a1a',
+      lineHeight: 1.3,
+    },
+
+    // Legacy value style
+    value: {
+      fontSize: 11,
+      fontWeight: 500,
+      color: '#1a1a1a',
+      lineHeight: 1.3,
+    },
+
+    locationAddress: {
+      fontSize: 10,
+      color: '#666666',
+      marginTop: 2,
       lineHeight: 1.3,
     },
     
@@ -148,6 +199,13 @@ export const createStyles = (customization: PDFCustomization) => {
     
     sectionContent: {
       padding: 16,
+    },
+
+    // Notes container
+    notesContainer: {
+      backgroundColor: '#f3f9ff',
+      padding: 12,
+      borderRadius: 8,
     },
     
     // Special notes with blue background
@@ -199,6 +257,16 @@ export const createStyles = (customization: PDFCustomization) => {
       paddingVertical: 10,
       paddingHorizontal: 12,
     },
+
+    // Legacy schedule table header
+    scheduleTableHeader: {
+      flexDirection: 'row',
+      backgroundColor: '#f8f9fa',
+      borderBottomWidth: 1,
+      borderBottomColor: '#e9ecef',
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+    },
     
     scheduleHeaderCell: {
       fontSize: 9,
@@ -209,6 +277,15 @@ export const createStyles = (customization: PDFCustomization) => {
     },
     
     scheduleRow: {
+      flexDirection: 'row',
+      borderBottomWidth: 0.5,
+      borderBottomColor: '#e9ecef',
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+    },
+
+    // Legacy schedule table row
+    scheduleTableRow: {
       flexDirection: 'row',
       borderBottomWidth: 0.5,
       borderBottomColor: '#e9ecef',
@@ -227,6 +304,23 @@ export const createStyles = (customization: PDFCustomization) => {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: 12,
+    },
+
+    // Tight grid for contacts
+    contactTightGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+
+    contactTightGridItem: {
+      width: '48%',
+      backgroundColor: '#f8f9fa',
+      padding: 10,
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor: '#e9ecef',
+      marginBottom: 6,
     },
     
     contactCard: {
@@ -258,6 +352,15 @@ export const createStyles = (customization: PDFCustomization) => {
       color: '#666666',
       lineHeight: 1.3,
     },
+
+    contactDetails: {
+      fontSize: 9,
+      color: '#666666',
+      lineHeight: 1.3,
+    },
+
+    // Text color variants
+    textLight: '#888888',
     
     // Emergency contacts with red styling
     emergencyCard: {
