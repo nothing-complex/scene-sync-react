@@ -1,23 +1,12 @@
 
 import { Font } from '@react-pdf/renderer';
 
-// FIXED: Use reliable TTF font URLs with proper fallback handling
+// Simple font registration with system fonts and minimal external dependencies
 export const registerPDFFonts = () => {
-  console.log('Registering fonts with TTF format and fallbacks...');
+  console.log('Registering fonts with system fallbacks...');
   
   try {
-    // Inter font family with TTF format - using direct TTF links
-    Font.register({
-      family: 'Inter',
-      fonts: [
-        { src: 'https://rsms.me/inter/font-files/Inter-Regular.ttf', fontWeight: 400 },
-        { src: 'https://rsms.me/inter/font-files/Inter-Medium.ttf', fontWeight: 500 },
-        { src: 'https://rsms.me/inter/font-files/Inter-SemiBold.ttf', fontWeight: 600 },
-        { src: 'https://rsms.me/inter/font-files/Inter-Bold.ttf', fontWeight: 700 }
-      ]
-    });
-
-    // Fallback to system fonts if custom fonts fail
+    // Use Helvetica as primary font - it's widely supported in PDF generation
     Font.register({
       family: 'Helvetica',
       fonts: [
@@ -26,26 +15,26 @@ export const registerPDFFonts = () => {
       ]
     });
 
-    console.log('All fonts registered successfully with TTF format');
+    // Register Times as secondary option
+    Font.register({
+      family: 'Times-Roman',
+      fonts: [
+        { src: 'Times-Roman', fontWeight: 400 },
+        { src: 'Times-Bold', fontWeight: 700 }
+      ]
+    });
+
+    console.log('System fonts registered successfully');
+    return true;
   } catch (error) {
-    console.warn('Font registration failed, using system fallbacks:', error);
-    // Continue without custom fonts - system fonts will be used
+    console.warn('Font registration failed, continuing with defaults:', error);
+    return false;
   }
 };
 
 export const getFontFamily = (family: string) => {
-  try {
-    switch (family) {
-      case 'inter': return 'Inter';
-      case 'poppins': return 'Helvetica'; // Fallback to Helvetica
-      case 'montserrat': return 'Helvetica'; // Fallback to Helvetica
-      case 'helvetica':
-      default: return 'Helvetica';
-    }
-  } catch (error) {
-    console.warn('Font family error, using Helvetica fallback:', error);
-    return 'Helvetica';
-  }
+  // Always return Helvetica as it's the most reliable for PDF generation
+  return 'Helvetica';
 };
 
 export const getFontWeight = (weight: string): number => {

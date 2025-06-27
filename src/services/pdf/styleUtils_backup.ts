@@ -1,6 +1,6 @@
+
 import { StyleSheet } from '@react-pdf/renderer';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { getFontFamily, getFontWeight } from './fontUtils_backup';
 
 // Helper function for consistent border properties
 export const createBorderStyle = (width: number = 0, color: string = '#000000') => {
@@ -27,14 +27,15 @@ const getSafeCornerRadius = (customization: PDFCustomization): number => {
 };
 
 export const createStyles = (customization: PDFCustomization) => {
-  const fontFamily = getFontFamily(customization.typography.fontFamily);
+  // Always use Helvetica for reliability
+  const fontFamily = 'Helvetica';
   const safeCornerRadius = getSafeCornerRadius(customization);
   
   return StyleSheet.create({
     page: {
       backgroundColor: '#ffffff',
       padding: 40,
-      fontFamily,
+      fontFamily: fontFamily,
       fontSize: 10,
       color: '#1a1a1a',
       lineHeight: 1.4,
@@ -63,6 +64,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontSize: 24,
       fontWeight: 700,
       letterSpacing: 2,
+      fontFamily: fontFamily,
     },
     
     titleSection: {
@@ -76,6 +78,7 @@ export const createStyles = (customization: PDFCustomization) => {
       color: '#1a1a1a',
       marginBottom: 8,
       lineHeight: 1.2,
+      fontFamily: fontFamily,
     },
     
     callsheetSubtitle: {
@@ -83,6 +86,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 500,
       color: '#666666',
       letterSpacing: 1,
+      fontFamily: fontFamily,
     },
 
     // Legacy styles for backup compatibility
@@ -91,6 +95,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 500,
       color: '#666666',
       letterSpacing: 1,
+      fontFamily: fontFamily,
     },
 
     companyName: {
@@ -98,6 +103,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 400,
       color: '#666666',
       marginTop: 4,
+      fontFamily: fontFamily,
     },
     
     // Production details grid
@@ -136,6 +142,7 @@ export const createStyles = (customization: PDFCustomization) => {
       textTransform: 'uppercase',
       letterSpacing: 0.5,
       marginBottom: 6,
+      fontFamily: fontFamily,
     },
 
     // Legacy label style
@@ -146,6 +153,7 @@ export const createStyles = (customization: PDFCustomization) => {
       textTransform: 'uppercase',
       letterSpacing: 0.5,
       marginBottom: 6,
+      fontFamily: fontFamily,
     },
     
     gridValue: {
@@ -153,6 +161,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 500,
       color: '#1a1a1a',
       lineHeight: 1.3,
+      fontFamily: fontFamily,
     },
 
     // Legacy value style
@@ -161,6 +170,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 500,
       color: '#1a1a1a',
       lineHeight: 1.3,
+      fontFamily: fontFamily,
     },
 
     locationAddress: {
@@ -168,6 +178,7 @@ export const createStyles = (customization: PDFCustomization) => {
       color: '#666666',
       marginTop: 2,
       lineHeight: 1.3,
+      fontFamily: fontFamily,
     },
     
     // Section cards
@@ -193,6 +204,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 700,
       color: '#1a1a1a',
       letterSpacing: 0.5,
+      fontFamily: fontFamily,
     },
     
     sectionContent: {
@@ -227,6 +239,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 700,
       color: '#ffffff',
       letterSpacing: 0.5,
+      fontFamily: fontFamily,
     },
     
     notesContent: {
@@ -238,6 +251,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontSize: 11,
       color: '#1a1a1a',
       lineHeight: 1.5,
+      fontFamily: fontFamily,
     },
     
     // Schedule table
@@ -272,6 +286,7 @@ export const createStyles = (customization: PDFCustomization) => {
       color: '#1a1a1a',
       textTransform: 'uppercase',
       letterSpacing: 0.5,
+      fontFamily: fontFamily,
     },
     
     scheduleRow: {
@@ -295,6 +310,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontSize: 10,
       color: '#1a1a1a',
       lineHeight: 1.3,
+      fontFamily: fontFamily,
     },
     
     // Contact cards (two-column layout)
@@ -336,6 +352,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 700,
       color: '#1a1a1a',
       marginBottom: 4,
+      fontFamily: fontFamily,
     },
     
     contactRole: {
@@ -343,21 +360,24 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 500,
       color: '#666666',
       marginBottom: 6,
+      fontFamily: fontFamily,
     },
     
     contactInfo: {
       fontSize: 9,
       color: '#666666',
       lineHeight: 1.3,
+      fontFamily: fontFamily,
     },
 
     contactDetails: {
       fontSize: 9,
       color: '#666666',
       lineHeight: 1.3,
+      fontFamily: fontFamily,
     },
 
-    // Text color variants - Fixed: this should be a style object, not a string
+    // Text color variants
     textLightStyle: {
       color: '#888888',
     },
@@ -383,6 +403,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontWeight: 700,
       color: '#ffffff',
       letterSpacing: 0.5,
+      fontFamily: fontFamily,
     },
     
     emergencyContent: {
@@ -416,6 +437,7 @@ export const createStyles = (customization: PDFCustomization) => {
     footerText: {
       fontSize: 8,
       color: '#666666',
+      fontFamily: fontFamily,
     },
   });
 };

@@ -7,17 +7,16 @@ export class FontManager {
   async ensureFontsRegistered(): Promise<void> {
     if (!this.fontsRegistered) {
       try {
-        console.log('FontManager: Registering PDF fonts...');
-        registerPDFFonts();
-        this.fontsRegistered = true;
-        console.log('FontManager: PDF fonts registered successfully');
+        console.log('FontManager: Registering system fonts...');
+        const success = registerPDFFonts();
+        this.fontsRegistered = success;
+        console.log('FontManager: Font registration completed, success:', success);
         
-        // Give fonts time to register properly
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Minimal delay for font registration
+        await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
-        console.warn('FontManager: Font registration failed, using system fallbacks:', error);
-        // Mark as registered to prevent retry loops
-        this.fontsRegistered = true;
+        console.warn('FontManager: Font registration failed, using defaults:', error);
+        this.fontsRegistered = true; // Prevent retry loops
       }
     }
   }
