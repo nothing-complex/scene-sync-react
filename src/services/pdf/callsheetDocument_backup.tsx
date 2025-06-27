@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, Text, View, Image } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -48,34 +47,36 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
     return size === 'small' ? 48 : size === 'large' ? 80 : 64;
   };
 
-  const LogoComponent = ({ position }: { position: string }) => {
-    if (!config.branding.logo || config.branding.logo.position !== position) return null;
-    
-    const logoSize = getLogoSize();
-    const commonStyles = {
-      width: logoSize,
-      height: logoSize,
-      objectFit: 'contain' as const
-    };
-
-    switch (position) {
-      case 'top-right':
-        return (
-          <View style={{ position: 'absolute', top: 10, right: 10 }}>
-            <Image src={config.branding.logo.url} style={commonStyles} />
-          </View>
-        );
-      default:
-        return null;
+  const LogoComponent = () => {
+    // If user has uploaded a logo, use it
+    if (config.branding.logo && config.branding.logo.url) {
+      const logoSize = getLogoSize();
+      return (
+        <View style={styles.logoContainer}>
+          <Image 
+            src={config.branding.logo.url} 
+            style={{
+              width: logoSize,
+              height: logoSize,
+              objectFit: 'contain'
+            }}
+          />
+        </View>
+      );
     }
+    
+    // Fallback to FACE text logo if no logo uploaded
+    return (
+      <View style={styles.logoContainer}>
+        <Text style={styles.logoText}>FACE</Text>
+      </View>
+    );
   };
 
   const Header = () => (
     <View style={styles.headerContainer}>
       {/* Logo positioned in top-right */}
-      <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>FACE</Text>
-      </View>
+      <LogoComponent />
       
       {/* Title section with proper spacing for logo */}
       <View style={styles.titleSection}>
