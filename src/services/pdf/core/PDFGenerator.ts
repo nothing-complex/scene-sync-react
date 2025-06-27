@@ -24,6 +24,8 @@ export class PDFGenerator {
       const validatedCustomization = this.validateCustomization(customization);
       
       console.log('Creating PDF document...');
+      
+      // Create the document element directly - CallsheetPDFDocument returns a Document
       const documentElement = React.createElement(CallsheetPDFDocument, {
         callsheet,
         customization: validatedCustomization
