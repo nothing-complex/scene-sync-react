@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { Download, Eye, Palette, Type, Layout, Settings } from 'lucide-react';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, PDF_THEMES } from '@/types/pdfTypes';
 import { CallsheetPDFPreview } from './pdf/CallsheetPDFPreview';
-import { PDFService } from '@/services/pdf/PDFService';
+import { ReactPDFService } from '@/services/pdf/service_backup';
 import { LogoUpload } from './LogoUpload';
 import { toast } from 'sonner';
 
@@ -95,9 +96,10 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
     setIsGenerating(true);
     try {
       console.log('=== PDFAppearanceTab Download Start ===');
+      console.log('Using ReactPDFService with customization:', customization);
       
-      const service = new PDFService();
-      await service.savePDF(callsheet, customization);
+      const service = new ReactPDFService(customization);
+      await service.savePDF(callsheet);
       console.log('PDF download completed successfully from PDFAppearanceTab');
       toast.success('PDF downloaded successfully!');
     } catch (error) {
@@ -113,9 +115,10 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
     setIsGenerating(true);
     try {
       console.log('=== PDFAppearanceTab Preview Start ===');
+      console.log('Using ReactPDFService with customization:', customization);
       
-      const service = new PDFService();
-      await service.previewPDF(callsheet, customization);
+      const service = new ReactPDFService(customization);
+      await service.previewPDF(callsheet);
       console.log('PDF preview completed successfully from PDFAppearanceTab');
       toast.success('PDF preview opened in new tab!');
     } catch (error) {
@@ -341,8 +344,8 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
                       onChange={(e) => updateTypography({
                         fontSize: { ...customization.typography.fontSize, title: Number(e.target.value) }
                       })}
-                      min={16}
-                      max={40}
+                      min="16"
+                      max="40"
                     />
                   </div>
                   <div>
@@ -353,8 +356,8 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
                       onChange={(e) => updateTypography({
                         fontSize: { ...customization.typography.fontSize, body: Number(e.target.value) }
                       })}
-                      min={8}
-                      max={16}
+                      min="8"
+                      max="16"
                     />
                   </div>
                 </div>
