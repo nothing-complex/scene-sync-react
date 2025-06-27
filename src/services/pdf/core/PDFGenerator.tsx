@@ -1,7 +1,6 @@
-
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { CallsheetPDFDocument } from '../callsheetDocument_backup';
+import { CallsheetPDFDocument } from '../sections/CallsheetPDFDocument';
 import { pdf } from '@react-pdf/renderer';
 import { FontManager } from './FontManager';
 import React from 'react';
@@ -23,9 +22,9 @@ export class PDFGenerator {
       // Validate customization
       const validatedCustomization = this.validateCustomization(customization);
       
-      console.log('Creating PDF document with backup structure that matches preview...');
+      console.log('Creating PDF document with exact preview structure...');
       
-      // Use the backup document that creates the proper layout
+      // Use the new document that mirrors the preview exactly
       const documentElement = (
         <CallsheetPDFDocument
           callsheet={callsheet}
