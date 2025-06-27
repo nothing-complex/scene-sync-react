@@ -13,11 +13,16 @@ export class FontManager {
         console.log('FontManager: PDF fonts registered successfully');
         
         // Give fonts time to register properly
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (error) {
-        console.warn('FontManager: Font registration failed:', error);
-        // Continue without custom fonts
+        console.warn('FontManager: Font registration failed, using system fallbacks:', error);
+        // Mark as registered to prevent retry loops
+        this.fontsRegistered = true;
       }
     }
+  }
+
+  reset(): void {
+    this.fontsRegistered = false;
   }
 }
