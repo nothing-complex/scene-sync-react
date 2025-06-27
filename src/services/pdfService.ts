@@ -2,9 +2,7 @@
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { ReactPDFService } from './pdf/service_backup';
-
-// FIXED: Updated import path to use the working service_backup file
-// This should resolve the "Failed to download PDF" error by ensuring we use the correct service
+import { toast } from 'sonner';
 
 // Main PDF generation function using React-PDF
 export const generateCallsheetPDF = async (callsheet: CallsheetData) => {
@@ -16,19 +14,24 @@ export const generateCallsheetPDF = async (callsheet: CallsheetData) => {
     const service = new ReactPDFService();
     console.log('ReactPDFService instance created successfully');
     
-    // DEBUGGING: Add validation to catch data issues early
+    // Validation
     if (!callsheet.projectTitle || !callsheet.shootDate) {
       throw new Error('Missing required callsheet data: projectTitle or shootDate');
     }
     
     await service.savePDF(callsheet);
     console.log('PDF generation completed successfully');
+    toast.success('PDF downloaded successfully!');
   } catch (error) {
     console.error('=== PDF Generation Error ===');
     console.error('Error details:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     console.error('Callsheet data that failed:', callsheet);
-    throw error; // Re-throw to let UI handle the error display
+    
+    // Show user-friendly error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    toast.error(`Failed to download PDF: ${errorMessage}`);
+    throw error;
   }
 };
 
@@ -45,20 +48,25 @@ export const generateCustomCallsheetPDF = async (
     const service = new ReactPDFService(customization);
     console.log('ReactPDFService instance created with customization');
     
-    // DEBUGGING: Validate both callsheet and customization
+    // Validation
     if (!callsheet.projectTitle || !callsheet.shootDate) {
       throw new Error('Missing required callsheet data: projectTitle or shootDate');
     }
     
     await service.savePDF(callsheet);
     console.log('Custom PDF generation completed successfully');
+    toast.success('PDF downloaded successfully!');
   } catch (error) {
     console.error('=== Custom PDF Generation Error ===');
     console.error('Error details:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     console.error('Callsheet data that failed:', callsheet);
     console.error('Customization that failed:', customization);
-    throw error; // Re-throw to let UI handle the error display
+    
+    // Show user-friendly error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    toast.error(`Failed to download PDF: ${errorMessage}`);
+    throw error;
   }
 };
 
@@ -74,19 +82,24 @@ export const previewCallsheetPDF = async (
     const service = new ReactPDFService(customization);
     console.log('ReactPDFService instance created for preview');
     
-    // DEBUGGING: Validate data before preview
+    // Validation
     if (!callsheet.projectTitle || !callsheet.shootDate) {
       throw new Error('Missing required callsheet data: projectTitle or shootDate');
     }
     
     await service.previewPDF(callsheet);
     console.log('PDF preview completed successfully');
+    toast.success('PDF preview opened in new tab!');
   } catch (error) {
     console.error('=== PDF Preview Error ===');
     console.error('Error details:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     console.error('Callsheet data that failed:', callsheet);
-    throw error; // Re-throw to let UI handle the error display
+    
+    // Show user-friendly error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    toast.error(`Failed to preview PDF: ${errorMessage}`);
+    throw error;
   }
 };
 

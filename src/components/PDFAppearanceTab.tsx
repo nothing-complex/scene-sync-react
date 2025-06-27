@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,8 +12,9 @@ import { Download, Eye, Palette, Type, Layout, Settings } from 'lucide-react';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, PDF_THEMES } from '@/types/pdfTypes';
 import { CallsheetPDFPreview } from './pdf/CallsheetPDFPreview';
-import { HTMLToPDFService } from '@/services/htmlToPdfService';
+import { ReactPDFService } from '@/services/pdf/service_backup';
 import { LogoUpload } from './LogoUpload';
+import { toast } from 'sonner';
 
 interface PDFAppearanceTabProps {
   callsheet: CallsheetData;
@@ -95,11 +95,17 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
   const handleDownload = async () => {
     setIsGenerating(true);
     try {
-      const service = new HTMLToPDFService(customization);
+      console.log('=== PDFAppearanceTab Download Start ===');
+      console.log('Using ReactPDFService with customization:', customization);
+      
+      const service = new ReactPDFService(customization);
       await service.savePDF(callsheet);
+      console.log('PDF download completed successfully from PDFAppearanceTab');
+      toast.success('PDF downloaded successfully!');
     } catch (error) {
+      console.error('=== PDFAppearanceTab Download Error ===');
       console.error('Error downloading PDF:', error);
-      alert('Failed to download PDF. Please try again.');
+      toast.error(`Failed to download PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsGenerating(false);
     }
@@ -108,11 +114,17 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
   const handlePreview = async () => {
     setIsGenerating(true);
     try {
-      const service = new HTMLToPDFService(customization);
+      console.log('=== PDFAppearanceTab Preview Start ===');
+      console.log('Using ReactPDFService with customization:', customization);
+      
+      const service = new ReactPDFService(customization);
       await service.previewPDF(callsheet);
+      console.log('PDF preview completed successfully from PDFAppearanceTab');
+      toast.success('PDF preview opened in new tab!');
     } catch (error) {
+      console.error('=== PDFAppearanceTab Preview Error ===');
       console.error('Error previewing PDF:', error);
-      alert('Failed to preview PDF. Please try again.');
+      toast.error(`Failed to preview PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsGenerating(false);
     }
