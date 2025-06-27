@@ -25,11 +25,13 @@ export class PDFGenerator {
       
       console.log('Creating PDF document with new structure...');
       
-      // Create document with proper JSX structure
-      const documentElement = React.createElement(CallsheetPDFDocument, {
-        callsheet,
-        customization: validatedCustomization
-      });
+      // Create document with proper props directly passed to the component
+      const documentElement = (
+        <CallsheetPDFDocument
+          callsheet={callsheet}
+          customization={validatedCustomization}
+        />
+      );
 
       console.log('Generating PDF blob...');
       const blob = await pdf(documentElement).toBlob();

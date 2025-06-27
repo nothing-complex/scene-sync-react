@@ -1,4 +1,3 @@
-
 import { StyleSheet } from '@react-pdf/renderer';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { getFontFamily, getFontWeight } from './fontUtils_backup';
@@ -179,7 +178,6 @@ export const createStyles = (customization: PDFCustomization) => {
       borderWidth: 1,
       borderColor: '#e9ecef',
       overflow: 'hidden',
-      break: false,
     },
     
     sectionHeader: {
@@ -359,8 +357,10 @@ export const createStyles = (customization: PDFCustomization) => {
       lineHeight: 1.3,
     },
 
-    // Text color variants
-    textLight: '#888888',
+    // Text color variants - Fixed: this should be a style object, not a string
+    textLightStyle: {
+      color: '#888888',
+    },
     
     // Emergency contacts with red styling
     emergencyCard: {
