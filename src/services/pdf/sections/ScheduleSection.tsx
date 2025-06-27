@@ -28,7 +28,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
           <Text style={styles.scheduleTime}>{item.estimatedTime}</Text>
           <View style={styles.scheduleDetails}>
             <Text style={styles.scheduleScene}>
-              Scene {item.sceneNumber} - {item.intExt}. {item.location}
+              Scene {item.sceneNumber} - {item.intExt}. {item.location || item.description}
             </Text>
             <Text style={styles.scheduleDescription}>{item.description}</Text>
             {item.pageCount && (

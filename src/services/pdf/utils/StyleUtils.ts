@@ -12,10 +12,11 @@ export class StyleUtils {
       page: {
         flexDirection: 'column',
         backgroundColor: customization.colors.background,
-        padding: customization.layout.margins.top,
+        padding: 40,
         fontFamily: fontFamily,
-        fontSize: customization.typography.fontSize.body,
-        color: customization.colors.text
+        fontSize: 10,
+        color: customization.colors.text,
+        lineHeight: 1.4
       },
       header: {
         marginBottom: 20,
@@ -33,25 +34,26 @@ export class StyleUtils {
         height: 'auto'
       },
       titleContainer: {
-        marginBottom: 10
+        marginBottom: 15
       },
       title: {
-        fontSize: customization.typography.fontSize.title,
-        fontWeight: FontManager.getFontWeight(customization.typography.fontWeight.title),
-        color: customization.colors.primary,
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: customization.colors.text,
         marginBottom: 5
       },
       subtitle: {
-        fontSize: customization.typography.fontSize.header,
-        fontWeight: FontManager.getFontWeight(customization.typography.fontWeight.header),
-        color: customization.colors.secondary
+        fontSize: 14,
+        fontWeight: 'normal',
+        color: customization.colors.textLight,
+        marginBottom: 10
       },
       basicInfo: {
         flexDirection: 'column',
         gap: 3
       },
       infoText: {
-        fontSize: customization.typography.fontSize.body,
+        fontSize: 10,
         color: customization.colors.text,
         marginBottom: 2
       },
@@ -59,67 +61,70 @@ export class StyleUtils {
         flex: 1
       },
       section: {
-        marginBottom: 15
+        marginBottom: 20
       },
       sectionTitle: {
-        fontSize: customization.typography.fontSize.header,
-        fontWeight: FontManager.getFontWeight(customization.typography.fontWeight.header),
-        color: customization.colors.primary,
-        marginBottom: 8,
-        borderBottomWidth: 0.5,
-        borderBottomColor: customization.colors.borderLight,
-        paddingBottom: 3
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: customization.colors.text,
+        marginBottom: 10,
+        textTransform: 'uppercase'
       },
       contactItem: {
-        marginBottom: 8,
+        marginBottom: 12,
         paddingLeft: 10
       },
       contactName: {
-        fontSize: customization.typography.fontSize.body,
-        fontWeight: FontManager.getFontWeight(customization.typography.fontWeight.body),
-        color: customization.colors.text
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: customization.colors.text,
+        marginBottom: 1
       },
       contactRole: {
-        fontSize: customization.typography.fontSize.small,
+        fontSize: 9,
         color: customization.colors.textLight,
-        marginBottom: 2
+        marginBottom: 1,
+        fontStyle: 'italic'
       },
       contactInfo: {
-        fontSize: customization.typography.fontSize.small,
-        color: customization.colors.textLight
+        fontSize: 9,
+        color: customization.colors.text,
+        marginBottom: 1
       },
       scheduleItem: {
         flexDirection: 'row',
-        marginBottom: 8,
+        marginBottom: 10,
         alignItems: 'flex-start'
       },
       scheduleTime: {
-        fontSize: customization.typography.fontSize.body,
-        fontWeight: FontManager.getFontWeight('medium'),
-        color: customization.colors.primary,
-        width: 60,
-        marginRight: 10
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: customization.colors.text,
+        width: 80,
+        marginRight: 15
       },
       scheduleDetails: {
         flex: 1
       },
       scheduleScene: {
-        fontSize: customization.typography.fontSize.body,
-        fontWeight: FontManager.getFontWeight(customization.typography.fontWeight.body),
+        fontSize: 10,
+        fontWeight: 'bold',
         color: customization.colors.text,
         marginBottom: 2
       },
       scheduleDescription: {
-        fontSize: customization.typography.fontSize.small,
-        color: customization.colors.textLight,
-        marginBottom: 1
+        fontSize: 9,
+        color: customization.colors.text,
+        marginBottom: 1,
+        lineHeight: 1.3
       },
       schedulePages: {
-        fontSize: customization.typography.fontSize.caption,
-        color: customization.colors.textLight
+        fontSize: 8,
+        color: customization.colors.textLight,
+        fontStyle: 'italic'
       },
       emergencyItem: {
-        marginBottom: 8,
+        marginBottom: 12,
         paddingLeft: 10,
         backgroundColor: customization.sections.formatting.emergencyProminent ? 
           customization.colors.surface : 'transparent',
@@ -127,31 +132,34 @@ export class StyleUtils {
         borderRadius: customization.sections.formatting.emergencyProminent ? safeCornerRadius : 0
       },
       emergencyName: {
-        fontSize: customization.typography.fontSize.body,
-        fontWeight: FontManager.getFontWeight('semibold'),
-        color: customization.colors.text
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: customization.colors.text,
+        marginBottom: 1
       },
       emergencyRole: {
-        fontSize: customization.typography.fontSize.small,
-        color: customization.colors.accent,
-        marginBottom: 2
+        fontSize: 9,
+        color: customization.colors.textLight,
+        marginBottom: 2,
+        fontStyle: 'italic'
       },
       emergencyPhone: {
-        fontSize: customization.typography.fontSize.small,
+        fontSize: 9,
         color: customization.colors.text,
         marginBottom: 1
       },
       emergencyInfo: {
-        fontSize: customization.typography.fontSize.caption,
+        fontSize: 8,
         color: customization.colors.textLight
       },
       notesText: {
-        fontSize: customization.typography.fontSize.body,
+        fontSize: 10,
         color: customization.colors.text,
-        lineHeight: customization.typography.lineHeight.body,
-        padding: 10,
+        lineHeight: 1.4,
+        padding: 15,
         backgroundColor: customization.colors.surface,
-        borderRadius: safeCornerRadius
+        borderRadius: safeCornerRadius,
+        textAlign: 'justify'
       }
     });
   }

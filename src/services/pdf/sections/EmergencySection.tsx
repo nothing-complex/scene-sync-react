@@ -26,12 +26,14 @@ export const EmergencySection: React.FC<EmergencySectionProps> = ({
       {callsheet.emergencyContacts.map((contact, index) => (
         <View key={contact.id || index} style={styles.emergencyItem}>
           <Text style={styles.emergencyName}>{contact.name}</Text>
-          <Text style={styles.emergencyRole}>{contact.role}</Text>
+          {contact.role && (
+            <Text style={styles.emergencyRole}>{contact.role}</Text>
+          )}
           {contact.phone && contact.phone !== 'Phone not available' && (
             <Text style={styles.emergencyPhone}>Phone: {contact.phone}</Text>
           )}
           {contact.company && contact.company !== 'Address not available' && (
-            <Text style={styles.emergencyInfo}>Address: {contact.company}</Text>
+            <Text style={styles.emergencyInfo}>{contact.company}</Text>
           )}
         </View>
       ))}

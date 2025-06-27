@@ -25,10 +25,17 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({
         {contacts.map((contact, index) => (
           <View key={contact.id || index} style={styles.contactItem}>
             <Text style={styles.contactName}>{contact.name}</Text>
-            <Text style={styles.contactRole}>{contact.role}</Text>
-            {contact.phone && <Text style={styles.contactInfo}>Phone: {contact.phone}</Text>}
-            {contact.email && <Text style={styles.contactInfo}>Email: {contact.email}</Text>}
-            {contact.character && <Text style={styles.contactInfo}>Character: {contact.character}</Text>}
+            {(contact.role || contact.character) && (
+              <Text style={styles.contactRole}>
+                {contact.character ? contact.character : contact.role}
+              </Text>
+            )}
+            {contact.phone && contact.phone !== 'Phone not available' && (
+              <Text style={styles.contactInfo}>Phone: {contact.phone}</Text>
+            )}
+            {contact.email && contact.email !== 'Email not available' && (
+              <Text style={styles.contactInfo}>Email: {contact.email}</Text>
+            )}
           </View>
         ))}
       </View>
