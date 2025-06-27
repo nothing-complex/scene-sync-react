@@ -1,58 +1,32 @@
 
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { ReactPDFService } from './pdf/service_backup';
+import { PDFService } from './pdf/PDFService';
 import { ExperimentalCallsheetPDFDocument } from './pdf/experimentalDocument';
 import { pdf } from '@react-pdf/renderer';
 import React from 'react';
 
 // Experimental PDF service for testing new designs
-export class ExperimentalPDFService extends ReactPDFService {
-  protected experimentalCustomization: Partial<PDFCustomization>;
-
-  constructor(customization: Partial<PDFCustomization> = {}) {
-    super(customization);
-    this.experimentalCustomization = customization;
-    console.log('ExperimentalPDFService initialized with customization:', this.experimentalCustomization);
-  }
-
+export class ExperimentalPDFService extends PDFService {
   // Override the generatePDF method to use the experimental document
-  async generatePDF(callsheet: CallsheetData): Promise<Blob> {
+  async generateExperimentalPDF(callsheet: CallsheetData): Promise<Blob> {
     console.log('Generating experimental PDF blob with timeline design for:', callsheet.projectTitle);
-    console.log('Using experimental customization:', this.experimentalCustomization);
     
     try {
-      // Ensure fonts are registered before generating PDF
-      await this.ensureFontsRegistered();
-
-      // Validate callsheet data
-      if (!callsheet || !callsheet.projectTitle) {
-        throw new Error('Invalid callsheet data provided');
-      }
-
-      // Merge customizations properly
-      const mergedCustomization = { 
-        ...this.customization, 
-        ...this.experimentalCustomization 
-      };
-
-      console.log('Creating experimental PDF document with timeline design...');
       // Create the document using JSX syntax which returns the Document element directly
       const documentElement = (
         <ExperimentalCallsheetPDFDocument
           callsheet={callsheet}
-          customization={mergedCustomization}
+          customization={this.customization}
         />
       );
 
       console.log('Generating experimental PDF blob...');
-      // Pass the document element directly to pdf()
       const blob = await pdf(documentElement).toBlob();
       console.log('Experimental PDF blob generated successfully, size:', blob.size);
       return blob;
     } catch (error) {
       console.error('Error generating experimental PDF blob:', error);
-      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       throw new Error(`Experimental PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -67,10 +41,15 @@ export const generateExperimentalCallsheetPDF = async (
   
   try {
     const service = new ExperimentalPDFService(customization);
-    await service.savePDF(callsheet);
+    const blob = await service.generateExperimentalPDF(callsheet);
+    const filename = `${callsheet.projectTitle}_Experimental_CallSheet_${callsheet.shootDate}.pdf`;
+    
+    // Use the download manager from the base service
+    const { DownloadManager } = await import('./pdf/core/DownloadManager');
+    await DownloadManager.downloadBlob(blob, filename);
   } catch (error) {
     console.error('Error generating experimental PDF:', error);
-    alert('Failed to generate experimental PDF. Please try again.');
+    throw error;
   }
 };
 
@@ -82,9 +61,13 @@ export const previewExperimentalCallsheetPDF = async (
   
   try {
     const service = new ExperimentalPDFService(customization);
-    await service.previewPDF(callsheet);
+    const blob = await service.generateExperimentalPDF(callsheet);
+    
+    // Use the download manager from the base service
+    const { DownloadManager } = await import('./pdf/core/DownloadManager');
+    await DownloadManager.openPreview(blob);
   } catch (error) {
     console.error('Error previewing experimental PDF:', error);
-    alert('Failed to preview experimental PDF. Please try again.');
+    throw error;
   }
 };

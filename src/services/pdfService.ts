@@ -1,34 +1,23 @@
 
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { ReactPDFService } from './pdf/service_backup';
+import { PDFService } from './pdf/PDFService';
 import { toast } from 'sonner';
 
-// Main PDF generation function using React-PDF
+// Main PDF generation function using the new PDFService
 export const generateCallsheetPDF = async (callsheet: CallsheetData) => {
   console.log('=== PDF Generation Start ===');
   console.log('Generating callsheet PDF for:', callsheet.projectTitle);
-  console.log('Callsheet data:', JSON.stringify(callsheet, null, 2));
   
   try {
-    const service = new ReactPDFService();
-    console.log('ReactPDFService instance created successfully');
-    
-    // Validation
-    if (!callsheet.projectTitle || !callsheet.shootDate) {
-      throw new Error('Missing required callsheet data: projectTitle or shootDate');
-    }
-    
-    await service.savePDF(callsheet);
+    const service = new PDFService();
+    await service.downloadPDF(callsheet);
     console.log('PDF generation completed successfully');
     toast.success('PDF downloaded successfully!');
   } catch (error) {
     console.error('=== PDF Generation Error ===');
     console.error('Error details:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    console.error('Callsheet data that failed:', callsheet);
     
-    // Show user-friendly error message
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     toast.error(`Failed to download PDF: ${errorMessage}`);
     throw error;
@@ -42,28 +31,16 @@ export const generateCustomCallsheetPDF = async (
 ) => {
   console.log('=== Custom PDF Generation Start ===');
   console.log('Generating custom callsheet PDF for:', callsheet.projectTitle);
-  console.log('Customization options:', JSON.stringify(customization, null, 2));
   
   try {
-    const service = new ReactPDFService(customization);
-    console.log('ReactPDFService instance created with customization');
-    
-    // Validation
-    if (!callsheet.projectTitle || !callsheet.shootDate) {
-      throw new Error('Missing required callsheet data: projectTitle or shootDate');
-    }
-    
-    await service.savePDF(callsheet);
+    const service = new PDFService(customization);
+    await service.downloadPDF(callsheet);
     console.log('Custom PDF generation completed successfully');
     toast.success('PDF downloaded successfully!');
   } catch (error) {
     console.error('=== Custom PDF Generation Error ===');
     console.error('Error details:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    console.error('Callsheet data that failed:', callsheet);
-    console.error('Customization that failed:', customization);
     
-    // Show user-friendly error message
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     toast.error(`Failed to download PDF: ${errorMessage}`);
     throw error;
@@ -79,24 +56,14 @@ export const previewCallsheetPDF = async (
   console.log('Previewing callsheet PDF for:', callsheet.projectTitle);
   
   try {
-    const service = new ReactPDFService(customization);
-    console.log('ReactPDFService instance created for preview');
-    
-    // Validation
-    if (!callsheet.projectTitle || !callsheet.shootDate) {
-      throw new Error('Missing required callsheet data: projectTitle or shootDate');
-    }
-    
+    const service = new PDFService(customization);
     await service.previewPDF(callsheet);
     console.log('PDF preview completed successfully');
     toast.success('PDF preview opened in new tab!');
   } catch (error) {
     console.error('=== PDF Preview Error ===');
     console.error('Error details:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    console.error('Callsheet data that failed:', callsheet);
     
-    // Show user-friendly error message
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     toast.error(`Failed to preview PDF: ${errorMessage}`);
     throw error;
@@ -104,4 +71,4 @@ export const previewCallsheetPDF = async (
 };
 
 // Export the service class for direct use
-export { ReactPDFService };
+export { PDFService };
