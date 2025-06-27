@@ -78,6 +78,8 @@ export interface PDFColors {
   surfaceHover: string;
   border: string;
   borderLight: string;
+  headerText: string; // Added for header text color
+  headerBackground: string; // Added for header background color
   gradient?: {
     from: string;
     to: string;
@@ -119,7 +121,7 @@ export interface PDFSectionConfig {
   };
 }
 
-// Predefined sophisticated themes
+// Predefined sophisticated themes with improved contrast
 export const PDF_THEMES: Record<string, PDFTheme> = {
   minimal: {
     name: 'Minimal',
@@ -134,6 +136,8 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       surfaceHover: '#f3f4f6',
       border: '#e5e7eb',
       borderLight: '#f3f4f6',
+      headerText: '#1f2937', // Dark text for light backgrounds
+      headerBackground: '#ffffff', // Light background
     },
     typography: {
       fontFamily: 'inter',
@@ -161,6 +165,8 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       surfaceHover: '#f1f5f9',
       border: '#cbd5e1',
       borderLight: '#e2e8f0',
+      headerText: '#ffffff', // White text for dark backgrounds
+      headerBackground: '#0f172a', // Dark background
     },
     typography: {
       fontFamily: 'helvetica',
@@ -169,7 +175,7 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
     visual: {
       cardStyle: 'elevated',
       sectionDividers: 'line',
-      headerBackground: 'subtle',
+      headerBackground: 'solid',
       cornerRadius: 6,
       shadowIntensity: 'subtle',
       iconStyle: 'geometric'
@@ -188,6 +194,8 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       surfaceHover: '#f3f0ff',
       border: '#e5e2ff',
       borderLight: '#f0ecff',
+      headerText: '#ffffff', // White text for gradient backgrounds
+      headerBackground: '#7c3aed', // Purple background
       gradient: { from: '#7c3aed', to: '#a855f7', direction: 'to-br' }
     },
     typography: {
@@ -216,6 +224,8 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       surfaceHover: '#eeeeee',
       border: '#e0e0e0',
       borderLight: '#f0f0f0',
+      headerText: '#fafafa', // Light text for dark backgrounds
+      headerBackground: '#1a1a1a', // Dark background
     },
     typography: {
       fontFamily: 'montserrat',

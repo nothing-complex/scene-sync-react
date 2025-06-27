@@ -32,7 +32,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
       ? '#dc2626' 
       : customization.colors.accent,
     borderLeftWidth: '4px',
-    color: '#1f2937',
+    color: customization.colors.text,
     fontFamily: customization.typography.fontFamily === 'inter' ? 'Inter' :
                 customization.typography.fontFamily === 'helvetica' ? 'Helvetica' :
                 customization.typography.fontFamily === 'poppins' ? 'Poppins' :
@@ -49,13 +49,13 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
           fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
                      customization.typography.fontWeight.header === 'medium' ? '500' :
                      customization.typography.fontWeight.header === 'semibold' ? '600' : '700',
-          color: '#1f2937'
+          color: customization.colors.text
         }}>
           {contact.name}
         </div>
         {(contact.character || contact.role) && (
           <div className="text-sm mb-2 italic" style={{ 
-            color: '#6b7280',
+            color: customization.colors.textLight,
             fontSize: `${customization.typography.fontSize.small}px`
           }}>
             {contact.character ? `as ${contact.character}` : contact.role}
@@ -64,14 +64,14 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
         <div className="text-sm mb-1" style={{ 
           fontSize: `${customization.typography.fontSize.small}px`,
           fontWeight: isEmergency ? '500' : 'normal',
-          color: '#1f2937'
+          color: customization.colors.text
         }}>
           {showIcons && '📞 '}{contact.phone}
         </div>
         {contact.email && !isEmergency && (
           <div className="text-sm" style={{ 
             fontSize: `${customization.typography.fontSize.small}px`,
-            color: '#1f2937'
+            color: customization.colors.text
           }}>
             {showIcons && '📧 '}{contact.email}
           </div>
@@ -112,7 +112,7 @@ const ContactSection: React.FC<{
   return (
     <div className="mb-6 avoid-break">
       <h3 className={`text-lg font-semibold mb-4 ${isEmergencyProminent ? 'text-red-800' : ''} flex items-center gap-2`} style={{
-        color: isEmergencyProminent ? '#dc2626' : '#1f2937',
+        color: isEmergencyProminent ? '#dc2626' : customization.colors.text,
         fontSize: `${customization.typography.fontSize.header + 4}px`,
         fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
                    customization.typography.fontWeight.header === 'medium' ? '500' :
@@ -162,7 +162,7 @@ const ScheduleSection: React.FC<{
   return (
     <div className="mb-6 avoid-break">
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{
-        color: '#1f2937',
+        color: customization.colors.text,
         fontSize: `${customization.typography.fontSize.header + 4}px`,
         fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
                    customization.typography.fontWeight.header === 'medium' ? '500' :
@@ -178,7 +178,7 @@ const ScheduleSection: React.FC<{
             backgroundColor: customization.colors.surfaceHover,
             borderColor: customization.colors.border,
             fontSize: `${customization.typography.fontSize.header}px`,
-            color: '#1f2937'
+            color: customization.colors.text
           }}>
             <div className="p-4 border-r" style={{ borderColor: customization.colors.border }}>Scene</div>
             <div className="p-4 border-r" style={{ borderColor: customization.colors.border }}>Int/Ext</div>
@@ -191,7 +191,7 @@ const ScheduleSection: React.FC<{
               backgroundColor: alternateRows && index % 2 === 1 ? customization.colors.surface : customization.colors.background,
               borderColor: customization.colors.borderLight,
               fontSize: `${customization.typography.fontSize.body}px`,
-              color: '#1f2937'
+              color: customization.colors.text
             }}>
               <div className="p-3 font-medium border-r" style={{ borderColor: customization.colors.borderLight }}>
                 {item.sceneNumber}
@@ -247,7 +247,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
   const containerStyles = {
     backgroundColor: customization.colors.background,
-    color: '#1f2937',
+    color: customization.colors.text,
     fontFamily: customization.typography.fontFamily === 'inter' ? 'Inter' :
                 customization.typography.fontFamily === 'helvetica' ? 'Helvetica' :
                 customization.typography.fontFamily === 'poppins' ? 'Poppins' :
@@ -270,12 +270,16 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
     switch (headerBackground) {
       case 'subtle':
-        return { ...baseStyle, backgroundColor: customization.colors.surface };
+        return { 
+          ...baseStyle, 
+          backgroundColor: customization.colors.surface,
+          color: customization.colors.text
+        };
       case 'solid':
         return { 
           ...baseStyle, 
-          backgroundColor: customization.colors.primary,
-          color: customization.colors.background
+          backgroundColor: customization.colors.headerBackground,
+          color: customization.colors.headerText
         };
       case 'gradient':
         if (customization.colors.gradient) {
@@ -285,38 +289,25 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           return {
             ...baseStyle,
             background: `linear-gradient(${gradientDirection}, ${from}, ${to})`,
-            color: customization.colors.background
+            color: customization.colors.headerText
           };
         }
-        return baseStyle;
+        return { 
+          ...baseStyle, 
+          backgroundColor: customization.colors.headerBackground,
+          color: customization.colors.headerText
+        };
       default:
-        return { marginBottom: '1.5rem' };
+        return { 
+          marginBottom: '1.5rem',
+          color: customization.colors.text
+        };
     }
   };
 
   const headerStyles = {
     textAlign: (isHeaderCentered ? 'center' : 'left') as 'center' | 'left',
     ...getHeaderBackgroundStyle()
-  };
-
-  const getTitleColor = () => {
-    const isHeaderWithBackground = customization.visual.headerBackground !== 'none';
-    
-    if (customization.layout.headerStyle === 'professional' && isHeaderWithBackground) {
-      return customization.colors.background;
-    }
-    
-    return isHeaderWithBackground ? customization.colors.background : '#1f2937';
-  };
-
-  const getSubtitleColor = () => {
-    const isHeaderWithBackground = customization.visual.headerBackground !== 'none';
-    
-    if (customization.layout.headerStyle === 'professional' && isHeaderWithBackground) {
-      return customization.colors.background;
-    }
-    
-    return isHeaderWithBackground ? customization.colors.background : '#374151';
   };
 
   // Calculate logo size based on size setting
@@ -371,7 +362,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
                      customization.typography.fontWeight.header === 'medium' ? '500' :
                      customization.typography.fontWeight.header === 'semibold' ? '600' : '700',
-          color: '#1f2937'
+          color: customization.colors.text
         }}>
           {customization.branding.companyName}
         </div>
@@ -402,7 +393,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           fontWeight: customization.typography.fontWeight.title === 'normal' ? '400' :
                      customization.typography.fontWeight.title === 'medium' ? '500' :
                      customization.typography.fontWeight.title === 'semibold' ? '600' : '700',
-          color: getTitleColor(),
+          color: headerStyles.color,
           lineHeight: customization.typography.lineHeight.title,
           margin: '0 0 12px 0'
         }}>
@@ -413,7 +404,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
                      customization.typography.fontWeight.header === 'medium' ? '500' :
                      customization.typography.fontWeight.header === 'semibold' ? '600' : '700',
-          color: getSubtitleColor(),
+          color: headerStyles.color,
           lineHeight: customization.typography.lineHeight.header,
           margin: 0
         }}>
@@ -432,12 +423,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             {showSectionIcons && <span className="text-lg flex-shrink-0">📅</span>}
             <div className="flex-1">
               <div className="font-medium mb-1" style={{ 
-                color: '#1f2937',
+                color: customization.colors.text,
                 fontSize: `${customization.typography.fontSize.header}px`
               }}>
                 Shoot Date
               </div>
-              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
+              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
                 {formatDate(callsheet.shootDate)}
               </div>
             </div>
@@ -453,12 +444,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             {showSectionIcons && <span className="text-lg flex-shrink-0">🕐</span>}
             <div className="flex-1">
               <div className="font-medium mb-1" style={{ 
-                color: '#1f2937',
+                color: customization.colors.text,
                 fontSize: `${customization.typography.fontSize.header}px`
               }}>
                 Call Time
               </div>
-              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
+              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
                 {callsheet.generalCallTime}
               </div>
             </div>
@@ -474,17 +465,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             {showSectionIcons && <span className="text-lg flex-shrink-0">📍</span>}
             <div className="flex-1">
               <div className="font-medium mb-1" style={{ 
-                color: '#1f2937',
+                color: customization.colors.text,
                 fontSize: `${customization.typography.fontSize.header}px`
               }}>
                 Location
               </div>
-              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
+              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
                 {callsheet.location}
               </div>
               {callsheet.locationAddress && (
                 <div className="text-sm" style={{ 
-                  color: '#6b7280',
+                  color: customization.colors.textLight,
                   fontSize: `${customization.typography.fontSize.small}px`
                 }}>
                   {callsheet.locationAddress}
@@ -504,12 +495,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               {showSectionIcons && <span className="text-lg flex-shrink-0">🌤️</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
-                  color: '#1f2937',
+                  color: customization.colors.text,
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
                   Weather
                 </div>
-                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
+                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
                   {callsheet.weather}
                 </div>
               </div>
@@ -527,12 +518,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               {showSectionIcons && <span className="text-lg flex-shrink-0">🅿️</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
-                  color: '#1f2937',
+                  color: customization.colors.text,
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
                   Parking Instructions
                 </div>
-                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
+                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
                   {callsheet.parkingInstructions}
                 </div>
               </div>
@@ -550,12 +541,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               {showSectionIcons && <span className="text-lg flex-shrink-0">🏕️</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
-                  color: '#1f2937',
+                  color: customization.colors.text,
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
                   Basecamp Location
                 </div>
-                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: '#1f2937' }}>
+                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
                   {callsheet.basecampLocation}
                 </div>
               </div>
@@ -576,7 +567,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           }}>
             <CardContent className="p-5">
               <h4 className="font-medium mb-3 flex items-center gap-2" style={{
-                color: '#1f2937',
+                color: customization.colors.text,
                 fontSize: `${customization.typography.fontSize.header}px`
               }}>
                 {showSectionIcons && <span className="text-lg">📝</span>}
@@ -584,7 +575,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               </h4>
               <p className="leading-relaxed" style={{ 
                 fontSize: `${customization.typography.fontSize.body}px`,
-                color: '#1f2937',
+                color: customization.colors.text,
                 margin: 0,
                 lineHeight: 1.5
               }}>
@@ -645,7 +636,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           borderTop: `1px solid ${customization.colors.border}`,
           paddingTop: '1rem',
           fontSize: `${customization.typography.fontSize.small}px`,
-          color: '#6b7280',
+          color: customization.colors.textLight,
           textAlign: customization.branding.footer.position as 'center' | 'left' | 'right'
         }}>
           {customization.branding.footer.text}
