@@ -1,4 +1,3 @@
-
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { PDFGenerator } from './core/PDFGenerator';
