@@ -105,12 +105,15 @@ export class ReactPDFService {
       
       console.log('Creating download link for:', fileName);
       console.log('Blob size:', blob.size, 'bytes');
+      console.log('Blob type:', blob.type);
       
-      // IMPROVED: Enhanced download mechanism with validation
+      // IMPROVED: Enhanced download mechanism with better error handling
       const url = URL.createObjectURL(blob);
       if (!url) {
         throw new Error('Failed to create object URL for PDF download');
       }
+      
+      console.log('Object URL created successfully:', url);
       
       const link = document.createElement('a');
       link.href = url;
@@ -121,22 +124,55 @@ export class ReactPDFService {
       document.body.appendChild(link);
       console.log('Download link added to DOM, triggering click...');
       
-      link.click();
+      // Add event listeners to track download success/failure
+      link.addEventListener('click', () => {
+        console.log('Download link clicked successfully');
+      });
       
-      console.log('Download click triggered, cleaning up...');
-      document.body.removeChild(link);
+      // Trigger the download
+      try {
+        link.click();
+        console.log('Download click triggered successfully');
+      } catch (clickError) {
+        console.error('Error triggering download click:', clickError);
+        throw new Error(`Failed to trigger download: ${clickError instanceof Error ? clickError.message : 'Unknown click error'}`);
+      }
+      
+      console.log('Cleaning up download link...');
+      
+      // Clean up immediately after click
+      setTimeout(() => {
+        try {
+          if (document.body.contains(link)) {
+            document.body.removeChild(link);
+            console.log('Download link removed from DOM');
+          }
+        } catch (removeError) {
+          console.warn('Error removing download link:', removeError);
+        }
+      }, 100);
       
       // Clean up the URL after a short delay
       setTimeout(() => {
-        URL.revokeObjectURL(url);
-        console.log('Object URL cleaned up');
+        try {
+          URL.revokeObjectURL(url);
+          console.log('Object URL cleaned up');
+        } catch (revokeError) {
+          console.warn('Error revoking object URL:', revokeError);
+        }
       }, 1000);
       
-      console.log('PDF download initiated successfully');
+      console.log('PDF download process completed successfully');
     } catch (error) {
       console.error('=== ReactPDFService.savePDF Error ===');
       console.error('Error saving PDF:', error);
-      throw error;
+      
+      // Re-throw with more context
+      if (error instanceof Error) {
+        throw new Error(`PDF download failed: ${error.message}`);
+      } else {
+        throw new Error('PDF download failed due to an unknown error');
+      }
     }
   }
 
@@ -155,7 +191,7 @@ export class ReactPDFService {
       }
       
       console.log('Opening PDF preview in new window...');
-      const newWindow = window.open(url, '_blank');
+      const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
       
       if (!newWindow) {
         console.warn('Popup blocked, trying alternative method...');
@@ -166,21 +202,39 @@ export class ReactPDFService {
         link.rel = 'noopener noreferrer';
         link.style.display = 'none';
         document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        
+        try {
+          link.click();
+          console.log('Fallback preview link clicked');
+        } catch (clickError) {
+          console.error('Error with fallback preview:', clickError);
+          throw new Error(`Failed to open PDF preview: ${clickError instanceof Error ? clickError.message : 'Unknown error'}`);
+        } finally {
+          document.body.removeChild(link);
+        }
       }
       
       // Clean up the URL after a delay to allow the browser to load it
       setTimeout(() => {
-        URL.revokeObjectURL(url);
-        console.log('Preview URL cleaned up');
+        try {
+          URL.revokeObjectURL(url);
+          console.log('Preview URL cleaned up');
+        } catch (revokeError) {
+          console.warn('Error revoking preview URL:', revokeError);
+        }
       }, 5000);
       
       console.log('PDF preview opened successfully');
     } catch (error) {
       console.error('=== ReactPDFService.previewPDF Error ===');
       console.error('Error previewing PDF:', error);
-      throw error;
+      
+      // Re-throw with more context
+      if (error instanceof Error) {
+        throw new Error(`PDF preview failed: ${error.message}`);
+      } else {
+        throw new Error('PDF preview failed due to an unknown error');
+      }
     }
   }
 }

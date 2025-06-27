@@ -58,20 +58,33 @@ export const SimplePDFSettings = ({
       console.error('=== PDF Download Error Caught in Component ===');
       console.error('Error details:', error);
       console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       
-      // IMPROVED: More specific error messages for users
+      // IMPROVED: More specific error messages for users with better debugging
       let errorMessage = 'Failed to download PDF. Please try again.';
+      let detailedError = '';
+      
       if (error instanceof Error) {
+        detailedError = error.message;
         if (error.message.includes('projectTitle')) {
           errorMessage = 'Project title is missing. Please ensure your callsheet has a title.';
         } else if (error.message.includes('shootDate')) {
           errorMessage = 'Shoot date is missing. Please ensure your callsheet has a date.';
         } else if (error.message.includes('Font')) {
           errorMessage = 'Font loading error. Please try again in a moment.';
+        } else if (error.message.includes('blob is empty')) {
+          errorMessage = 'PDF generation produced empty result. Please try again.';
+        } else if (error.message.includes('download failed')) {
+          errorMessage = 'PDF was generated but download failed. Check browser settings.';
+        } else if (error.message.includes('Object URL')) {
+          errorMessage = 'Browser download error. Please try again or use a different browser.';
         } else {
           errorMessage = `PDF Error: ${error.message}`;
         }
       }
+      
+      // Show detailed error in console for debugging
+      console.error('Detailed error for debugging:', detailedError);
       
       toast.error(errorMessage);
     } finally {
@@ -96,10 +109,15 @@ export const SimplePDFSettings = ({
     } catch (error) {
       console.error('=== PDF Preview Error Caught in Component ===');
       console.error('Error details:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       
       let errorMessage = 'Failed to preview PDF. Please try again.';
       if (error instanceof Error && error.message) {
-        errorMessage = `Preview Error: ${error.message}`;
+        if (error.message.includes('popup')) {
+          errorMessage = 'PDF preview blocked by browser. Please allow popups and try again.';
+        } else {
+          errorMessage = `Preview Error: ${error.message}`;
+        }
       }
       
       toast.error(errorMessage);
