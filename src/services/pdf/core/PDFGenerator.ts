@@ -24,14 +24,15 @@ export class PDFGenerator {
       
       console.log('Creating PDF document...');
       
-      // Create document element using React.createElement for .ts file compatibility
-      const documentElement = React.createElement(CallsheetPDFDocument, {
+      // Create the CallsheetPDFDocument which returns a Document element
+      const CallsheetDocumentComponent = CallsheetPDFDocument;
+      const documentProps = {
         callsheet,
         customization: validatedCustomization
-      });
+      };
 
       console.log('Generating PDF blob...');
-      const blob = await pdf(documentElement).toBlob();
+      const blob = await pdf(React.createElement(CallsheetDocumentComponent, documentProps)).toBlob();
       console.log('PDF blob generated successfully, size:', blob.size);
       
       return blob;
