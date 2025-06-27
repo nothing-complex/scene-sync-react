@@ -1,4 +1,3 @@
-
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetPDFDocument } from '../sections/CallsheetDocument';
@@ -25,13 +24,11 @@ export class PDFGenerator {
       
       console.log('Creating PDF document...');
       
-      // Create JSX element - CallsheetPDFDocument returns a Document element
-      const documentElement = (
-        <CallsheetPDFDocument
-          callsheet={callsheet}
-          customization={validatedCustomization}
-        />
-      );
+      // Create document element using React.createElement for .ts file compatibility
+      const documentElement = React.createElement(CallsheetPDFDocument, {
+        callsheet,
+        customization: validatedCustomization
+      });
 
       console.log('Generating PDF blob...');
       const blob = await pdf(documentElement).toBlob();
