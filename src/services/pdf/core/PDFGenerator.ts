@@ -25,11 +25,13 @@ export class PDFGenerator {
       // Ensure fonts are registered
       await this.fontManager.ensureFontsRegistered();
 
-      // Create document element using React.createElement for better TypeScript compatibility
-      const documentElement = React.createElement(CallsheetDocument, {
-        callsheet,
-        customization
-      });
+      // Create document element using JSX syntax instead of React.createElement
+      const documentElement = (
+        <CallsheetDocument
+          callsheet={callsheet}
+          customization={customization}
+        />
+      );
 
       console.log('PDFGenerator: Creating PDF blob...');
       const blob = await pdf(documentElement).toBlob();
