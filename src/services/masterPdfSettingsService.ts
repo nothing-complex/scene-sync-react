@@ -14,7 +14,7 @@ export class MasterPDFSettingsService {
         .from('master_pdf_settings')
         .upsert({
           user_id: user.id,
-          settings: customization
+          settings: customization as any // Cast to any to satisfy Json type
         }, {
           onConflict: 'user_id'
         });
@@ -58,7 +58,7 @@ export class MasterPDFSettingsService {
       console.log('Master PDF settings loaded successfully from Supabase');
       
       // Deep merge with defaults to ensure all properties are present
-      return this.deepMergeWithDefaults(DEFAULT_PDF_CUSTOMIZATION, data.settings);
+      return this.deepMergeWithDefaults(DEFAULT_PDF_CUSTOMIZATION, data.settings as Partial<PDFCustomization>);
     } catch (error) {
       console.error('Failed to load master PDF settings:', error);
       return DEFAULT_PDF_CUSTOMIZATION;
