@@ -34,12 +34,14 @@ export const SimplePDFSettings = ({
   
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
-    console.log('=== Download PDF Button Clicked ===');
+    console.log('=== PDF Download Button Clicked ===');
+    console.log('User Agent:', navigator.userAgent);
+    console.log('Browser supports File System Access API:', 'showSaveFilePicker' in window);
     console.log('Callsheet data:', callsheet);
     console.log('Customization:', customization);
     
     try {
-      // DEBUGGING: Add validation before attempting PDF generation
+      // Enhanced validation
       if (!callsheet) {
         throw new Error('No callsheet data available');
       }
@@ -50,43 +52,54 @@ export const SimplePDFSettings = ({
         throw new Error('Shoot date is required');
       }
       
-      console.log('Starting PDF generation...');
+      console.log('=== Starting PDF Generation ===');
       await generateCustomCallsheetPDF(callsheet, customization);
-      console.log('PDF generation successful, download should have started');
+      console.log('=== PDF Generation Completed Successfully ===');
       toast.success('PDF downloaded successfully!');
     } catch (error) {
-      console.error('=== PDF Download Error Caught in Component ===');
+      console.error('=== PDF Download Error ===');
+      console.error('Error type:', typeof error);
+      console.error('Error instanceof Error:', error instanceof Error);
       console.error('Error details:', error);
       console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       
-      // IMPROVED: More specific error messages for users with better debugging
+      // Show detailed error to user for debugging
       let errorMessage = 'Failed to download PDF. Please try again.';
-      let detailedError = '';
+      let debugInfo = '';
       
       if (error instanceof Error) {
-        detailedError = error.message;
+        debugInfo = error.message;
+        
+        // Provide specific guidance based on error type
         if (error.message.includes('projectTitle')) {
           errorMessage = 'Project title is missing. Please ensure your callsheet has a title.';
         } else if (error.message.includes('shootDate')) {
           errorMessage = 'Shoot date is missing. Please ensure your callsheet has a date.';
         } else if (error.message.includes('Font')) {
-          errorMessage = 'Font loading error. Please try again in a moment.';
+          errorMessage = 'Font loading error. Please refresh the page and try again.';
         } else if (error.message.includes('blob is empty')) {
-          errorMessage = 'PDF generation produced empty result. Please try again.';
-        } else if (error.message.includes('download failed')) {
-          errorMessage = 'PDF was generated but download failed. Check browser settings.';
-        } else if (error.message.includes('Object URL')) {
-          errorMessage = 'Browser download error. Please try again or use a different browser.';
+          errorMessage = 'PDF generation produced empty result. Please check your data and try again.';
+        } else if (error.message.includes('download') || error.message.includes('Download')) {
+          errorMessage = 'Download mechanism failed. This may be a browser security issue. Try using Chrome or Firefox.';
+        } else if (error.message.includes('Object URL') || error.message.includes('createObjectURL')) {
+          errorMessage = 'Browser download error. Please try refreshing the page and downloading again.';
+        } else if (error.message.includes('click') || error.message.includes('Click')) {
+          errorMessage = 'Download trigger failed. Please try a different browser or disable popup blockers.';
         } else {
           errorMessage = `PDF Error: ${error.message}`;
         }
       }
       
-      // Show detailed error in console for debugging
-      console.error('Detailed error for debugging:', detailedError);
+      console.error('User-facing error message:', errorMessage);
+      console.error('Debug info for developers:', debugInfo);
       
-      toast.error(errorMessage);
+      // Show error with debug info in development
+      if (process.env.NODE_ENV === 'development') {
+        toast.error(`${errorMessage}\n\nDebug: ${debugInfo}`);
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setIsGenerating(false);
     }
