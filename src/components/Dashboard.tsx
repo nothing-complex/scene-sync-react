@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, Users, Camera, AlertCircle, RefreshCw, Share2, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -386,7 +387,6 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                                   <FileSpreadsheet className="w-4 h-4" />
                                 )}
                               </Button>
-                              {/* Removed PDF export button since PDF functionality is removed */}
                               <Button
                                 variant="ghost"
                                 size="sm"

@@ -41,11 +41,6 @@ export default function Index() {
       ) : (
         <Dashboard 
           onCreateNew={() => setShowForm(true)}
-          onEditCallsheet={(id) => {
-            setEditingCallsheetId(id);
-            setShowForm(true);
-          }}
-          onManageContacts={() => setShowContactsManager(true)}
         />
       )}
     </CallsheetProvider>

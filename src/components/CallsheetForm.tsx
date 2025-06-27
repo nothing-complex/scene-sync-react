@@ -1,16 +1,17 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Save, Clock, Users, Camera, MapPin, FileText } from 'lucide-react';
-import { useCallsheet, type CallsheetData, type ScheduleItem, type CastMember, type CrewMember, type EmergencyContact } from '@/contexts/CallsheetContext';
-import { LocationInput } from './LocationInput';
+import { ArrowLeft, Save, Calendar, MapPin, Clock, Users, FileText, Plus } from 'lucide-react';
+import { useCallsheet } from '@/contexts/CallsheetContext';
+import { CallsheetData, Contact, ScheduleItem } from '@/types/callsheet';
 import { InlineListManager } from './InlineListManager';
-import { useToast } from '@/hooks/use-toast';
+import { LocationInput } from '@/components/LocationInput';
+import { EmergencyNumbers } from '@/components/EmergencyNumbers';
+import { toast } from 'sonner';
 
 interface CallsheetFormProps {
   callsheetId?: string;
@@ -18,375 +19,287 @@ interface CallsheetFormProps {
 }
 
 export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
-  const { 
-    callsheets, 
-    createCallsheet, 
-    updateCallsheet, 
-    loading, 
-    error 
-  } = useCallsheet();
+  const { addCallsheet, updateCallsheet, getCallsheet } = useCallsheet();
   
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('details');
-  const [isSaving, setIsSaving] = useState(false);
-
-  const isEditing = Boolean(callsheetId);
-  const currentCallsheet = isEditing ? callsheets.find(cs => cs.id === callsheetId) : null;
-
-  const [formData, setFormData] = useState<Omit<CallsheetData, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>({
+  const [formData, setFormData] = useState<Omit<CallsheetData, 'id' | 'createdAt' | 'updatedAt' | 'userId'>>({
     projectTitle: '',
-    shootDate: new Date().toISOString().split('T')[0],
-    generalCallTime: '06:00',
+    director: '',
+    producer: '',
+    shootDate: '',
     location: '',
-    locationAddress: '',
-    weather: '',
-    parkingInstructions: '',
-    basecampLocation: '',
-    specialNotes: '',
-    emergencyNumber: '',
+    generalCallTime: '',
     schedule: [],
     cast: [],
     crew: [],
-    emergencyContacts: []
+    emergencyContacts: [],
+    notes: '',
+    weatherInfo: null
   });
 
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
+
   useEffect(() => {
-    if (isEditing && currentCallsheet) {
-      setFormData({
-        projectTitle: currentCallsheet.projectTitle,
-        shootDate: currentCallsheet.shootDate,
-        generalCallTime: currentCallsheet.generalCallTime,
-        location: currentCallsheet.location,
-        locationAddress: currentCallsheet.locationAddress || '',
-        weather: currentCallsheet.weather || '',
-        parkingInstructions: currentCallsheet.parkingInstructions || '',
-        basecampLocation: currentCallsheet.basecampLocation || '',
-        specialNotes: currentCallsheet.specialNotes || '',
-        emergencyNumber: currentCallsheet.emergencyNumber || '',
-        schedule: currentCallsheet.schedule || [],
-        cast: currentCallsheet.cast || [],
-        crew: currentCallsheet.crew || [],
-        emergencyContacts: currentCallsheet.emergencyContacts || []
-      });
+    if (callsheetId) {
+      const existingCallsheet = getCallsheet(callsheetId);
+      if (existingCallsheet) {
+        const { id, createdAt, updatedAt, userId, ...callsheetData } = existingCallsheet;
+        setFormData(callsheetData);
+      }
     }
-  }, [isEditing, currentCallsheet]);
+  }, [callsheetId, getCallsheet]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value
+  const handleInputChange = (field: keyof typeof formData, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
     }));
   };
 
-  const handleLocationChange = (location: string, locationAddress: string) => {
-    setFormData(prevData => ({
-      ...prevData,
-      location: location,
-      locationAddress: locationAddress
-    }));
-  };
-
-  const handleScheduleChange = (newSchedule: ScheduleItem[]) => {
-    setFormData(prevData => ({
-      ...prevData,
-      schedule: newSchedule
-    }));
-  };
-
-  const handleCastChange = (newCast: CastMember[]) => {
-    setFormData(prevData => ({
-      ...prevData,
-      cast: newCast
-    }));
-  };
-
-  const handleCrewChange = (newCrew: CrewMember[]) => {
-    setFormData(prevData => ({
-      ...prevData,
-      crew: newCrew
-    }));
-  };
-
-  const handleEmergencyContactsChange = (newEmergencyContacts: EmergencyContact[]) => {
-    setFormData(prevData => ({
-      ...prevData,
-      emergencyContacts: newEmergencyContacts
+  const handleLocationChange = (location: string) => {
+    setFormData(prev => ({
+      ...prev,
+      location
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
+    
+    if (!formData.projectTitle || !formData.shootDate || !formData.location) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
 
+    setLoading(true);
     try {
-      if (isEditing && callsheetId) {
+      if (callsheetId) {
         await updateCallsheet(callsheetId, formData);
-        toast({
-          title: "Success",
-          description: "Callsheet updated successfully",
-        });
+        toast.success('Callsheet updated successfully');
       } else {
-        await createCallsheet(formData);
-        toast({
-          title: "Success", 
-          description: "Callsheet created successfully",
-        });
+        await addCallsheet(formData);
+        toast.success('Callsheet created successfully');
       }
       onBack();
-    } catch (err) {
-      console.error('Error saving callsheet:', err);
-      toast({
-        title: "Error",
-        description: "Failed to save callsheet. Please try again.",
-        variant: "destructive",
-      });
+    } catch (error) {
+      console.error('Error saving callsheet:', error);
+      toast.error('Failed to save callsheet');
     } finally {
-      setIsSaving(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-16 items-center px-8">
-          <Button 
-            variant="ghost" 
-            onClick={onBack}
-            className="mr-4 hover:bg-accent"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          
-          <div className="flex-1">
-            <h1 className="text-xl font-semibold text-foreground">
-              {isEditing ? 'Edit Callsheet' : 'Create New Callsheet'}
-            </h1>
-            {formData.projectTitle && (
-              <p className="text-sm text-muted-foreground">{formData.projectTitle}</p>
-            )}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" onClick={onBack} className="hover:bg-accent">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">
+                  {callsheetId ? 'Edit Callsheet' : 'New Callsheet'}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {callsheetId ? 'Update your production details' : 'Create a new production callsheet'}
+                </p>
+              </div>
+            </div>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {loading ? 'Saving...' : callsheetId ? 'Update' : 'Create'}
+            </Button>
           </div>
-
-          <Button 
-            onClick={handleSubmit}
-            disabled={isSaving || loading}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            {isSaving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                {isEditing ? 'Update' : 'Create'} Callsheet
-              </>
-            )}
-          </Button>
         </div>
       </div>
 
-      {/* Form Content */}
-      <div className="p-8">
-        <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="details" className="flex items-center gap-2">
+      <div className="p-6">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="basic" className="flex items-center space-x-2">
                 <FileText className="w-4 h-4" />
-                Production Details
+                <span>Basic Info</span>
               </TabsTrigger>
-              <TabsTrigger value="schedule" className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Schedule
+              <TabsTrigger value="schedule" className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4" />
+                <span>Schedule</span>
               </TabsTrigger>
-              <TabsTrigger value="contacts" className="flex items-center gap-2">
+              <TabsTrigger value="cast" className="flex items-center space-x-2">
                 <Users className="w-4 h-4" />
-                Cast & Crew
+                <span>Cast</span>
               </TabsTrigger>
-              <TabsTrigger value="emergency" className="flex items-center gap-2">
-                <Camera className="w-4 h-4" />
-                Emergency
+              <TabsTrigger value="crew" className="flex items-center space-x-2">
+                <Users className="w-4 h-4" />
+                <span>Crew</span>
+              </TabsTrigger>
+              <TabsTrigger value="emergency" className="flex items-center space-x-2">
+                <Plus className="w-4 h-4" />
+                <span>Emergency</span>
               </TabsTrigger>
             </TabsList>
 
-            {/* Production Details Tab */}
-            <TabsContent value="details" className="space-y-6">
-              <Card className="glass-effect border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-medium tracking-tight">Production Details</CardTitle>
+            <TabsContent value="basic" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="w-5 h-5" />
+                    <span>Production Details</span>
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="projectTitle" className="text-sm font-medium block">Project Title</Label>
-                    <Input 
-                      type="text" 
-                      id="projectTitle" 
-                      name="projectTitle" 
-                      value={formData.projectTitle} 
-                      onChange={handleInputChange} 
-                      className="bg-background border-border/50"
-                    />
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label htmlFor="projectTitle">Project Title *</Label>
+                      <Input
+                        id="projectTitle"
+                        value={formData.projectTitle}
+                        onChange={(e) => handleInputChange('projectTitle', e.target.value)}
+                        placeholder="Enter project title"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="director">Director</Label>
+                      <Input
+                        id="director"
+                        value={formData.director}
+                        onChange={(e) => handleInputChange('director', e.target.value)}
+                        placeholder="Enter director name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="producer">Producer</Label>
+                      <Input
+                        id="producer"
+                        value={formData.producer}
+                        onChange={(e) => handleInputChange('producer', e.target.value)}
+                        placeholder="Enter producer name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="shootDate">Shoot Date *</Label>
+                      <Input
+                        id="shootDate"
+                        type="date"
+                        value={formData.shootDate}
+                        onChange={(e) => handleInputChange('shootDate', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="generalCallTime">General Call Time</Label>
+                      <Input
+                        id="generalCallTime"
+                        type="time"
+                        value={formData.generalCallTime}
+                        onChange={(e) => handleInputChange('generalCallTime', e.target.value)}
+                      />
+                    </div>
                   </div>
                   
                   <div>
-                    <Label htmlFor="shootDate" className="text-sm font-medium block">Shoot Date</Label>
-                    <Input 
-                      type="date" 
-                      id="shootDate" 
-                      name="shootDate" 
-                      value={formData.shootDate} 
-                      onChange={handleInputChange} 
-                      className="bg-background border-border/50"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="generalCallTime" className="text-sm font-medium block">General Call Time</Label>
-                    <Input 
-                      type="time" 
-                      id="generalCallTime" 
-                      name="generalCallTime" 
-                      value={formData.generalCallTime} 
-                      onChange={handleInputChange} 
-                      className="bg-background border-border/50"
+                    <Label htmlFor="location">Location *</Label>
+                    <LocationInput
+                      value={formData.location}
+                      onChange={handleLocationChange}
+                      placeholder="Enter filming location"
                     />
                   </div>
 
-                  <LocationInput 
-                    location={formData.location}
-                    locationAddress={formData.locationAddress}
-                    onChange={handleLocationChange}
-                  />
-                  
                   <div>
-                    <Label htmlFor="weather" className="text-sm font-medium block">Weather Forecast</Label>
-                    <Input 
-                      type="text" 
-                      id="weather" 
-                      name="weather" 
-                      value={formData.weather} 
-                      onChange={handleInputChange} 
-                      className="bg-background border-border/50"
-                      placeholder="e.g., Sunny, 25°C"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="parkingInstructions" className="text-sm font-medium block">Parking Instructions</Label>
+                    <Label htmlFor="notes">Notes</Label>
                     <Textarea
-                      id="parkingInstructions"
-                      name="parkingInstructions"
-                      value={formData.parkingInstructions}
-                      onChange={handleInputChange}
-                      className="bg-background border-border/50"
-                      placeholder="Detailed instructions for parking"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="basecampLocation" className="text-sm font-medium block">Basecamp Location</Label>
-                    <Input 
-                      type="text" 
-                      id="basecampLocation" 
-                      name="basecampLocation" 
-                      value={formData.basecampLocation} 
-                      onChange={handleInputChange} 
-                      className="bg-background border-border/50"
-                      placeholder="Address or description of basecamp"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="specialNotes" className="text-sm font-medium block">Special Notes</Label>
-                    <Textarea
-                      id="specialNotes"
-                      name="specialNotes"
-                      value={formData.specialNotes}
-                      onChange={handleInputChange}
-                      className="bg-background border-border/50"
-                      placeholder="Any important information for the crew"
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => handleInputChange('notes', e.target.value)}
+                      placeholder="Additional notes..."
+                      rows={4}
                     />
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {/* Schedule Tab */}
             <TabsContent value="schedule" className="space-y-6">
-              <Card className="glass-effect border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-medium tracking-tight">Schedule</CardTitle>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Calendar className="w-5 h-5" />
+                    <span>Shooting Schedule</span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <InlineListManager 
+                  <InlineListManager
                     items={formData.schedule}
-                    setItems={handleScheduleChange}
+                    setItems={(newSchedule: ScheduleItem[]) => handleInputChange('schedule', newSchedule)}
                     itemType="schedule"
                   />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {/* Contacts Tab */}
-            <TabsContent value="contacts" className="space-y-6">
-              <Card className="glass-effect border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-medium tracking-tight">Cast & Crew</CardTitle>
+            <TabsContent value="cast" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="w-5 h-5" />
+                    <span>Cast Members</span>
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Cast</h4>
-                    <InlineListManager 
-                      items={formData.cast}
-                      setItems={handleCastChange}
-                      itemType="cast"
-                    />
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Crew</h4>
-                    <InlineListManager 
-                      items={formData.crew}
-                      setItems={handleCrewChange}
-                      itemType="crew"
-                    />
-                  </div>
+                <CardContent>
+                  <InlineListManager
+                    items={formData.cast}
+                    setItems={(newCast: Contact[]) => handleInputChange('cast', newCast)}
+                    itemType="cast"
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {/* Emergency Tab */}
-            <TabsContent value="emergency" className="space-y-6">
-              <Card className="glass-effect border-0">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-medium tracking-tight">Emergency Contacts</CardTitle>
+            <TabsContent value="crew" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="w-5 h-5" />
+                    <span>Crew Members</span>
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="emergencyNumber" className="text-sm font-medium block">
-                      Local Emergency Number
-                    </Label>
-                    <Input 
-                      type="text" 
-                      id="emergencyNumber" 
-                      name="emergencyNumber" 
-                      value={formData.emergencyNumber} 
-                      onChange={handleInputChange} 
-                      className="bg-background border-border/50"
-                      placeholder="e.g., 911, 112"
-                    />
-                  </div>
+                <CardContent>
+                  <InlineListManager
+                    items={formData.crew}
+                    setItems={(newCrew: Contact[]) => handleInputChange('crew', newCrew)}
+                    itemType="crew"
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Emergency Contacts</h4>
-                    <InlineListManager 
-                      items={formData.emergencyContacts}
-                      setItems={handleEmergencyContactsChange}
-                      itemType="emergencyContact"
-                    />
+            <TabsContent value="emergency" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Plus className="w-5 h-5" />
+                    <span>Emergency Contacts</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <InlineListManager
+                    items={formData.emergencyContacts}
+                    setItems={(newEmergencyContacts: Contact[]) => handleInputChange('emergencyContacts', newEmergencyContacts)}
+                    itemType="emergencyContact"
+                  />
+                  
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-medium mb-4">Emergency Services</h3>
+                    <EmergencyNumbers />
                   </div>
                 </CardContent>
               </Card>
