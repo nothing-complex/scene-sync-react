@@ -18,6 +18,11 @@ export class StyleUtils {
         lineHeight: 1.2
       },
       
+      content: {
+        flex: 1,
+        flexDirection: 'column'
+      },
+      
       // Logo and Company Section
       logoSection: {
         flexDirection: 'row',
