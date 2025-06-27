@@ -3,7 +3,6 @@ import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetPDFDocument } from '../sections/CallsheetDocument';
 import { pdf } from '@react-pdf/renderer';
 import { FontManager } from './FontManager';
-import React from 'react';
 
 export class PDFGenerator {
   private fontManager: FontManager;
@@ -24,8 +23,8 @@ export class PDFGenerator {
       
       console.log('Creating PDF document...');
       
-      // Create React element using React.createElement
-      const documentElement = React.createElement(CallsheetPDFDocument, {
+      // Get the Document element directly from the component
+      const documentElement = CallsheetPDFDocument({
         callsheet,
         customization: validatedCustomization
       });
