@@ -1,9 +1,9 @@
+
 import React from 'react';
 import { Document, Page, Text, View, Image } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
 import { createStyles } from './styleUtils_backup';
-import { SafeText, SectionIcon } from './components_backup';
 
 interface CallsheetPDFDocumentProps {
   callsheet: CallsheetData;
@@ -31,19 +31,14 @@ const deepMerge = (target: any, source: any): any => {
 export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ callsheet, customization = {} }) => {
   console.log('CallsheetPDFDocument rendering with callsheet:', callsheet.projectTitle);
   
-  // FIXED: Use deep merge to ensure all nested properties are properly handled
+  // Use deep merge to ensure all nested properties are properly handled
   const config: PDFCustomization = deepMerge(DEFAULT_PDF_CUSTOMIZATION, customization);
   
-  // CRITICAL: Ensure cornerRadius is always a valid number
+  // Ensure cornerRadius is always a valid number
   if (typeof config.visual.cornerRadius !== 'number' || isNaN(config.visual.cornerRadius)) {
     console.warn('Invalid cornerRadius detected, setting to default:', config.visual.cornerRadius);
     config.visual.cornerRadius = 8;
   }
-  
-  // DEBUGGING: Log the final config to verify all properties are set
-  console.log('Final PDF config cornerRadius:', config.visual.cornerRadius);
-  console.log('Full visual config:', config.visual);
-  console.log('Full config structure:', JSON.stringify(config, null, 2));
   
   const styles = createStyles(config);
 
@@ -64,39 +59,9 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
     };
 
     switch (position) {
-      case 'top-left':
-        return (
-          <View style={{ position: 'absolute', top: 10, left: 10 }}>
-            <Image src={config.branding.logo.url} style={commonStyles} />
-          </View>
-        );
       case 'top-right':
         return (
           <View style={{ position: 'absolute', top: 10, right: 10 }}>
-            <Image src={config.branding.logo.url} style={commonStyles} />
-          </View>
-        );
-      case 'top-center':
-        return (
-          <View style={{ alignItems: 'center', marginBottom: 16 }}>
-            <Image src={config.branding.logo.url} style={commonStyles} />
-          </View>
-        );
-      case 'header-left':
-        return (
-          <View style={{ position: 'absolute', left: 0, top: 0 }}>
-            <Image src={config.branding.logo.url} style={commonStyles} />
-          </View>
-        );
-      case 'header-right':
-        return (
-          <View style={{ position: 'absolute', right: 0, top: 0 }}>
-            <Image src={config.branding.logo.url} style={commonStyles} />
-          </View>
-        );
-      case 'header-center':
-        return (
-          <View style={{ alignItems: 'center', marginBottom: 12 }}>
             <Image src={config.branding.logo.url} style={commonStyles} />
           </View>
         );
@@ -107,241 +72,190 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
 
   const Header = () => (
     <View style={styles.headerContainer}>
-      {/* Top positioned logos */}
-      <LogoComponent position="top-left" />
-      <LogoComponent position="top-right" />
+      {/* Logo positioned in top-right */}
+      <View style={styles.logoContainer}>
+        <Text style={styles.logoText}>FACE</Text>
+      </View>
       
-      {/* Company Name Header - FIXED: Use SafeText and check for content */}
-      {config.branding.companyName && config.branding.companyName.trim() && (
-        <View style={{ alignItems: 'center', marginBottom: 16 }}>
-          <SafeText style={{
-            fontSize: config.typography.fontSize.header + 2,
-            fontWeight: 600,
-            color: config.colors.text,
-            textAlign: 'center'
-          }}>
-            {config.branding.companyName.trim()}
-          </SafeText>
-        </View>
-      )}
-
-      {/* Top center logo */}
-      <LogoComponent position="top-center" />
-      
-      <View style={[
-        styles.titleSection,
-        config.branding.logo && ['header-left', 'header-right'].includes(config.branding.logo.position) && { position: 'relative' }
-      ]}>
-        {/* Header positioned logos */}
-        <LogoComponent position="header-left" />
-        <LogoComponent position="header-right" />
-        <LogoComponent position="header-center" />
-        
-        {/* FIXED: Use SafeText for all text content */}
-        <SafeText style={[
-          styles.projectTitle,
-          config.branding.logo && ['header-left', 'header-right'].includes(config.branding.logo.position) && { 
-            marginLeft: config.branding.logo.position === 'header-left' ? getLogoSize() + 16 : 0,
-            marginRight: config.branding.logo.position === 'header-right' ? getLogoSize() + 16 : 0
-          }
-        ]}>
-          {callsheet.projectTitle}
-        </SafeText>
-        
-        <Text style={[
-          styles.title,
-          config.branding.logo && ['header-left', 'header-right'].includes(config.branding.logo.position) && { 
-            marginLeft: config.branding.logo.position === 'header-left' ? getLogoSize() + 16 : 0,
-            marginRight: config.branding.logo.position === 'header-right' ? getLogoSize() + 16 : 0
-          }
-        ]}>
-          CALL SHEET
-        </Text>
-        
-        {/* Date in header - FIXED: Use SafeText */}
-        <SafeText style={styles.companyName}>
-          {new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric',
-            year: 'numeric'
-          })}
-        </SafeText>
+      {/* Title section with proper spacing for logo */}
+      <View style={styles.titleSection}>
+        <Text style={styles.projectTitle}>{callsheet.projectTitle}</Text>
+        <Text style={styles.callsheetSubtitle}>CALL SHEET</Text>
       </View>
     </View>
   );
 
   const ProductionDetailsGrid = () => (
-    <View style={[styles.sectionCard, { marginBottom: 16 }]} break={false}>
-      <View style={styles.productionGrid}>
-        <View style={styles.gridItem}>
-          <Text style={styles.label}>Shoot Date</Text>
-          <SafeText style={styles.value}>
-            {new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </SafeText>
+    <View style={styles.productionGrid}>
+      <View style={styles.gridCard}>
+        <Text style={styles.gridLabel}>Shoot Date</Text>
+        <Text style={styles.gridValue}>
+          {new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+        </Text>
+      </View>
+      
+      {callsheet.generalCallTime && (
+        <View style={styles.gridCard}>
+          <Text style={styles.gridLabel}>Call Time</Text>
+          <Text style={styles.gridValue}>{callsheet.generalCallTime}</Text>
         </View>
-        
-        <View style={styles.gridItem}>
-          <Text style={styles.label}>Call Time</Text>
-          <SafeText style={styles.value}>{callsheet.generalCallTime}</SafeText>
-        </View>
-
-        <View style={styles.gridItem}>
-          <Text style={styles.label}>Location</Text>
-          <SafeText style={styles.value}>{callsheet.location}</SafeText>
-          {callsheet.locationAddress && callsheet.locationAddress.trim() && (
-            <SafeText style={styles.locationAddress}>{callsheet.locationAddress.trim()}</SafeText>
+      )}
+      
+      {callsheet.location && (
+        <View style={styles.gridCard}>
+          <Text style={styles.gridLabel}>Location</Text>
+          <Text style={styles.gridValue}>{callsheet.location}</Text>
+          {callsheet.locationAddress && (
+            <Text style={styles.locationAddress}>{callsheet.locationAddress}</Text>
           )}
         </View>
-
-        {callsheet.weather && callsheet.weather.trim() && config.sections.visibility.weather && (
-          <View style={styles.gridItem}>
-            <Text style={styles.label}>Weather</Text>
-            <SafeText style={styles.value}>{callsheet.weather.trim()}</SafeText>
-          </View>
-        )}
-
-        {callsheet.parkingInstructions && callsheet.parkingInstructions.trim() && (
-          <View style={styles.gridItem}>
-            <Text style={styles.label}>Parking Instructions</Text>
-            <SafeText style={styles.value}>{callsheet.parkingInstructions.trim()}</SafeText>
-          </View>
-        )}
-
-        {callsheet.basecampLocation && callsheet.basecampLocation.trim() && (
-          <View style={styles.gridItem}>
-            <Text style={styles.label}>Basecamp Location</Text>
-            <SafeText style={styles.value}>{callsheet.basecampLocation.trim()}</SafeText>
-          </View>
-        )}
-      </View>
+      )}
+      
+      {callsheet.weather && config.sections.visibility.weather && (
+        <View style={styles.gridCard}>
+          <Text style={styles.gridLabel}>Weather</Text>
+          <Text style={styles.gridValue}>{callsheet.weather}</Text>
+        </View>
+      )}
+      
+      {callsheet.parkingInstructions && (
+        <View style={styles.gridCard}>
+          <Text style={styles.gridLabel}>Parking Instructions</Text>
+          <Text style={styles.gridValue}>{callsheet.parkingInstructions}</Text>
+        </View>
+      )}
+      
+      {callsheet.basecampLocation && (
+        <View style={styles.gridCard}>
+          <Text style={styles.gridLabel}>Basecamp Location</Text>
+          <Text style={styles.gridValue}>{callsheet.basecampLocation}</Text>
+        </View>
+      )}
     </View>
   );
 
-  const Notes = () => (
-    config.sections.visibility.notes && callsheet.specialNotes && callsheet.specialNotes.trim() && (
-      <View style={[styles.sectionCard, { marginBottom: 16 }]} break={false}>
-        <View style={styles.sectionHeader}>
-          {config.sections.formatting.showSectionIcons && (
-            <SectionIcon type="notes" color={config.colors.accent} />
-          )}
-          <Text style={styles.sectionTitle}>SPECIAL NOTES</Text>
+  const SpecialNotes = () => {
+    if (!callsheet.specialNotes?.trim() || !config.sections.visibility.notes) return null;
+    
+    return (
+      <View style={styles.notesCard} wrap={false}>
+        <View style={styles.notesHeader}>
+          <Text style={styles.notesTitle}>SPECIAL NOTES</Text>
         </View>
-        <View style={styles.sectionContent}>
-          <View style={styles.notesContainer}>
-            <SafeText style={styles.value}>{callsheet.specialNotes.trim()}</SafeText>
-          </View>
+        <View style={styles.notesContent}>
+          <Text style={styles.notesText}>{callsheet.specialNotes}</Text>
         </View>
       </View>
-    )
-  );
+    );
+  };
 
-  const Schedule = () => (
-    config.sections.visibility.schedule && callsheet.schedule && callsheet.schedule.length > 0 && (
-      <View style={[styles.sectionCard, { marginBottom: 16 }]} break={false}>
+  const Schedule = () => {
+    if (!callsheet.schedule?.length || !config.sections.visibility.schedule) return null;
+    
+    return (
+      <View style={styles.sectionCard} wrap={false}>
         <View style={styles.sectionHeader}>
-          {config.sections.formatting.showSectionIcons && (
-            <SectionIcon type="clock" color={config.colors.accent} />
-          )}
           <Text style={styles.sectionTitle}>SCHEDULE</Text>
         </View>
         <View style={styles.sectionContent}>
           <View style={styles.scheduleTable}>
-            <View style={styles.scheduleTableHeader}>
-              <Text style={[styles.scheduleHeaderCell, { flex: 1 }]}>Scene</Text>
-              <Text style={[styles.scheduleHeaderCell, { flex: 1 }]}>Int/Ext</Text>
-              <Text style={[styles.scheduleHeaderCell, { flex: 2 }]}>Description</Text>
-              <Text style={[styles.scheduleHeaderCell, { flex: 2 }]}>Location</Text>
-              <Text style={[styles.scheduleHeaderCell, { flex: 1 }]}>Time</Text>
+            <View style={styles.scheduleHeader}>
+              <Text style={[styles.scheduleHeaderCell, { width: '15%' }]}>Time</Text>
+              <Text style={[styles.scheduleHeaderCell, { width: '15%' }]}>Scene</Text>
+              <Text style={[styles.scheduleHeaderCell, { width: '40%' }]}>Description</Text>
+              <Text style={[styles.scheduleHeaderCell, { width: '30%' }]}>Location</Text>
             </View>
             {callsheet.schedule.map((item, index) => (
-              <View key={index} style={styles.scheduleTableRow}>
-                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.sceneNumber || 'N/A'}</SafeText>
-                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.intExt || 'N/A'}</SafeText>
-                <SafeText style={[styles.scheduleCell, { flex: 2 }]}>{item.description || 'N/A'}</SafeText>
-                <SafeText style={[styles.scheduleCell, { flex: 2 }]}>{item.location || 'N/A'}</SafeText>
-                <SafeText style={[styles.scheduleCell, { flex: 1 }]}>{item.estimatedTime || 'N/A'}</SafeText>
+              <View key={index} style={styles.scheduleRow}>
+                <Text style={[styles.scheduleCell, { width: '15%' }]}>
+                  {item.estimatedTime || 'TBD'}
+                </Text>
+                <Text style={[styles.scheduleCell, { width: '15%' }]}>
+                  {item.sceneNumber || 'N/A'}
+                </Text>
+                <Text style={[styles.scheduleCell, { width: '40%' }]}>
+                  {item.description || 'No description'}
+                </Text>
+                <Text style={[styles.scheduleCell, { width: '30%' }]}>
+                  {item.location || 'TBD'}
+                </Text>
               </View>
             ))}
           </View>
         </View>
       </View>
-    )
-  );
+    );
+  };
 
-  const ContactSection = ({ title, contacts, iconType }: { 
+  const ContactSection = ({ title, contacts, type }: { 
     title: string; 
     contacts: any[]; 
-    iconType: string;
-  }) => (
-    <View style={[styles.sectionCard, { marginBottom: 16 }]} break={false}>
-      <View style={styles.sectionHeader}>
-        {config.sections.formatting.showSectionIcons && (
-          <SectionIcon type={iconType} color={config.colors.accent} />
-        )}
-        <Text style={styles.sectionTitle}>{title}</Text>
-      </View>
-      <View style={styles.sectionContent}>
-        {(!contacts || contacts.length === 0) ? (
-          <Text style={[styles.value, { color: config.colors.textLight }]}>
-            No contacts added
-          </Text>
-        ) : (
-          <View style={styles.contactTightGrid}>
+    type: 'normal' | 'emergency';
+  }) => {
+    if (!contacts?.length) return null;
+    
+    const isEmergency = type === 'emergency';
+    const cardStyle = isEmergency ? styles.emergencyCard : styles.sectionCard;
+    const headerStyle = isEmergency ? styles.emergencyHeader : styles.sectionHeader;
+    const titleStyle = isEmergency ? styles.emergencyTitle : styles.sectionTitle;
+    const contentStyle = isEmergency ? styles.emergencyContent : styles.sectionContent;
+    
+    return (
+      <View style={cardStyle} wrap={false}>
+        <View style={headerStyle}>
+          <Text style={titleStyle}>{title}</Text>
+        </View>
+        <View style={contentStyle}>
+          <View style={styles.contactGrid}>
             {contacts.map((contact, index) => (
-              <View key={contact.id || index} style={styles.contactTightGridItem}>
-                <SafeText style={styles.contactName}>{contact.name || 'Unknown'}</SafeText>
-                {/* FIXED: Completely removed fontStyle to prevent font resolution errors */}
-                {((contact.role && contact.role.trim()) || (contact.character && contact.character.trim())) && (
-                  <SafeText style={styles.contactRole}>
-                    {[
-                      contact.role && contact.role.trim() ? contact.role.trim() : '',
-                      contact.character && contact.character.trim() ? contact.character.trim() : ''
-                    ].filter(Boolean).join(' • ')}
-                  </SafeText>
+              <View 
+                key={contact.id || index} 
+                style={isEmergency ? styles.emergencyContactCard : styles.contactCard}
+              >
+                <Text style={styles.contactName}>{contact.name || 'Unknown'}</Text>
+                {(contact.role || contact.character) && (
+                  <Text style={styles.contactRole}>
+                    {[contact.role, contact.character].filter(Boolean).join(' • ')}
+                  </Text>
                 )}
-                <SafeText style={styles.contactDetails}>{contact.phone || 'No phone'}</SafeText>
-                {contact.email && contact.email.trim() && (
-                  <SafeText style={styles.contactDetails}>{contact.email.trim()}</SafeText>
+                {contact.phone && (
+                  <Text style={styles.contactInfo}>Phone: {contact.phone}</Text>
+                )}
+                {contact.email && (
+                  <Text style={styles.contactInfo}>Email: {contact.email}</Text>
                 )}
               </View>
             ))}
           </View>
-        )}
+        </View>
       </View>
+    );
+  };
+
+  const Footer = () => (
+    <View style={styles.footer} fixed>
+      <Text style={styles.footerText}>
+        Generated on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+      </Text>
     </View>
   );
 
-  const Footer = () => (
-    config.branding.footer?.text && config.branding.footer.text.trim() && (
-      <View style={styles.footer} fixed>
-        <SafeText style={styles.footerText}>{config.branding.footer.text.trim()}</SafeText>
-      </View>
-    )
-  );
-
-  console.log('CallsheetPDFDocument: Rendering complete PDF structure');
-  
   return (
     <Document>
-      <Page size="A4" style={styles.page} orientation={config.layout.pageOrientation}>
+      <Page size="A4" style={styles.page}>
         <Header />
         <ProductionDetailsGrid />
-        <Notes />
+        <SpecialNotes />
         <Schedule />
-        <ContactSection title="CAST" contacts={callsheet.cast || []} iconType="users" />
-        <ContactSection title="CREW" contacts={callsheet.crew || []} iconType="users" />
+        <ContactSection title="CAST" contacts={callsheet.cast || []} type="normal" />
+        <ContactSection title="CREW" contacts={callsheet.crew || []} type="normal" />
         {config.sections.visibility.emergencyContacts && (
-          <ContactSection 
-            title="EMERGENCY CONTACTS" 
-            contacts={callsheet.emergencyContacts || []} 
-            iconType="emergency"
-          />
+          <ContactSection title="EMERGENCY CONTACTS" contacts={callsheet.emergencyContacts || []} type="emergency" />
         )}
         <Footer />
       </Page>
