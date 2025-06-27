@@ -1,50 +1,117 @@
 
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
-
-const MASTER_PDF_SETTINGS_KEY = 'master_pdf_settings';
+import { supabase } from '@/integrations/supabase/client';
 
 export class MasterPDFSettingsService {
-  static saveMasterSettings(customization: PDFCustomization): void {
+  static async saveMasterSettings(customization: PDFCustomization): Promise<void> {
     try {
-      const serializedSettings = JSON.stringify(customization);
-      localStorage.setItem(MASTER_PDF_SETTINGS_KEY, serializedSettings);
-      console.log('Master PDF settings saved successfully');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User must be authenticated to save master PDF settings');
+      }
+
+      const { error } = await supabase
+        .from('master_pdf_settings')
+        .upsert({
+          user_id: user.id,
+          settings: customization
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        console.error('Supabase error saving master PDF settings:', error);
+        throw new Error('Failed to save master PDF settings');
+      }
+
+      console.log('Master PDF settings saved successfully to Supabase');
     } catch (error) {
       console.error('Failed to save master PDF settings:', error);
-      throw new Error('Failed to save master PDF settings');
+      throw error;
     }
   }
 
-  static loadMasterSettings(): PDFCustomization {
+  static async loadMasterSettings(): Promise<PDFCustomization> {
     try {
-      const serializedSettings = localStorage.getItem(MASTER_PDF_SETTINGS_KEY);
-      if (!serializedSettings) {
-        console.log('No master PDF settings found, using defaults');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('No authenticated user, using default settings');
         return DEFAULT_PDF_CUSTOMIZATION;
       }
 
-      const parsedSettings = JSON.parse(serializedSettings);
-      console.log('Master PDF settings loaded successfully');
+      const { data, error } = await supabase
+        .from('master_pdf_settings')
+        .select('settings')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Supabase error loading master PDF settings:', error);
+        return DEFAULT_PDF_CUSTOMIZATION;
+      }
+
+      if (!data) {
+        console.log('No master PDF settings found for user, using defaults');
+        return DEFAULT_PDF_CUSTOMIZATION;
+      }
+
+      console.log('Master PDF settings loaded successfully from Supabase');
       
       // Deep merge with defaults to ensure all properties are present
-      return this.deepMergeWithDefaults(DEFAULT_PDF_CUSTOMIZATION, parsedSettings);
+      return this.deepMergeWithDefaults(DEFAULT_PDF_CUSTOMIZATION, data.settings);
     } catch (error) {
       console.error('Failed to load master PDF settings:', error);
       return DEFAULT_PDF_CUSTOMIZATION;
     }
   }
 
-  static clearMasterSettings(): void {
+  static async clearMasterSettings(): Promise<void> {
     try {
-      localStorage.removeItem(MASTER_PDF_SETTINGS_KEY);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User must be authenticated to clear master PDF settings');
+      }
+
+      const { error } = await supabase
+        .from('master_pdf_settings')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Supabase error clearing master PDF settings:', error);
+        throw new Error('Failed to clear master PDF settings');
+      }
+
       console.log('Master PDF settings cleared successfully');
     } catch (error) {
       console.error('Failed to clear master PDF settings:', error);
+      throw error;
     }
   }
 
-  static hasMasterSettings(): boolean {
-    return localStorage.getItem(MASTER_PDF_SETTINGS_KEY) !== null;
+  static async hasMasterSettings(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return false;
+      }
+
+      const { data, error } = await supabase
+        .from('master_pdf_settings')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking for master PDF settings:', error);
+        return false;
+      }
+
+      return !!data;
+    } catch (error) {
+      console.error('Failed to check master PDF settings:', error);
+      return false;
+    }
   }
 
   private static deepMergeWithDefaults(defaults: PDFCustomization, custom: Partial<PDFCustomization>): PDFCustomization {
