@@ -24,11 +24,24 @@ export const createPartialBorderStyle = (sides: { top?: number; right?: number; 
   };
 };
 
+// CRITICAL FIX: Safe function to get corner radius
+const getSafeCornerRadius = (customization: PDFCustomization): number => {
+  const radius = customization.visual?.cornerRadius;
+  if (typeof radius === 'number' && !isNaN(radius) && radius >= 0) {
+    return radius;
+  }
+  console.warn('Invalid corner radius value:', radius, 'using default: 8'); 
+  return 8; // Safe default
+};
+
 // FIXED: Updated createStyles to avoid problematic fontStyle usage
 // This prevents the "Could not resolve font for Inter, fontWeight 400, fontStyle italic" error
 export const createStyles = (customization: PDFCustomization) => {
   const fontFamily = getFontFamily(customization.typography.fontFamily);
+  const safeCornerRadius = getSafeCornerRadius(customization);
+  
   console.log('Creating styles with font family:', fontFamily);
+  console.log('Using safe corner radius:', safeCornerRadius);
   
   return StyleSheet.create({
     page: {
@@ -70,7 +83,7 @@ export const createStyles = (customization: PDFCustomization) => {
         ? customization.colors.surface 
         : 'transparent',
       padding: customization.visual.headerBackground !== 'none' ? 20 : 8,
-      borderRadius: customization.visual.cornerRadius,
+      borderRadius: safeCornerRadius,
       marginBottom: 20,
       alignItems: customization.layout.headerStyle === 'minimal' ? 'flex-start' : 'center',
     },
@@ -93,7 +106,7 @@ export const createStyles = (customization: PDFCustomization) => {
 
     sectionCard: {
       backgroundColor: customization.colors.surface,
-      borderRadius: customization.visual.cornerRadius,
+      borderRadius: safeCornerRadius,
       marginBottom: customization.layout.spacing.sectionGap,
       overflow: 'hidden',
       ...createBorderStyle(
@@ -136,7 +149,7 @@ export const createStyles = (customization: PDFCustomization) => {
       minWidth: '30%',
       backgroundColor: customization.colors.background,
       padding: 12,
-      borderRadius: customization.visual.cornerRadius - 2,
+      borderRadius: safeCornerRadius - 2,
       ...createBorderStyle(
         customization.visual.cardStyle === 'bordered' ? 1 : 0,
         customization.colors.borderLight
@@ -186,7 +199,7 @@ export const createStyles = (customization: PDFCustomization) => {
       width: '48%',
       backgroundColor: customization.colors.background,
       padding: 10,
-      borderRadius: customization.visual.cornerRadius - 2,
+      borderRadius: safeCornerRadius - 2,
       marginBottom: 6,
       ...createPartialBorderStyle({ left: 2 }, customization.colors.accent),
     },
@@ -215,7 +228,7 @@ export const createStyles = (customization: PDFCustomization) => {
     // Schedule table styles
     scheduleTable: {
       backgroundColor: customization.colors.background,
-      borderRadius: customization.visual.cornerRadius - 2,
+      borderRadius: safeCornerRadius - 2,
       ...createBorderStyle(1, customization.colors.border),
     },
 
@@ -254,7 +267,7 @@ export const createStyles = (customization: PDFCustomization) => {
     notesContainer: {
       backgroundColor: customization.colors.accent + '08',
       padding: 16,
-      borderRadius: customization.visual.cornerRadius,
+      borderRadius: safeCornerRadius,
       ...createPartialBorderStyle({ left: 4 }, customization.colors.accent),
     },
 
@@ -268,7 +281,7 @@ export const createStyles = (customization: PDFCustomization) => {
         : 'transparent',
       padding: customization.branding.footer?.style !== 'minimal' ? 8 : 4,
       borderRadius: customization.branding.footer?.style === 'bordered' 
-        ? customization.visual.cornerRadius 
+        ? safeCornerRadius 
         : 0,
       ...createPartialBorderStyle(
         { top: customization.branding.footer?.style === 'accent' ? 2 : 0 },

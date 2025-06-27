@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, Text, View, Image } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -14,10 +13,14 @@ interface CallsheetPDFDocumentProps {
 export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ callsheet, customization = {} }) => {
   console.log('CallsheetPDFDocument rendering with callsheet:', callsheet.projectTitle);
   
+  // FIXED: Deep merge customization with proper defaults to prevent undefined values
   const config: PDFCustomization = {
-    ...DEFAULT_PDF_CUSTOMIZATION,
-    ...customization,
-    colors: { ...DEFAULT_PDF_CUSTOMIZATION.colors, ...customization.colors },
+    layout: { 
+      ...DEFAULT_PDF_CUSTOMIZATION.layout, 
+      ...customization.layout,
+      margins: { ...DEFAULT_PDF_CUSTOMIZATION.layout.margins, ...customization.layout?.margins },
+      spacing: { ...DEFAULT_PDF_CUSTOMIZATION.layout.spacing, ...customization.layout?.spacing }
+    },
     typography: { 
       ...DEFAULT_PDF_CUSTOMIZATION.typography, 
       ...customization.typography,
@@ -25,21 +28,33 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
       fontWeight: { ...DEFAULT_PDF_CUSTOMIZATION.typography.fontWeight, ...customization.typography?.fontWeight },
       lineHeight: { ...DEFAULT_PDF_CUSTOMIZATION.typography.lineHeight, ...customization.typography?.lineHeight }
     },
-    layout: { 
-      ...DEFAULT_PDF_CUSTOMIZATION.layout, 
-      ...customization.layout,
-      margins: { ...DEFAULT_PDF_CUSTOMIZATION.layout.margins, ...customization.layout?.margins },
-      spacing: { ...DEFAULT_PDF_CUSTOMIZATION.layout.spacing, ...customization.layout?.spacing }
+    branding: { 
+      ...DEFAULT_PDF_CUSTOMIZATION.branding, 
+      ...customization.branding,
+      footer: customization.branding?.footer ? {
+        ...DEFAULT_PDF_CUSTOMIZATION.branding.footer,
+        ...customization.branding.footer
+      } : DEFAULT_PDF_CUSTOMIZATION.branding.footer
     },
-    visual: { ...DEFAULT_PDF_CUSTOMIZATION.visual, ...customization.visual },
+    colors: { ...DEFAULT_PDF_CUSTOMIZATION.colors, ...customization.colors },
+    theme: customization.theme || DEFAULT_PDF_CUSTOMIZATION.theme,
+    visual: { 
+      ...DEFAULT_PDF_CUSTOMIZATION.visual, 
+      ...customization.visual,
+      // CRITICAL FIX: Ensure cornerRadius always has a valid number
+      cornerRadius: customization.visual?.cornerRadius ?? DEFAULT_PDF_CUSTOMIZATION.visual.cornerRadius
+    },
     sections: { 
       ...DEFAULT_PDF_CUSTOMIZATION.sections, 
       ...customization.sections,
       visibility: { ...DEFAULT_PDF_CUSTOMIZATION.sections.visibility, ...customization.sections?.visibility },
       formatting: { ...DEFAULT_PDF_CUSTOMIZATION.sections.formatting, ...customization.sections?.formatting }
-    },
-    branding: { ...DEFAULT_PDF_CUSTOMIZATION.branding, ...customization.branding }
+    }
   };
+  
+  // DEBUGGING: Log the final config to verify cornerRadius is set
+  console.log('Final PDF config cornerRadius:', config.visual.cornerRadius);
+  console.log('Full visual config:', config.visual);
   
   const styles = createStyles(config);
 
