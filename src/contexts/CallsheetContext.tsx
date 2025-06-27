@@ -4,11 +4,6 @@ import { CallsheetData, Contact, ScheduleItem } from '@/types/callsheet';
 import { useCallsheets } from '@/hooks/useCallsheets';
 import { useContacts } from '@/hooks/useContacts';
 
-// Type aliases for better semantic meaning
-export type CastMember = Contact;
-export type CrewMember = Contact;
-export type EmergencyContact = Contact;
-
 interface CallsheetContextType {
   callsheets: CallsheetData[];
   loading: boolean;
@@ -21,11 +16,9 @@ interface CallsheetContextType {
   refetch: () => Promise<void>;
   // Contact management methods
   contacts: Contact[];
-  addContact: (contact: Omit<Contact, 'id'>) => Promise<any>;
+  addContact: (contact: Omit<Contact, 'id'>) => Promise<any>; // Changed return type to match actual implementation
   updateContact: (id: string, updates: Partial<Contact>) => Promise<void>;
   deleteContact: (id: string) => Promise<void>;
-  // Alias for backward compatibility
-  createCallsheet: (callsheet: Omit<CallsheetData, 'id' | 'createdAt' | 'updatedAt'>) => Promise<any>;
 }
 
 const CallsheetContext = createContext<CallsheetContextType | undefined>(undefined);
@@ -76,7 +69,6 @@ export const CallsheetProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       addContact,
       updateContact,
       deleteContact,
-      createCallsheet: addCallsheet, // Alias for backward compatibility
     }}>
       {children}
     </CallsheetContext.Provider>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Calendar, Clock, MapPin, Copy, FileText, Trash2, Edit, Users, Camera, AlertCircle, RefreshCw, Share2, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { useCallsheet } from '@/contexts/CallsheetContext';
 import { CallsheetForm } from './CallsheetForm';
 import { ShareCallsheetDialog } from './ShareCallsheetDialog';
 import { ShareInvitations } from './ShareInvitations';
+import { generateCallsheetPDF } from '@/services/pdfService';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
@@ -37,6 +37,22 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
       />
     );
   }
+
+  const handleExportPDF = async (callsheetId: string) => {
+    const callsheet = callsheets.find(cs => cs.id === callsheetId);
+    if (callsheet) {
+      console.log('Generating PDF for callsheet:', callsheetId);
+      setActionLoading(`pdf-${callsheetId}`);
+      try {
+        await generateCallsheetPDF(callsheet);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Failed to generate PDF. Please try again.');
+      } finally {
+        setActionLoading(null);
+      }
+    }
+  };
 
   const handleDuplicate = async (callsheetId: string) => {
     try {
@@ -385,6 +401,19 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                                   <LoadingSpinner size="sm" />
                                 ) : (
                                   <FileSpreadsheet className="w-4 h-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 w-9 p-0 hover:bg-accent"
+                                onClick={() => handleExportPDF(callsheet.id)}
+                                disabled={actionLoading !== null}
+                              >
+                                {actionLoading === `pdf-${callsheet.id}` ? (
+                                  <LoadingSpinner size="sm" />
+                                ) : (
+                                  <FileText className="w-4 h-4" />
                                 )}
                               </Button>
                               <Button
