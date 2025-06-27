@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, Download, Beaker } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Download, Eye, Beaker } from 'lucide-react';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { generateCustomCallsheetPDF, previewCallsheetPDF } from '@/services/pdfService';
 import { generateExperimentalCallsheetPDF, previewExperimentalCallsheetPDF } from '@/services/experimentalPdfService';
-import { PDFPreviewDialog } from '../PDFPreviewDialog';
+import { PDFPreviewDialog } from '../../pdf/PDFPreviewDialog';
 import { toast } from 'sonner';
 
 interface ActionsTabProps {
@@ -30,7 +30,7 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({
       toast.success('PDF downloaded successfully!');
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      toast.error('Failed to download PDF. Please try again.');
+      toast.error(`Failed to download PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsGenerating(false);
     }
@@ -43,7 +43,7 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({
       toast.success('PDF preview opened in new tab!');
     } catch (error) {
       console.error('Error previewing PDF:', error);
-      toast.error('Failed to preview PDF. Please try again.');
+      toast.error(`Failed to preview PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsGenerating(false);
     }

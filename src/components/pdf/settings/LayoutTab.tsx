@@ -9,22 +9,20 @@ import { PDFCustomization } from '@/types/pdfTypes';
 
 interface LayoutTabProps {
   customization: PDFCustomization;
-  onCustomizationChange: (updates: Partial<PDFCustomization>) => void;
+  onCustomizationChange: (customization: PDFCustomization) => void;
 }
 
 export const LayoutTab: React.FC<LayoutTabProps> = ({
   customization,
   onCustomizationChange
 }) => {
-  const updateLayout = (updates: Partial<typeof customization.layout>) => {
+  const updateCustomization = (section: keyof PDFCustomization, updates: any) => {
     onCustomizationChange({
-      layout: { ...customization.layout, ...updates }
-    });
-  };
-
-  const updateVisual = (updates: Partial<typeof customization.visual>) => {
-    onCustomizationChange({
-      visual: { ...customization.visual, ...updates }
+      ...customization,
+      [section]: {
+        ...customization[section],
+        ...updates
+      }
     });
   };
 
@@ -40,7 +38,7 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
             <Select 
               value={customization.layout.headerStyle} 
               onValueChange={(value: 'minimal' | 'professional' | 'creative' | 'cinematic') => 
-                updateLayout({ headerStyle: value })
+                updateCustomization('layout', { headerStyle: value })
               }
             >
               <SelectTrigger className="bg-background border-border/50">
@@ -60,7 +58,7 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
             <RadioGroup 
               value={customization.layout.pageOrientation} 
               onValueChange={(value: 'portrait' | 'landscape') => 
-                updateLayout({ pageOrientation: value })
+                updateCustomization('layout', { pageOrientation: value })
               }
               className="flex flex-row space-x-8"
             >
@@ -82,7 +80,7 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
             <Select 
               value={customization.visual.cardStyle} 
               onValueChange={(value: 'minimal' | 'elevated' | 'bordered' | 'gradient') => 
-                updateVisual({ cardStyle: value })
+                updateCustomization('visual', { cardStyle: value })
               }
             >
               <SelectTrigger className="bg-background border-border/50">
@@ -102,7 +100,7 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
             <Select 
               value={customization.visual.sectionDividers} 
               onValueChange={(value: 'none' | 'line' | 'space' | 'accent') => 
-                updateVisual({ sectionDividers: value })
+                updateCustomization('visual', { sectionDividers: value })
               }
             >
               <SelectTrigger className="bg-background border-border/50">
@@ -124,7 +122,7 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
           </Label>
           <Slider
             value={[customization.visual.cornerRadius]}
-            onValueChange={([value]) => updateVisual({ cornerRadius: value })}
+            onValueChange={([value]) => updateCustomization('visual', { cornerRadius: value })}
             max={20}
             min={0}
             step={1}
@@ -137,7 +135,7 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
           <Select 
             value={customization.visual.shadowIntensity} 
             onValueChange={(value: 'none' | 'subtle' | 'medium') => 
-              updateVisual({ shadowIntensity: value })
+              updateCustomization('visual', { shadowIntensity: value })
             }
           >
             <SelectTrigger className="bg-background border-border/50">

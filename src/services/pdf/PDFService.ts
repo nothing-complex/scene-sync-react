@@ -1,51 +1,43 @@
 
 import { CallsheetData } from '@/contexts/CallsheetContext';
-import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
+import { PDFCustomization } from '@/types/pdfTypes';
 import { PDFGenerator } from './core/PDFGenerator';
 import { DownloadManager } from './core/DownloadManager';
 import { CustomizationMerger } from './utils/CustomizationMerger';
 
 export class PDFService {
   private generator: PDFGenerator;
-  private customization: PDFCustomization;
+  private downloadManager: DownloadManager;
 
-  constructor(customization: Partial<PDFCustomization> = {}) {
+  constructor() {
     this.generator = new PDFGenerator();
-    this.customization = CustomizationMerger.merge(DEFAULT_PDF_CUSTOMIZATION, customization);
-    
-    console.log('PDFService: Initialized with customization');
+    this.downloadManager = new DownloadManager();
   }
 
-  async downloadPDF(callsheet: CallsheetData): Promise<void> {
-    console.log('PDFService: Starting PDF download for:', callsheet.projectTitle);
+  async generatePDF(callsheet: CallsheetData, customization: Partial<PDFCustomization> = {}): Promise<Blob> {
+    console.log('PDFService: Starting PDF generation');
     
-    try {
-      const blob = await this.generator.generatePDF(callsheet, this.customization);
-      const filename = `${callsheet.projectTitle}_CallSheet_${callsheet.shootDate}.pdf`;
-      
-      await DownloadManager.downloadBlob(blob, filename);
-      console.log('PDFService: PDF download completed successfully');
-    } catch (error) {
-      console.error('PDFService: Download failed:', error);
-      throw error;
-    }
+    const mergedCustomization = CustomizationMerger.mergeCustomization(customization);
+    return await this.generator.generatePDF(callsheet, mergedCustomization);
   }
 
-  async previewPDF(callsheet: CallsheetData): Promise<void> {
-    console.log('PDFService: Starting PDF preview for:', callsheet.projectTitle);
+  async savePDF(callsheet: CallsheetData, customization: Partial<PDFCustomization> = {}, filename?: string): Promise<void> {
+    console.log('PDFService: Starting PDF save');
     
-    try {
-      const blob = await this.generator.generatePDF(callsheet, this.customization);
-      await DownloadManager.openPreview(blob);
-      console.log('PDFService: PDF preview opened successfully');
-    } catch (error) {
-      console.error('PDFService: Preview failed:', error);
-      throw error;
-    }
+    const blob = await this.generatePDF(callsheet, customization);
+    
+    const sanitizedTitle = (callsheet.projectTitle || 'callsheet')
+      .replace(/[^a-z0-9]/gi, '_')
+      .toLowerCase();
+    const fileName = filename || `${sanitizedTitle}_callsheet.pdf`;
+    
+    await this.downloadManager.downloadBlob(blob, fileName);
   }
 
-  updateCustomization(customization: Partial<PDFCustomization>): void {
-    this.customization = CustomizationMerger.merge(this.customization, customization);
-    console.log('PDFService: Customization updated');
+  async previewPDF(callsheet: CallsheetData, customization: Partial<PDFCustomization> = {}): Promise<void> {
+    console.log('PDFService: Starting PDF preview');
+    
+    const blob = await this.generatePDF(callsheet, customization);
+    await this.downloadManager.previewBlob(blob);
   }
 }

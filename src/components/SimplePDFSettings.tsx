@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,10 +9,10 @@ import { Input } from '@/components/ui/input';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { LogoUpload } from './LogoUpload';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Palette, Type, Layout, Settings } from 'lucide-react';
 import { LayoutTab } from './pdf/settings/LayoutTab';
 import { ActionsTab } from './pdf/settings/ActionsTab';
-import { Palette, Type, Layout, Settings } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SimplePDFSettingsProps {
   callsheet: CallsheetData;
@@ -25,8 +25,14 @@ export const SimplePDFSettings = ({
   customization, 
   onCustomizationChange 
 }: SimplePDFSettingsProps) => {
-  const updateCustomization = (updates: Partial<PDFCustomization>) => {
-    onCustomizationChange({ ...customization, ...updates });
+  const updateCustomization = (section: keyof PDFCustomization, updates: any) => {
+    onCustomizationChange({
+      ...customization,
+      [section]: {
+        ...customization[section],
+        ...updates
+      }
+    });
   };
 
   const updateNestedCustomization = (section: keyof PDFCustomization, subsection: string, updates: any) => {
@@ -67,7 +73,7 @@ export const SimplePDFSettings = ({
         <TabsContent value="layout" className="space-y-6">
           <LayoutTab 
             customization={customization}
-            onCustomizationChange={updateCustomization}
+            onCustomizationChange={onCustomizationChange}
           />
         </TabsContent>
 
@@ -82,7 +88,7 @@ export const SimplePDFSettings = ({
                 <Select 
                   value={customization.typography.fontFamily} 
                   onValueChange={(value: 'inter' | 'helvetica' | 'poppins' | 'montserrat') => 
-                    updateCustomization({ typography: { ...customization.typography, fontFamily: value } })
+                    updateCustomization('typography', { fontFamily: value })
                   }
                 >
                   <SelectTrigger className="bg-background border-border/50">
@@ -162,7 +168,7 @@ export const SimplePDFSettings = ({
                   <Input
                     type="color"
                     value={customization.colors.primary}
-                    onChange={(e) => updateCustomization({ colors: { ...customization.colors, primary: e.target.value } })}
+                    onChange={(e) => updateCustomization('colors', { primary: e.target.value })}
                     className="h-10 w-full"
                   />
                 </div>
@@ -172,10 +178,30 @@ export const SimplePDFSettings = ({
                   <Input
                     type="color"
                     value={customization.colors.accent}
-                    onChange={(e) => updateCustomization({ colors: { ...customization.colors, accent: e.target.value } })}
+                    onChange={(e) => updateCustomization('colors', { accent: e.target.value })}
                     className="h-10 w-full"
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Header Background</Label>
+                <Select 
+                  value={customization.visual.headerBackground} 
+                  onValueChange={(value: 'none' | 'subtle' | 'gradient' | 'solid') => 
+                    updateCustomization('visual', { headerBackground: value })
+                  }
+                >
+                  <SelectTrigger className="bg-background border-border/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="subtle">Subtle</SelectItem>
+                    <SelectItem value="solid">Solid</SelectItem>
+                    <SelectItem value="gradient">Gradient</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
@@ -187,7 +213,7 @@ export const SimplePDFSettings = ({
             <CardContent>
               <LogoUpload
                 onLogoChange={(logoData) => 
-                  updateCustomization({ branding: { ...customization.branding, logo: logoData } })
+                  updateCustomization('branding', { logo: logoData })
                 }
                 currentLogo={customization.branding.logo}
               />
@@ -203,6 +229,17 @@ export const SimplePDFSettings = ({
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
+                  <Label htmlFor="show-icons" className="text-sm font-medium">Show Section Icons</Label>
+                  <Switch
+                    id="show-icons"
+                    checked={customization.sections.formatting.showSectionIcons}
+                    onCheckedChange={(checked) => 
+                      updateNestedCustomization('sections', 'formatting', { showSectionIcons: checked })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
                   <Label htmlFor="emergency-prominent" className="text-sm font-medium">Prominent Emergency Contacts</Label>
                   <Switch
                     id="emergency-prominent"
@@ -215,41 +252,23 @@ export const SimplePDFSettings = ({
               </div>
 
               <div>
-                <h4 className="text-sm font-medium mb-3">Section Visibility</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="show-schedule" className="text-sm font-normal">Schedule</Label>
-                    <Switch
-                      id="show-schedule"
-                      checked={customization.sections.visibility.schedule}
-                      onCheckedChange={(checked) => 
-                        updateNestedCustomization('sections', 'visibility', { schedule: checked })
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="show-emergency" className="text-sm font-normal">Emergency Contacts</Label>
-                    <Switch
-                      id="show-emergency"
-                      checked={customization.sections.visibility.emergencyContacts}
-                      onCheckedChange={(checked) => 
-                        updateNestedCustomization('sections', 'visibility', { emergencyContacts: checked })
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="show-notes" className="text-sm font-normal">Special Notes</Label>
-                    <Switch
-                      id="show-notes"
-                      checked={customization.sections.visibility.notes}
-                      onCheckedChange={(checked) => 
-                        updateNestedCustomization('sections', 'visibility', { notes: checked })
-                      }
-                    />
-                  </div>
-                </div>
+                <Label className="text-sm font-medium mb-2 block">Contact Layout</Label>
+                <Select 
+                  value={customization.sections.formatting.contactLayout} 
+                  onValueChange={(value: 'list' | 'table' | 'cards' | 'compact') => 
+                    updateNestedCustomization('sections', 'formatting', { contactLayout: value })
+                  }
+                >
+                  <SelectTrigger className="bg-background border-border/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="list">List</SelectItem>
+                    <SelectItem value="table">Table</SelectItem>
+                    <SelectItem value="cards">Cards</SelectItem>
+                    <SelectItem value="compact">Compact</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
