@@ -10,51 +10,40 @@ interface CallsheetPDFDocumentProps {
   customization?: Partial<PDFCustomization>;
 }
 
+// Helper function for deep merging objects
+const deepMerge = (target: any, source: any): any => {
+  if (!source) return target;
+  if (!target) return source;
+  
+  const result = { ...target };
+  
+  for (const key in source) {
+    if (source[key] !== null && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      result[key] = deepMerge(target[key] || {}, source[key]);
+    } else if (source[key] !== undefined) {
+      result[key] = source[key];
+    }
+  }
+  
+  return result;
+};
+
 export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ callsheet, customization = {} }) => {
   console.log('CallsheetPDFDocument rendering with callsheet:', callsheet.projectTitle);
   
-  // FIXED: Deep merge customization with proper defaults to prevent undefined values
-  const config: PDFCustomization = {
-    layout: { 
-      ...DEFAULT_PDF_CUSTOMIZATION.layout, 
-      ...customization.layout,
-      margins: { ...DEFAULT_PDF_CUSTOMIZATION.layout.margins, ...customization.layout?.margins },
-      spacing: { ...DEFAULT_PDF_CUSTOMIZATION.layout.spacing, ...customization.layout?.spacing }
-    },
-    typography: { 
-      ...DEFAULT_PDF_CUSTOMIZATION.typography, 
-      ...customization.typography,
-      fontSize: { ...DEFAULT_PDF_CUSTOMIZATION.typography.fontSize, ...customization.typography?.fontSize },
-      fontWeight: { ...DEFAULT_PDF_CUSTOMIZATION.typography.fontWeight, ...customization.typography?.fontWeight },
-      lineHeight: { ...DEFAULT_PDF_CUSTOMIZATION.typography.lineHeight, ...customization.typography?.lineHeight }
-    },
-    branding: { 
-      ...DEFAULT_PDF_CUSTOMIZATION.branding, 
-      ...customization.branding,
-      footer: customization.branding?.footer ? {
-        ...DEFAULT_PDF_CUSTOMIZATION.branding.footer,
-        ...customization.branding.footer
-      } : DEFAULT_PDF_CUSTOMIZATION.branding.footer
-    },
-    colors: { ...DEFAULT_PDF_CUSTOMIZATION.colors, ...customization.colors },
-    theme: customization.theme || DEFAULT_PDF_CUSTOMIZATION.theme,
-    visual: { 
-      ...DEFAULT_PDF_CUSTOMIZATION.visual, 
-      ...customization.visual,
-      // CRITICAL FIX: Ensure cornerRadius always has a valid number
-      cornerRadius: customization.visual?.cornerRadius ?? DEFAULT_PDF_CUSTOMIZATION.visual.cornerRadius
-    },
-    sections: { 
-      ...DEFAULT_PDF_CUSTOMIZATION.sections, 
-      ...customization.sections,
-      visibility: { ...DEFAULT_PDF_CUSTOMIZATION.sections.visibility, ...customization.sections?.visibility },
-      formatting: { ...DEFAULT_PDF_CUSTOMIZATION.sections.formatting, ...customization.sections?.formatting }
-    }
-  };
+  // FIXED: Use deep merge to ensure all nested properties are properly handled
+  const config: PDFCustomization = deepMerge(DEFAULT_PDF_CUSTOMIZATION, customization);
   
-  // DEBUGGING: Log the final config to verify cornerRadius is set
+  // CRITICAL: Ensure cornerRadius is always a valid number
+  if (typeof config.visual.cornerRadius !== 'number' || isNaN(config.visual.cornerRadius)) {
+    console.warn('Invalid cornerRadius detected, setting to default:', config.visual.cornerRadius);
+    config.visual.cornerRadius = 8;
+  }
+  
+  // DEBUGGING: Log the final config to verify all properties are set
   console.log('Final PDF config cornerRadius:', config.visual.cornerRadius);
   console.log('Full visual config:', config.visual);
+  console.log('Full config structure:', JSON.stringify(config, null, 2));
   
   const styles = createStyles(config);
 
@@ -299,7 +288,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
       </View>
       <View style={styles.sectionContent}>
         {(!contacts || contacts.length === 0) ? (
-          <Text style={[styles.value, { fontStyle: 'italic', color: config.colors.textLight }]}>
+          <Text style={[styles.value, { color: config.colors.textLight }]}>
             No contacts added
           </Text>
         ) : (
@@ -307,7 +296,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({ call
             {contacts.map((contact, index) => (
               <View key={contact.id || index} style={styles.contactTightGridItem}>
                 <SafeText style={styles.contactName}>{contact.name || 'Unknown'}</SafeText>
-                {/* FIXED: Check for both role and character, handle empty strings */}
+                {/* FIXED: Completely removed fontStyle to prevent font resolution errors */}
                 {((contact.role && contact.role.trim()) || (contact.character && contact.character.trim())) && (
                   <SafeText style={styles.contactRole}>
                     {[

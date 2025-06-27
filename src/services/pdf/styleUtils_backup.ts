@@ -24,24 +24,82 @@ export const createPartialBorderStyle = (sides: { top?: number; right?: number; 
   };
 };
 
-// CRITICAL FIX: Safe function to get corner radius
+// CRITICAL FIX: Enhanced safe function to get corner radius with multiple fallbacks
 const getSafeCornerRadius = (customization: PDFCustomization): number => {
-  const radius = customization.visual?.cornerRadius;
-  if (typeof radius === 'number' && !isNaN(radius) && radius >= 0) {
-    return radius;
+  console.log('getSafeCornerRadius input:', customization.visual);
+  
+  // Multiple fallback checks
+  let radius = customization.visual?.cornerRadius;
+  
+  // If visual object doesn't exist, use default
+  if (!customization.visual) {
+    console.warn('Visual customization object is missing, using default radius: 8');
+    return 8;
   }
-  console.warn('Invalid corner radius value:', radius, 'using default: 8'); 
-  return 8; // Safe default
+  
+  // If cornerRadius is not set, use default
+  if (radius === undefined || radius === null) {
+    console.warn('Corner radius is undefined/null, using default: 8');
+    return 8;
+  }
+  
+  // If cornerRadius is not a number, use default
+  if (typeof radius !== 'number') {
+    console.warn('Corner radius is not a number:', typeof radius, radius, 'using default: 8');
+    return 8;
+  }
+  
+  // If cornerRadius is NaN, use default
+  if (isNaN(radius)) {
+    console.warn('Corner radius is NaN:', radius, 'using default: 8');
+    return 8;
+  }
+  
+  // If cornerRadius is negative, use default
+  if (radius < 0) {
+    console.warn('Corner radius is negative:', radius, 'using default: 8');
+    return 8;
+  }
+  
+  console.log('Using corner radius:', radius);
+  return radius;
 };
 
-// FIXED: Updated createStyles to avoid problematic fontStyle usage
-// This prevents the "Could not resolve font for Inter, fontWeight 400, fontStyle italic" error
+// FIXED: Updated createStyles to avoid problematic fontStyle usage and ensure all values are safe
 export const createStyles = (customization: PDFCustomization) => {
+  console.log('createStyles called with customization:', customization);
+  
+  // Validate the entire customization object structure
+  if (!customization) {
+    throw new Error('Customization object is required');
+  }
+  
+  if (!customization.visual) {
+    throw new Error('Visual customization is required');
+  }
+  
+  if (!customization.typography) {
+    throw new Error('Typography customization is required');
+  }
+  
+  if (!customization.colors) {
+    throw new Error('Colors customization is required');
+  }
+  
   const fontFamily = getFontFamily(customization.typography.fontFamily);
   const safeCornerRadius = getSafeCornerRadius(customization);
   
   console.log('Creating styles with font family:', fontFamily);
   console.log('Using safe corner radius:', safeCornerRadius);
+  
+  // Additional validation for critical properties
+  if (!customization.layout?.margins) {
+    throw new Error('Layout margins are required');
+  }
+  
+  if (!customization.typography?.fontSize) {
+    throw new Error('Typography fontSize is required');
+  }
   
   return StyleSheet.create({
     page: {
@@ -149,7 +207,7 @@ export const createStyles = (customization: PDFCustomization) => {
       minWidth: '30%',
       backgroundColor: customization.colors.background,
       padding: 12,
-      borderRadius: safeCornerRadius - 2,
+      borderRadius: safeCornerRadius > 2 ? safeCornerRadius - 2 : 0,
       ...createBorderStyle(
         customization.visual.cardStyle === 'bordered' ? 1 : 0,
         customization.colors.borderLight
@@ -199,7 +257,7 @@ export const createStyles = (customization: PDFCustomization) => {
       width: '48%',
       backgroundColor: customization.colors.background,
       padding: 10,
-      borderRadius: safeCornerRadius - 2,
+      borderRadius: safeCornerRadius > 2 ? safeCornerRadius - 2 : 0,
       marginBottom: 6,
       ...createPartialBorderStyle({ left: 2 }, customization.colors.accent),
     },
@@ -215,7 +273,7 @@ export const createStyles = (customization: PDFCustomization) => {
       fontSize: customization.typography.fontSize.small,
       color: customization.colors.textLight,
       marginBottom: 2,
-      // FIXED: Removed fontStyle: 'italic' which was causing the font resolution error
+      // COMPLETELY REMOVED: No fontStyle property to prevent font resolution errors
       fontWeight: getFontWeight('normal'),
     },
     
@@ -228,7 +286,7 @@ export const createStyles = (customization: PDFCustomization) => {
     // Schedule table styles
     scheduleTable: {
       backgroundColor: customization.colors.background,
-      borderRadius: safeCornerRadius - 2,
+      borderRadius: safeCornerRadius > 2 ? safeCornerRadius - 2 : 0,
       ...createBorderStyle(1, customization.colors.border),
     },
 
