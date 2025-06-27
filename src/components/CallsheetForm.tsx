@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,12 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Save, Plus, Trash2, Edit2, Clock, Users, Camera, MapPin, FileText } from 'lucide-react';
+import { ArrowLeft, Save, Clock, Users, Camera, MapPin, FileText } from 'lucide-react';
 import { useCallsheet, type CallsheetData, type ScheduleItem, type CastMember, type CrewMember, type EmergencyContact } from '@/contexts/CallsheetContext';
 import { LocationInput } from './LocationInput';
-import { ContactsManager } from './ContactsManager';
-import { ContactSelector } from './ContactSelector';
-import { EmergencyServicesList } from './EmergencyServicesList';
+import { InlineListManager } from './InlineListManager';
 import { useToast } from '@/hooks/use-toast';
 
 interface CallsheetFormProps {
@@ -72,11 +71,6 @@ export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
     }
   }, [isEditing, currentCallsheet]);
 
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
-  const [cast, setCast] = useState<CastMember[]>([]);
-  const [crew, setCrew] = useState<CrewMember[]>([]);
-  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prevData => ({
@@ -94,7 +88,6 @@ export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
   };
 
   const handleScheduleChange = (newSchedule: ScheduleItem[]) => {
-    setSchedule(newSchedule);
     setFormData(prevData => ({
       ...prevData,
       schedule: newSchedule
@@ -102,7 +95,6 @@ export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
   };
 
   const handleCastChange = (newCast: CastMember[]) => {
-    setCast(newCast);
     setFormData(prevData => ({
       ...prevData,
       cast: newCast
@@ -110,7 +102,6 @@ export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
   };
 
   const handleCrewChange = (newCrew: CrewMember[]) => {
-    setCrew(newCrew);
     setFormData(prevData => ({
       ...prevData,
       crew: newCrew
@@ -118,7 +109,6 @@ export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
   };
 
   const handleEmergencyContactsChange = (newEmergencyContacts: EmergencyContact[]) => {
-    setEmergencyContacts(newEmergencyContacts);
     setFormData(prevData => ({
       ...prevData,
       emergencyContacts: newEmergencyContacts
@@ -331,8 +321,8 @@ export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
                   <CardTitle className="text-lg font-medium tracking-tight">Schedule</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ContactsManager 
-                    items={schedule}
+                  <InlineListManager 
+                    items={formData.schedule}
                     setItems={handleScheduleChange}
                     itemType="schedule"
                   />
@@ -349,8 +339,8 @@ export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="text-sm font-medium mb-2">Cast</h4>
-                    <ContactsManager 
-                      items={cast}
+                    <InlineListManager 
+                      items={formData.cast}
                       setItems={handleCastChange}
                       itemType="cast"
                     />
@@ -358,8 +348,8 @@ export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
 
                   <div>
                     <h4 className="text-sm font-medium mb-2">Crew</h4>
-                    <ContactsManager 
-                      items={crew}
+                    <InlineListManager 
+                      items={formData.crew}
                       setItems={handleCrewChange}
                       itemType="crew"
                     />
@@ -392,8 +382,8 @@ export const CallsheetForm = ({ callsheetId, onBack }: CallsheetFormProps) => {
 
                   <div>
                     <h4 className="text-sm font-medium mb-2">Emergency Contacts</h4>
-                    <ContactsManager 
-                      items={emergencyContacts}
+                    <InlineListManager 
+                      items={formData.emergencyContacts}
                       setItems={handleEmergencyContactsChange}
                       itemType="emergencyContact"
                     />
