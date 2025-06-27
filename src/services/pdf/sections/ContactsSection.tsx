@@ -22,30 +22,32 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({
     return (
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        {contacts.map((contact, index) => (
-          <View key={contact.id || index} style={styles.contactItem}>
-            <Text style={styles.contactName}>{contact.name}</Text>
-            {(contact.role || contact.character) && (
-              <Text style={styles.contactRole}>
-                {contact.character ? contact.character : contact.role}
-              </Text>
-            )}
-            {contact.phone && contact.phone !== 'Phone not available' && (
-              <Text style={styles.contactInfo}>Phone: {contact.phone}</Text>
-            )}
-            {contact.email && contact.email !== 'Email not available' && (
-              <Text style={styles.contactInfo}>Email: {contact.email}</Text>
-            )}
-          </View>
-        ))}
+        <View style={styles.contactsGrid}>
+          {contacts.map((contact, index) => (
+            <View key={contact.id || index} style={styles.contactCard}>
+              <Text style={styles.contactName}>{contact.name}</Text>
+              {(contact.character || contact.role) && (
+                <Text style={styles.contactRole}>
+                  {contact.character ? `as ${contact.character}` : contact.role}
+                </Text>
+              )}
+              {contact.phone && contact.phone !== 'Phone not available' && (
+                <Text style={styles.contactInfo}>Phone: {contact.phone}</Text>
+              )}
+              {contact.email && contact.email !== 'Email not available' && (
+                <Text style={styles.contactInfo}>Email: {contact.email}</Text>
+              )}
+            </View>
+          ))}
+        </View>
       </View>
     );
   };
 
   return (
     <View>
-      {renderContacts(callsheet.cast, 'Cast')}
-      {renderContacts(callsheet.crew, 'Crew')}
+      {renderContacts(callsheet.cast, 'CAST')}
+      {renderContacts(callsheet.crew, 'CREW')}
     </View>
   );
 };

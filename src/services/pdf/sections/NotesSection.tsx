@@ -16,14 +16,7 @@ export const NotesSection: React.FC<NotesSectionProps> = ({
 }) => {
   const styles = StyleUtils.createStyles(customization);
 
-  if (!callsheet.specialNotes || callsheet.specialNotes.trim() === '') {
-    return null;
-  }
-
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Special Notes</Text>
-      <Text style={styles.notesText}>{callsheet.specialNotes}</Text>
-    </View>
-  );
+  // Notes are now handled in the HeaderSection, so this component is empty
+  // but kept for compatibility
+  return null;
 };

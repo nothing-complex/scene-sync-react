@@ -22,19 +22,30 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Schedule</Text>
+      <Text style={styles.sectionTitle}>SCHEDULE</Text>
+      
+      {/* Table Header */}
+      <View style={styles.tableHeader}>
+        <Text style={[styles.tableHeaderCell, styles.sceneColumn]}>Scene</Text>
+        <Text style={[styles.tableHeaderCell, styles.intExtColumn]}>Int/Ext</Text>
+        <Text style={[styles.tableHeaderCell, styles.descriptionColumn]}>Description</Text>
+        <Text style={[styles.tableHeaderCell, styles.timeColumn]}>Time</Text>
+        <Text style={[styles.tableHeaderCell, styles.pagesColumn]}>Pages</Text>
+      </View>
+
+      {/* Table Rows */}
       {callsheet.schedule.map((item, index) => (
-        <View key={item.id || index} style={styles.scheduleItem}>
-          <Text style={styles.scheduleTime}>{item.estimatedTime}</Text>
-          <View style={styles.scheduleDetails}>
-            <Text style={styles.scheduleScene}>
-              Scene {item.sceneNumber} - {item.intExt}. {item.location || item.description}
-            </Text>
-            <Text style={styles.scheduleDescription}>{item.description}</Text>
-            {item.pageCount && (
-              <Text style={styles.schedulePages}>Pages: {item.pageCount}</Text>
+        <View key={item.id || index} style={[styles.tableRow, index % 2 === 1 && styles.tableRowAlternate]}>
+          <Text style={[styles.tableCell, styles.sceneColumn]}>{item.sceneNumber}</Text>
+          <Text style={[styles.tableCell, styles.intExtColumn]}>{item.intExt}</Text>
+          <View style={[styles.tableCell, styles.descriptionColumn]}>
+            <Text style={styles.tableCellText}>{item.description}</Text>
+            {item.location && item.location !== item.description && (
+              <Text style={styles.tableCellSubText}>{item.location}</Text>
             )}
           </View>
+          <Text style={[styles.tableCell, styles.timeColumn]}>{item.estimatedTime}</Text>
+          <Text style={[styles.tableCell, styles.pagesColumn]}>{item.pageCount || '-'}</Text>
         </View>
       ))}
     </View>

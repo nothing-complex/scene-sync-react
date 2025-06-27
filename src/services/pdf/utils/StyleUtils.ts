@@ -6,160 +6,245 @@ import { FontManager } from '../core/FontManager';
 export class StyleUtils {
   static createStyles(customization: PDFCustomization) {
     const fontFamily = FontManager.getFontFamily(customization.typography.fontFamily);
-    const safeCornerRadius = Math.max(0, Math.min(20, customization.visual.cornerRadius || 8));
 
     return StyleSheet.create({
       page: {
         flexDirection: 'column',
-        backgroundColor: customization.colors.background,
+        backgroundColor: '#ffffff',
         padding: 40,
         fontFamily: fontFamily,
         fontSize: 10,
-        color: customization.colors.text,
-        lineHeight: 1.4
+        color: '#000000',
+        lineHeight: 1.2
       },
-      header: {
+      
+      // Logo and Company Section
+      logoSection: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         marginBottom: 20,
-        paddingBottom: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: customization.colors.border
-      },
-      logoContainer: {
-        alignItems: 'flex-start',
-        marginBottom: 10
       },
       logo: {
-        width: customization.branding.logo?.size === 'large' ? 80 : 
-               customization.branding.logo?.size === 'medium' ? 60 : 40,
+        width: 60,
         height: 'auto'
       },
-      titleContainer: {
-        marginBottom: 15
-      },
-      title: {
+      companyName: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: customization.colors.text,
-        marginBottom: 5
+        color: '#000000'
       },
-      subtitle: {
-        fontSize: 14,
-        fontWeight: 'normal',
-        color: customization.colors.textLight,
-        marginBottom: 10
+
+      // Title Section
+      titleSection: {
+        alignItems: 'center',
+        marginBottom: 25,
       },
-      basicInfo: {
-        flexDirection: 'column',
-        gap: 3
+      projectTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#000000',
+        marginBottom: 5,
+        textAlign: 'center'
       },
-      infoText: {
-        fontSize: 10,
-        color: customization.colors.text,
+      callSheetSubtitle: {
+        fontSize: 12,
+        color: '#000000',
+        textAlign: 'center',
+        letterSpacing: 2
+      },
+
+      // Info Grid
+      infoGrid: {
+        flexDirection: 'row',
+        marginBottom: 20,
+        gap: 15
+      },
+      infoColumn: {
+        flex: 1,
+        gap: 10
+      },
+      infoItem: {
+        backgroundColor: '#f8f9fa',
+        padding: 8,
+        borderRadius: 4,
+        borderLeft: '3px solid #007bff'
+      },
+      infoLabel: {
+        fontSize: 8,
+        color: '#666666',
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
         marginBottom: 2
       },
-      content: {
-        flex: 1
+      infoValue: {
+        fontSize: 9,
+        color: '#000000',
+        fontWeight: 'normal'
       },
-      section: {
+      infoSubValue: {
+        fontSize: 8,
+        color: '#666666',
+        marginTop: 1
+      },
+
+      // Special Notes
+      specialNotesSection: {
+        backgroundColor: '#f0f8ff',
+        padding: 12,
+        borderRadius: 4,
+        borderLeft: '4px solid #007bff',
         marginBottom: 20
+      },
+      specialNotesTitle: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#000000',
+        marginBottom: 5,
+        textTransform: 'uppercase'
+      },
+      specialNotesText: {
+        fontSize: 9,
+        color: '#000000',
+        lineHeight: 1.4
+      },
+
+      // Section Headers
+      section: {
+        marginBottom: 20,
+        breakInside: 'avoid'
       },
       sectionTitle: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: customization.colors.text,
+        color: '#000000',
         marginBottom: 10,
-        textTransform: 'uppercase'
+        textTransform: 'uppercase',
+        letterSpacing: 1
       },
-      contactItem: {
-        marginBottom: 12,
-        paddingLeft: 10
-      },
-      contactName: {
-        fontSize: 10,
+
+      // Emergency Section
+      emergencySectionTitle: {
+        fontSize: 12,
         fontWeight: 'bold',
-        color: customization.colors.text,
-        marginBottom: 1
-      },
-      contactRole: {
-        fontSize: 9,
-        color: customization.colors.textLight,
-        marginBottom: 1,
-        fontStyle: 'italic'
-      },
-      contactInfo: {
-        fontSize: 9,
-        color: customization.colors.text,
-        marginBottom: 1
-      },
-      scheduleItem: {
-        flexDirection: 'row',
+        color: '#dc3545',
         marginBottom: 10,
-        alignItems: 'flex-start'
+        textTransform: 'uppercase',
+        letterSpacing: 1
       },
-      scheduleTime: {
+      emergencyContactsContainer: {
+        backgroundColor: '#fff5f5',
+        padding: 10,
+        borderRadius: 4,
+        borderLeft: '4px solid #dc3545'
+      },
+      emergencyContactCard: {
+        marginBottom: 8,
+        paddingBottom: 8,
+        borderBottom: '1px solid #ffebee'
+      },
+      emergencyContactName: {
         fontSize: 10,
         fontWeight: 'bold',
-        color: customization.colors.text,
-        width: 80,
-        marginRight: 15
-      },
-      scheduleDetails: {
-        flex: 1
-      },
-      scheduleScene: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: customization.colors.text,
+        color: '#000000',
         marginBottom: 2
       },
-      scheduleDescription: {
+      emergencyContactRole: {
         fontSize: 9,
-        color: customization.colors.text,
-        marginBottom: 1,
-        lineHeight: 1.3
+        color: '#666666',
+        fontStyle: 'italic',
+        marginBottom: 2
       },
-      schedulePages: {
-        fontSize: 8,
-        color: customization.colors.textLight,
-        fontStyle: 'italic'
+      emergencyContactPhone: {
+        fontSize: 9,
+        color: '#000000',
+        fontWeight: 'medium'
       },
-      emergencyItem: {
-        marginBottom: 12,
-        paddingLeft: 10,
-        backgroundColor: customization.sections.formatting.emergencyProminent ? 
-          customization.colors.surface : 'transparent',
-        padding: customization.sections.formatting.emergencyProminent ? 8 : 0,
-        borderRadius: customization.sections.formatting.emergencyProminent ? safeCornerRadius : 0
+
+      // Schedule Table
+      tableHeader: {
+        flexDirection: 'row',
+        backgroundColor: '#e9ecef',
+        borderBottom: '2px solid #dee2e6',
+        paddingVertical: 6
       },
-      emergencyName: {
-        fontSize: 10,
+      tableHeaderCell: {
+        fontSize: 9,
         fontWeight: 'bold',
-        color: customization.colors.text,
-        marginBottom: 1
+        color: '#000000',
+        textAlign: 'center',
+        paddingHorizontal: 4
       },
-      emergencyRole: {
-        fontSize: 9,
-        color: customization.colors.textLight,
-        marginBottom: 2,
-        fontStyle: 'italic'
+      tableRow: {
+        flexDirection: 'row',
+        borderBottom: '1px solid #dee2e6',
+        paddingVertical: 8,
+        minHeight: 35
       },
-      emergencyPhone: {
-        fontSize: 9,
-        color: customization.colors.text,
-        marginBottom: 1
+      tableRowAlternate: {
+        backgroundColor: '#f8f9fa'
       },
-      emergencyInfo: {
+      tableCell: {
+        paddingHorizontal: 4,
+        justifyContent: 'center'
+      },
+      tableCellText: {
         fontSize: 8,
-        color: customization.colors.textLight
+        color: '#000000'
       },
-      notesText: {
-        fontSize: 10,
-        color: customization.colors.text,
-        lineHeight: 1.4,
-        padding: 15,
-        backgroundColor: customization.colors.surface,
-        borderRadius: safeCornerRadius,
-        textAlign: 'justify'
+      tableCellSubText: {
+        fontSize: 7,
+        color: '#666666',
+        marginTop: 1
+      },
+
+      // Table Column Widths
+      sceneColumn: {
+        width: '15%'
+      },
+      intExtColumn: {
+        width: '12%'
+      },
+      descriptionColumn: {
+        width: '38%'
+      },
+      timeColumn: {
+        width: '25%'
+      },
+      pagesColumn: {
+        width: '10%'
+      },
+
+      // Contacts Grid
+      contactsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10
+      },
+      contactCard: {
+        backgroundColor: '#f8f9fa',
+        border: '1px solid #dee2e6',
+        borderRadius: 4,
+        padding: 8,
+        width: '48%',
+        borderLeft: '3px solid #007bff'
+      },
+      contactName: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        color: '#000000',
+        marginBottom: 2
+      },
+      contactRole: {
+        fontSize: 8,
+        color: '#666666',
+        fontStyle: 'italic',
+        marginBottom: 3
+      },
+      contactInfo: {
+        fontSize: 8,
+        color: '#000000',
+        marginBottom: 1
       }
     });
   }

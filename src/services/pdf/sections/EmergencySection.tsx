@@ -22,21 +22,21 @@ export const EmergencySection: React.FC<EmergencySectionProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Emergency Contacts</Text>
-      {callsheet.emergencyContacts.map((contact, index) => (
-        <View key={contact.id || index} style={styles.emergencyItem}>
-          <Text style={styles.emergencyName}>{contact.name}</Text>
-          {contact.role && (
-            <Text style={styles.emergencyRole}>{contact.role}</Text>
-          )}
-          {contact.phone && contact.phone !== 'Phone not available' && (
-            <Text style={styles.emergencyPhone}>Phone: {contact.phone}</Text>
-          )}
-          {contact.company && contact.company !== 'Address not available' && (
-            <Text style={styles.emergencyInfo}>{contact.company}</Text>
-          )}
-        </View>
-      ))}
+      <Text style={styles.emergencySectionTitle}>EMERGENCY CONTACTS</Text>
+      
+      <View style={styles.emergencyContactsContainer}>
+        {callsheet.emergencyContacts.map((contact, index) => (
+          <View key={contact.id || index} style={styles.emergencyContactCard}>
+            <Text style={styles.emergencyContactName}>{contact.name}</Text>
+            {contact.role && (
+              <Text style={styles.emergencyContactRole}>{contact.role}</Text>
+            )}
+            {contact.phone && contact.phone !== 'Phone not available' && (
+              <Text style={styles.emergencyContactPhone}>Phone: {contact.phone}</Text>
+            )}
+          </View>
+        ))}
+      </View>
     </View>
   );
 };

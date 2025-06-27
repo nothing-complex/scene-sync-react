@@ -18,38 +18,83 @@ export const HeaderSection: React.FC<HeaderSectionProps> = ({
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'long',
       year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
+      month: 'long',
+      day: 'numeric'
     });
   };
 
   return (
-    <View style={styles.header}>
-      {customization.branding.logo && (
-        <View style={styles.logoContainer}>
+    <View>
+      {/* Company Logo and Name */}
+      <View style={styles.logoSection}>
+        {customization.branding.logo && (
           <Image
             src={customization.branding.logo.url}
             style={styles.logo}
           />
+        )}
+        {customization.branding.companyName && (
+          <Text style={styles.companyName}>{customization.branding.companyName}</Text>
+        )}
+      </View>
+      
+      {/* Title Section */}
+      <View style={styles.titleSection}>
+        <Text style={styles.projectTitle}>{callsheet.projectTitle}</Text>
+        <Text style={styles.callSheetSubtitle}>CALL SHEET</Text>
+      </View>
+
+      {/* Basic Info Grid */}
+      <View style={styles.infoGrid}>
+        <View style={styles.infoColumn}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Shoot Date</Text>
+            <Text style={styles.infoValue}>{formatDate(callsheet.shootDate)}</Text>
+          </View>
+          
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Weather</Text>
+            <Text style={styles.infoValue}>{callsheet.weather || 'Not specified'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.infoColumn}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Call Time</Text>
+            <Text style={styles.infoValue}>{callsheet.generalCallTime}</Text>
+          </View>
+          
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Parking Instructions</Text>
+            <Text style={styles.infoValue}>{callsheet.parkingInstructions || 'See location details'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.infoColumn}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Location</Text>
+            <Text style={styles.infoValue}>{callsheet.location}</Text>
+            {callsheet.locationAddress && (
+              <Text style={styles.infoSubValue}>{callsheet.locationAddress}</Text>
+            )}
+          </View>
+          
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Basecamp Location</Text>
+            <Text style={styles.infoValue}>{callsheet.basecampLocation || 'Main lobby area'}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Special Notes */}
+      {callsheet.specialNotes && (
+        <View style={styles.specialNotesSection}>
+          <Text style={styles.specialNotesTitle}>Special Notes</Text>
+          <Text style={styles.specialNotesText}>{callsheet.specialNotes}</Text>
         </View>
       )}
-      
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>{callsheet.projectTitle}</Text>
-        <Text style={styles.subtitle}>Call Sheet - {formatDate(callsheet.shootDate)}</Text>
-      </View>
-      
-      <View style={styles.basicInfo}>
-        <Text style={styles.infoText}>Call Time: {callsheet.generalCallTime}</Text>
-        <Text style={styles.infoText}>Location: {callsheet.location}</Text>
-        {callsheet.locationAddress && (
-          <Text style={styles.infoText}>{callsheet.locationAddress}</Text>
-        )}
-        {callsheet.weather && (
-          <Text style={styles.infoText}>Weather: {callsheet.weather}</Text>
-        )}
-      </View>
     </View>
   );
 };
