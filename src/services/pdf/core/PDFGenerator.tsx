@@ -1,48 +1,67 @@
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { CallsheetPDFDocument } from '../sections/CallsheetPDFDocument';
-import { pdf } from '@react-pdf/renderer';
-import { FontManager } from './FontManager';
+import { HtmlToPdfService } from '../HtmlToPdfService';
+import { CallsheetPDFForGeneration } from '@/components/pdf/CallsheetPDFForGeneration';
 import React from 'react';
+import { createRoot } from 'react-dom/client';
 
 export class PDFGenerator {
-  private fontManager: FontManager;
+  private htmlToPdfService: HtmlToPdfService;
   
   constructor() {
-    this.fontManager = new FontManager();
+    this.htmlToPdfService = new HtmlToPdfService();
   }
 
   async generatePDF(callsheet: CallsheetData, customization: PDFCustomization): Promise<Blob> {
     try {
-      console.log('Generating PDF with customization:', customization);
+      console.log('PDFGenerator: Creating temporary PDF preview component');
       
-      // Ensure fonts are registered with error handling
-      await this.fontManager.ensureFontsRegistered();
+      // Create a temporary container
+      const tempContainer = document.createElement('div');
+      document.body.appendChild(tempContainer);
+      
+      return new Promise<Blob>((resolve, reject) => {
+        const root = createRoot(tempContainer);
+        
+        const handleReady = async () => {
+          try {
+            console.log('PDFGenerator: PDF preview ready, generating PDF...');
+            
+            // Generate PDF from the rendered component
+            const blob = await this.htmlToPdfService.generatePDF(
+              callsheet, 
+              customization, 
+              'pdf-preview-container'
+            );
+            
+            // Clean up
+            root.unmount();
+            document.body.removeChild(tempContainer);
+            
+            resolve(blob);
+          } catch (error) {
+            console.error('Error generating PDF:', error);
+            
+            // Clean up on error
+            root.unmount();
+            document.body.removeChild(tempContainer);
+            
+            reject(error);
+          }
+        };
 
-      // Validate customization
-      const validatedCustomization = this.validateCustomization(customization);
+        // Render the PDF preview component
+        root.render(
+          <CallsheetPDFForGeneration
+            callsheet={callsheet}
+            customization={customization}
+            onReady={handleReady}
+          />
+        );
+      });
       
-      console.log('Creating PDF document with exact preview structure...');
-      
-      // Use the new document that mirrors the preview exactly
-      const documentElement = (
-        <CallsheetPDFDocument
-          callsheet={callsheet}
-          customization={validatedCustomization}
-        />
-      );
-
-      console.log('Generating PDF blob...');
-      const blob = await pdf(documentElement).toBlob();
-      console.log('PDF blob generated successfully, size:', blob.size);
-      
-      return blob;
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      
-      // Reset font manager on error
-      this.fontManager.reset();
-      
+      console.error('Error in PDF generation:', error);
       throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
