@@ -7,7 +7,7 @@ import { CustomizationMerger } from './utils/CustomizationMerger';
 
 export class PDFService {
   private generator: PDFGenerator;
-  protected customization: PDFCustomization;
+  private customization: PDFCustomization;
 
   constructor(customization: Partial<PDFCustomization> = {}) {
     this.generator = new PDFGenerator();

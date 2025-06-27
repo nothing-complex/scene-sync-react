@@ -9,89 +9,49 @@ export class FontManager {
       return;
     }
 
-    console.log('FontManager: Registering fonts...');
+    console.log('FontManager: Registering fonts with italic variants...');
     
     try {
-      // Register Inter font family with corrected URLs
+      // Register Inter font family
       Font.register({
         family: 'Inter',
         fonts: [
-          { 
-            src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2', 
-            fontWeight: 400 
-          },
-          { 
-            src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuOKXgZ9hiA.woff2', 
-            fontWeight: 500 
-          },
-          { 
-            src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fgZ9hiA.woff2', 
-            fontWeight: 600 
-          },
-          { 
-            src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuDyfgZ9hiA.woff2', 
-            fontWeight: 700 
-          }
+          { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2', fontWeight: 400 },
+          { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2', fontWeight: 400, fontStyle: 'italic' },
+          { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuOKXgZ9hiA.woff2', fontWeight: 500 },
+          { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuOKXgZ9hiA.woff2', fontWeight: 500, fontStyle: 'italic' },
+          { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fgZ9hiA.woff2', fontWeight: 600 },
+          { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuDyfgZ9hiA.woff2', fontWeight: 700 }
         ]
       });
 
-      // Register Poppins font family with corrected URLs
+      // Register Poppins font family
       Font.register({
         family: 'Poppins',
         fonts: [
-          { 
-            src: 'https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2', 
-            fontWeight: 400 
-          },
-          { 
-            src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLGT9Z1xlFd2JQEk.woff2', 
-            fontWeight: 500 
-          },
-          { 
-            src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLEj6Z1xlFd2JQEk.woff2', 
-            fontWeight: 600 
-          },
-          { 
-            src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2', 
-            fontWeight: 700 
-          }
+          { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2', fontWeight: 400 },
+          { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLGT9Z1xlFQ.woff2', fontWeight: 500 },
+          { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLEj6Z1xlFQ.woff2', fontWeight: 600 },
+          { src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlFQ.woff2', fontWeight: 700 }
         ]
       });
 
-      // Register Montserrat font family with corrected URLs
+      // Register Montserrat font family
       Font.register({
         family: 'Montserrat',
         fonts: [
-          { 
-            src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2', 
-            fontWeight: 400 
-          },
-          { 
-            src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUSjIg1_i6t8kCHKm459W1hyw.woff2', 
-            fontWeight: 500 
-          },
-          { 
-            src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUSjIg1_i6t8kCHKm459WRhyw.woff2', 
-            fontWeight: 600 
-          },
-          { 
-            src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUSjIg1_i6t8kCHKm459Wdhyw.woff2', 
-            fontWeight: 700 
-          }
+          { src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2', fontWeight: 400 },
+          { src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUSjIg1_i6t8kCHKm459W1hyw.woff2', fontWeight: 500 },
+          { src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUSjIg1_i6t8kCHKm459WRhyw.woff2', fontWeight: 600 },
+          { src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUSjIg1_i6t8kCHKm459Wdhyw.woff2', fontWeight: 700 }
         ]
       });
 
       FontManager.fontsRegistered = true;
       console.log('FontManager: All fonts registered successfully');
-      
-      // Add a small delay to ensure fonts are fully loaded
-      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       console.error('FontManager: Error registering fonts:', error);
-      console.warn('FontManager: Falling back to default fonts');
-      
-      // Don't throw here - just use default fonts
-      FontManager.fontsRegistered = true;
+      throw new Error('Failed to register fonts for PDF generation');
     }
   }
 
