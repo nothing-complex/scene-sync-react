@@ -2,11 +2,10 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, Beaker } from 'lucide-react';
+import { Download, Eye } from 'lucide-react';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { generateCustomCallsheetPDF, previewCallsheetPDF } from '@/services/pdfService';
-import { generateExperimentalCallsheetPDF, previewExperimentalCallsheetPDF } from '@/services/experimentalPdfService';
 import { PDFPreviewDialog } from '../../pdf/PDFPreviewDialog';
 import { toast } from 'sonner';
 
@@ -21,7 +20,6 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({
 }) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isExperimentalGenerating, setIsExperimentalGenerating] = useState(false);
 
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
@@ -49,19 +47,6 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({
     }
   };
 
-  const handleExperimentalPreviewPDF = async () => {
-    setIsExperimentalGenerating(true);
-    try {
-      await previewExperimentalCallsheetPDF(callsheet, customization);
-      toast.success('Experimental PDF preview opened!');
-    } catch (error) {
-      console.error('Error previewing experimental PDF:', error);
-      toast.error('Failed to preview experimental PDF. Please try again.');
-    } finally {
-      setIsExperimentalGenerating(false);
-    }
-  };
-
   return (
     <>
       <Card className="glass-effect border-border/30">
@@ -69,7 +54,7 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({
           <CardTitle className="text-lg font-medium tracking-tight">Generate PDF</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button 
               variant="outline"
               onClick={() => setIsPreviewOpen(true)}
@@ -78,16 +63,6 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({
             >
               <Eye className="w-4 h-4 mr-2" />
               Preview PDF
-            </Button>
-            
-            <Button 
-              variant="outline"
-              onClick={handleExperimentalPreviewPDF}
-              disabled={isExperimentalGenerating}
-              className="w-full font-normal bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
-            >
-              <Beaker className="w-4 h-4 mr-2" />
-              {isExperimentalGenerating ? 'Generating...' : 'Experimental Preview'}
             </Button>
             
             <Button 
@@ -101,7 +76,7 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({
           </div>
           
           <p className="text-sm text-muted-foreground font-normal">
-            Use the experimental preview to test new designs. Once satisfied, the regular preview will be updated.
+            The PDF will match exactly what you see in the live preview above.
           </p>
         </CardContent>
       </Card>
