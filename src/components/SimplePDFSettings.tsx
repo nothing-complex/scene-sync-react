@@ -187,7 +187,17 @@ export const SimplePDFSettings = ({
             <CardContent>
               <LogoUpload
                 onLogoChange={(logoData) => 
-                  updateCustomization({ branding: { ...customization.branding, logo: logoData } })
+                  updateCustomization({ 
+                    branding: { 
+                      ...customization.branding, 
+                      logo: logoData ? {
+                        url: logoData.url,
+                        size: logoData.size,
+                        position: 'top-left',
+                        opacity: 1
+                      } : undefined
+                    } 
+                  })
                 }
                 currentLogo={customization.branding.logo}
               />
