@@ -3,7 +3,6 @@ import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetPDFDocument } from '../sections/CallsheetDocument';
 import { pdf } from '@react-pdf/renderer';
 import { FontManager } from './FontManager';
-import React from 'react';
 
 export class PDFGenerator {
   private fontManager: FontManager;
@@ -24,15 +23,14 @@ export class PDFGenerator {
       
       console.log('Creating PDF document...');
       
-      // Create the CallsheetPDFDocument which returns a Document element
-      const CallsheetDocumentComponent = CallsheetPDFDocument;
-      const documentProps = {
+      // Call the component function directly to get the Document element
+      const documentElement = CallsheetPDFDocument({
         callsheet,
         customization: validatedCustomization
-      };
+      });
 
       console.log('Generating PDF blob...');
-      const blob = await pdf(React.createElement(CallsheetDocumentComponent, documentProps)).toBlob();
+      const blob = await pdf(documentElement).toBlob();
       console.log('PDF blob generated successfully, size:', blob.size);
       
       return blob;
