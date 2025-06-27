@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -103,44 +102,84 @@ export class ReactPDFService {
         .toLowerCase();
       const fileName = filename || `${sanitizedTitle}_callsheet.pdf`;
       
-      console.log('Creating download link for:', fileName);
+      console.log('Creating download for:', fileName);
       console.log('Blob size:', blob.size, 'bytes');
       console.log('Blob type:', blob.type);
       
-      // IMPROVED: Enhanced download mechanism with better error handling
+      // IMPROVED: More robust download mechanism
+      try {
+        // Method 1: Try modern download API if available
+        if ('showSaveFilePicker' in window) {
+          console.log('Using modern File System Access API');
+          const fileHandle = await (window as any).showSaveFilePicker({
+            suggestedName: fileName,
+            types: [{
+              description: 'PDF files',
+              accept: { 'application/pdf': ['.pdf'] }
+            }]
+          });
+          const writableStream = await fileHandle.createWritable();
+          await writableStream.write(blob);
+          await writableStream.close();
+          console.log('Download completed using File System Access API');
+          return;
+        }
+      } catch (fsError) {
+        console.log('File System Access API failed or unavailable, falling back to traditional method:', fsError);
+      }
+
+      // Method 2: Traditional download method with improvements
+      console.log('Using traditional download method');
       const url = URL.createObjectURL(blob);
+      
       if (!url) {
         throw new Error('Failed to create object URL for PDF download');
       }
       
       console.log('Object URL created successfully:', url);
       
+      // Create and configure download link
       const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
       link.style.display = 'none';
+      link.rel = 'noopener';
       
-      // DEBUGGING: Ensure link is properly added to DOM
+      // Add to DOM
       document.body.appendChild(link);
-      console.log('Download link added to DOM, triggering click...');
+      console.log('Download link added to DOM');
       
-      // Add event listeners to track download success/failure
-      link.addEventListener('click', () => {
-        console.log('Download link clicked successfully');
-      });
-      
-      // Trigger the download
+      // Force download with multiple fallback methods
       try {
+        // Method 2a: Direct click
         link.click();
-        console.log('Download click triggered successfully');
+        console.log('Download triggered via click()');
       } catch (clickError) {
-        console.error('Error triggering download click:', clickError);
-        throw new Error(`Failed to trigger download: ${clickError instanceof Error ? clickError.message : 'Unknown click error'}`);
+        console.log('Direct click failed, trying event dispatch:', clickError);
+        
+        // Method 2b: Dispatch click event
+        try {
+          const clickEvent = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true
+          });
+          link.dispatchEvent(clickEvent);
+          console.log('Download triggered via event dispatch');
+        } catch (eventError) {
+          console.log('Event dispatch failed, trying window.open:', eventError);
+          
+          // Method 2c: Open in new window as last resort
+          const newWindow = window.open(url, '_blank');
+          if (newWindow) {
+            console.log('PDF opened in new window for manual download');
+          } else {
+            throw new Error('All download methods failed - popup may be blocked');
+          }
+        }
       }
       
-      console.log('Cleaning up download link...');
-      
-      // Clean up immediately after click
+      // Clean up with proper timing
       setTimeout(() => {
         try {
           if (document.body.contains(link)) {
@@ -150,10 +189,7 @@ export class ReactPDFService {
         } catch (removeError) {
           console.warn('Error removing download link:', removeError);
         }
-      }, 100);
-      
-      // Clean up the URL after a short delay
-      setTimeout(() => {
+        
         try {
           URL.revokeObjectURL(url);
           console.log('Object URL cleaned up');
