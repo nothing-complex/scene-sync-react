@@ -58,6 +58,7 @@ export class PDFGenerator {
         sectionDividers: customization.visual?.sectionDividers ?? 'line',
         shadowIntensity: customization.visual?.shadowIntensity ?? 'subtle',
         headerBackground: customization.visual?.headerBackground ?? 'none',
+        iconStyle: customization.visual?.iconStyle ?? 'minimal',
         ...customization.visual
       },
       layout: {
@@ -71,8 +72,10 @@ export class PDFGenerator {
         },
         spacing: customization.layout?.spacing ?? {
           sectionGap: 20,
-          itemGap: 12
+          itemGap: 12,
+          lineHeight: 1.4
         },
+        template: customization.layout?.template ?? 'minimal',
         ...customization.layout
       },
       colors: {
@@ -80,9 +83,12 @@ export class PDFGenerator {
         secondary: customization.colors?.secondary ?? '#64748b',
         accent: customization.colors?.accent ?? '#f1f5f9',
         text: customization.colors?.text ?? '#1e293b',
+        textLight: customization.colors?.textLight ?? '#64748b',
         background: customization.colors?.background ?? '#ffffff',
         surface: customization.colors?.surface ?? '#f8fafc',
+        surfaceHover: customization.colors?.surfaceHover ?? '#f1f5f9',
         border: customization.colors?.border ?? '#e2e8f0',
+        borderLight: customization.colors?.borderLight ?? '#f1f5f9',
         ...customization.colors
       },
       typography: {
@@ -113,23 +119,26 @@ export class PDFGenerator {
         ...customization.branding
       },
       sections: {
+        order: customization.sections?.order ?? ['basic', 'location', 'cast', 'crew', 'schedule', 'emergency', 'notes'],
         visibility: {
-          cast: true,
-          crew: true,
-          schedule: true,
-          emergencyContacts: true,
-          notes: true,
           weather: true,
+          emergencyContacts: true,
+          schedule: true,
+          notes: true,
+          companyInfo: true,
           ...customization.sections?.visibility
         },
         formatting: {
           contactLayout: 'cards',
-          showSectionIcons: false,
+          scheduleCompact: false,
           emergencyProminent: true,
+          showSectionIcons: false,
+          alternateRowColors: false,
           ...customization.sections?.formatting
         },
         ...customization.sections
-      }
+      },
+      theme: customization.theme
     };
 
     console.log('Validated customization:', validated);

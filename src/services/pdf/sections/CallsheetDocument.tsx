@@ -86,7 +86,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({
     if (!callsheet.specialNotes?.trim()) return null;
     
     return (
-      <View style={styles.notesCard}>
+      <View style={styles.notesCard} wrap={false}>
         <View style={styles.notesHeader}>
           <Text style={styles.notesTitle}>SPECIAL NOTES</Text>
         </View>
@@ -101,7 +101,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({
     if (!callsheet.schedule?.length) return null;
     
     return (
-      <View style={styles.sectionCard}>
+      <View style={styles.sectionCard} wrap={false}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>SCHEDULE</Text>
         </View>
@@ -149,7 +149,7 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({
     const contentStyle = isEmergency ? styles.emergencyContent : styles.sectionContent;
     
     return (
-      <View style={cardStyle}>
+      <View style={cardStyle} wrap={false}>
         <View style={headerStyle}>
           <Text style={titleStyle}>{title}</Text>
         </View>
@@ -167,10 +167,10 @@ export const CallsheetPDFDocument: React.FC<CallsheetPDFDocumentProps> = ({
                   </Text>
                 )}
                 {contact.phone && (
-                  <Text style={styles.contactInfo}>📞 {contact.phone}</Text>
+                  <Text style={styles.contactInfo}>Phone: {contact.phone}</Text>
                 )}
                 {contact.email && (
-                  <Text style={styles.contactInfo}>✉️ {contact.email}</Text>
+                  <Text style={styles.contactInfo}>Email: {contact.email}</Text>
                 )}
               </View>
             ))}
