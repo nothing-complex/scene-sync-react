@@ -17,7 +17,7 @@ export const HeaderSection: React.FC<HeaderSectionProps> = ({
 }) => {
   return (
     <View style={styles.headerContainer}>
-      {customization.branding.companyName && (
+      {customization.branding?.companyName && (
         <View style={styles.brandingRow}>
           <Text style={styles.companyName}>{customization.branding.companyName}</Text>
         </View>
@@ -36,17 +36,10 @@ export const HeaderSection: React.FC<HeaderSectionProps> = ({
               <Text style={styles.value}>{callsheet.shootDate}</Text>
             </View>
             
-            {callsheet.callTime && (
+            {callsheet.generalCallTime && (
               <View style={styles.gridItem}>
                 <Text style={styles.label}>Call Time</Text>
-                <Text style={styles.value}>{callsheet.callTime}</Text>
-              </View>
-            )}
-            
-            {callsheet.wrapTime && (
-              <View style={styles.gridItem}>
-                <Text style={styles.label}>Wrap Time</Text>
-                <Text style={styles.value}>{callsheet.wrapTime}</Text>
+                <Text style={styles.value}>{callsheet.generalCallTime}</Text>
               </View>
             )}
           </View>

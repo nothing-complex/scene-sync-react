@@ -1,3 +1,4 @@
+
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { PDFGenerator } from './core/PDFGenerator';
@@ -31,6 +32,9 @@ export class ReactPDFService {
       layout: {
         headerStyle: 'professional',
         pageOrientation: 'portrait',
+        margins: { top: 32, bottom: 32, left: 32, right: 32 },
+        spacing: { sectionGap: 24, itemGap: 12, lineHeight: 1.4 },
+        template: 'minimal',
         ...partial.layout
       },
       colors: {
@@ -39,13 +43,80 @@ export class ReactPDFService {
         accent: '#f1f5f9',
         text: '#1e293b',
         background: '#ffffff',
+        textLight: '#6b7280',
+        surface: '#f9fafb',
+        surfaceHover: '#f3f4f6',
+        border: '#e5e7eb',
+        borderLight: '#f3f4f6',
         ...partial.colors
       },
       typography: {
-        headerFont: 'Inter',
-        bodyFont: 'Inter',
-        fontSize: 'medium',
+        fontFamily: 'inter',
+        fontSize: {
+          title: 24,
+          header: 12,
+          body: 10,
+          small: 8,
+          caption: 7
+        },
+        fontWeight: {
+          title: 'semibold',
+          header: 'medium',
+          body: 'normal'
+        },
+        lineHeight: {
+          title: 1.2,
+          header: 1.3,
+          body: 1.4
+        },
         ...partial.typography
+      },
+      branding: {
+        companyName: '',
+        footer: { text: '', position: 'center', style: 'minimal' },
+        ...partial.branding
+      },
+      sections: {
+        order: ['basic', 'location', 'cast', 'crew', 'schedule', 'emergency', 'notes'],
+        visibility: {
+          weather: true,
+          emergencyContacts: true,
+          schedule: true,
+          notes: true,
+          companyInfo: true
+        },
+        formatting: {
+          contactLayout: 'list',
+          scheduleCompact: false,
+          emergencyProminent: true,
+          showSectionIcons: false,
+          alternateRowColors: false
+        },
+        ...partial.sections
+      },
+      theme: {
+        name: 'minimal',
+        colors: {
+          primary: '#2563eb',
+          secondary: '#64748b',
+          accent: '#f1f5f9',
+          text: '#1e293b',
+          background: '#ffffff',
+          textLight: '#6b7280',
+          surface: '#f9fafb',
+          surfaceHover: '#f3f4f6',
+          border: '#e5e7eb',
+          borderLight: '#f3f4f6'
+        },
+        typography: {},
+        visual: {
+          cornerRadius: 4,
+          cardStyle: 'minimal',
+          sectionDividers: 'line',
+          shadowIntensity: 'subtle',
+          headerBackground: 'none',
+          iconStyle: 'minimal'
+        }
       }
     };
   }

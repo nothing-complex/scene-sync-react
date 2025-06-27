@@ -1,7 +1,7 @@
 
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { CallsheetDocument } from '../sections/CallsheetDocument';
+import { CallsheetPDFDocument } from '../sections/CallsheetDocument';
 import { pdf } from '@react-pdf/renderer';
 import { FontManager } from './FontManager';
 import React from 'react';
@@ -24,7 +24,7 @@ export class PDFGenerator {
       const validatedCustomization = this.validateCustomization(customization);
       
       console.log('Creating PDF document...');
-      const documentElement = React.createElement(CallsheetDocument, {
+      const documentElement = React.createElement(CallsheetPDFDocument, {
         callsheet,
         customization: validatedCustomization
       });
@@ -65,9 +65,14 @@ export class PDFGenerator {
         ...customization.colors
       },
       typography: {
-        headerFont: customization.typography?.headerFont ?? 'Inter',
-        bodyFont: customization.typography?.bodyFont ?? 'Inter',
-        fontSize: customization.typography?.fontSize ?? 'medium',
+        fontFamily: customization.typography?.fontFamily ?? 'inter',
+        fontSize: customization.typography?.fontSize ?? {
+          title: 24,
+          header: 12,
+          body: 10,
+          small: 8,
+          caption: 7
+        },
         ...customization.typography
       }
     };

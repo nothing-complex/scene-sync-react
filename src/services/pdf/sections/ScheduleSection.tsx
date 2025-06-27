@@ -33,8 +33,8 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
           </View>
           {callsheet.schedule.map((item, index) => (
             <View key={index} style={styles.scheduleTableRow}>
-              <Text style={[styles.scheduleCell, { width: '25%' }]}>{item.time}</Text>
-              <Text style={[styles.scheduleCell, { width: '50%' }]}>{item.scene}</Text>
+              <Text style={[styles.scheduleCell, { width: '25%' }]}>{item.estimatedTime}</Text>
+              <Text style={[styles.scheduleCell, { width: '50%' }]}>{item.description}</Text>
               <Text style={[styles.scheduleCell, { width: '25%' }]}>{item.location}</Text>
             </View>
           ))}
