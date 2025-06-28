@@ -34,11 +34,11 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <Label className="text-sm font-medium mb-2 block">Header Style</Label>
+            <Label className="text-sm font-medium mb-2 block">Template Style</Label>
             <Select 
-              value={customization.layout.headerStyle} 
-              onValueChange={(value: 'minimal' | 'professional' | 'creative' | 'cinematic') => 
-                updateCustomization('layout', { headerStyle: value })
+              value={customization.layout.template} 
+              onValueChange={(value: 'minimal' | 'professional' | 'creative' | 'cinematic' | 'hollywood' | 'indie' | 'horror' | 'comedy' | 'network' | 'documentary') => 
+                updateCustomization('layout', { template: value })
               }
             >
               <SelectTrigger className="bg-background border-border/50">
@@ -49,6 +49,12 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
                 <SelectItem value="professional">Professional</SelectItem>
                 <SelectItem value="creative">Creative</SelectItem>
                 <SelectItem value="cinematic">Cinematic</SelectItem>
+                <SelectItem value="hollywood">Hollywood</SelectItem>
+                <SelectItem value="indie">Indie</SelectItem>
+                <SelectItem value="horror">Horror</SelectItem>
+                <SelectItem value="comedy">Comedy</SelectItem>
+                <SelectItem value="network">Network</SelectItem>
+                <SelectItem value="documentary">Documentary</SelectItem>
               </SelectContent>
             </Select>
           </div>
