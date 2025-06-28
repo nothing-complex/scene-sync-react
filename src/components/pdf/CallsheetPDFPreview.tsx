@@ -20,60 +20,90 @@ interface ContactCardProps {
 }
 
 const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false, customization }) => {
+  const isTraditionalForm = customization.theme.name === 'Traditional Form';
+  const isEventModern = customization.theme.name === 'Event Modern';
+  const isHorrorDense = customization.theme.name === 'Horror Dense';
+  
+  if (isTraditionalForm) {
+    return (
+      <div className="border-2 border-black p-2" style={{
+        fontSize: `${customization.typography.fontSize.body}px`,
+        lineHeight: customization.typography.lineHeight.body
+      }}>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="font-bold">{contact.name}</div>
+          <div>{contact.character || contact.role}</div>
+          <div>{contact.phone}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isHorrorDense) {
+    return (
+      <div className="border border-gray-600 bg-gray-50" style={{
+        fontSize: `${customization.typography.fontSize.body}px`,
+        color: customization.colors.text
+      }}>
+        <div className="grid grid-cols-4 gap-0">
+          <div className="p-2 border-r border-gray-600 font-semibold text-xs">{contact.name}</div>
+          <div className="p-2 border-r border-gray-600 text-xs">{contact.character || contact.role}</div>
+          <div className="p-2 border-r border-gray-600 text-xs font-mono">{contact.phone}</div>
+          <div className="p-2 text-xs">{contact.email ? '✓' : '-'}</div>
+        </div>
+      </div>
+    );
+  }
+
   const cardStyle = {
     borderRadius: `${customization.visual.cornerRadius}px`,
-    backgroundColor: isEmergency && customization.sections.formatting.emergencyProminent 
-      ? '#fef2f2' 
-      : customization.colors.surface,
-    borderColor: isEmergency && customization.sections.formatting.emergencyProminent 
-      ? '#fca5a5' 
-      : customization.colors.border,
-    borderLeftColor: isEmergency && customization.sections.formatting.emergencyProminent 
-      ? '#dc2626' 
-      : customization.colors.accent,
-    borderLeftWidth: '4px',
+    backgroundColor: customization.colors.surface,
+    borderColor: customization.colors.border,
     color: customization.colors.text,
-    fontFamily: customization.typography.fontFamily === 'inter' ? 'Inter' :
-                customization.typography.fontFamily === 'helvetica' ? 'Helvetica' :
-                customization.typography.fontFamily === 'poppins' ? 'Poppins' :
-                customization.typography.fontFamily === 'montserrat' ? 'Montserrat' : 'Inter'
+    fontFamily: getFontFamily(customization.typography.fontFamily)
   };
 
-  const showIcons = customization.sections.formatting.showSectionIcons;
+  if (customization.visual.cardStyle === 'gradient' && customization.colors.gradient) {
+    const { from, to, direction } = customization.colors.gradient;
+    const gradientDirection = direction === 'to-r' ? 'to right' :
+                            direction === 'to-br' ? 'to bottom right' : 'to bottom';
+    cardStyle.background = `linear-gradient(${gradientDirection}, ${from}40, ${to}40)`;
+  }
+
+  const shadowClass = customization.visual.shadowIntensity === 'medium' ? 'shadow-md' :
+                     customization.visual.shadowIntensity === 'subtle' ? 'shadow-sm' : '';
 
   return (
-    <Card className="border-l-4" style={cardStyle}>
+    <Card className={`${shadowClass} ${isEmergency ? 'border-l-4 border-l-red-500' : ''}`} style={cardStyle}>
       <CardContent className="p-4">
         <div className="font-medium mb-1" style={{ 
-          fontSize: `${customization.typography.fontSize.body}px`,
-          fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
-                     customization.typography.fontWeight.header === 'medium' ? '500' :
-                     customization.typography.fontWeight.header === 'semibold' ? '600' : '700',
-          color: customization.colors.text
+          fontSize: `${customization.typography.fontSize.header}px`,
+          fontWeight: getFontWeight(customization.typography.fontWeight.header),
+          color: isEventModern ? customization.colors.headerText : customization.colors.text
         }}>
           {contact.name}
         </div>
         {(contact.character || contact.role) && (
-          <div className="text-sm mb-2 italic" style={{ 
+          <div className="mb-2 italic" style={{ 
             color: customization.colors.textLight,
             fontSize: `${customization.typography.fontSize.small}px`
           }}>
             {contact.character ? `as ${contact.character}` : contact.role}
           </div>
         )}
-        <div className="text-sm mb-1" style={{ 
-          fontSize: `${customization.typography.fontSize.small}px`,
+        <div className="mb-1" style={{ 
+          fontSize: `${customization.typography.fontSize.body}px`,
           fontWeight: isEmergency ? '500' : 'normal',
-          color: customization.colors.text
+          color: isEventModern ? customization.colors.text : customization.colors.text
         }}>
-          {showIcons && '📞 '}{contact.phone}
+          📞 {contact.phone}
         </div>
         {contact.email && !isEmergency && (
-          <div className="text-sm" style={{ 
+          <div style={{ 
             fontSize: `${customization.typography.fontSize.small}px`,
-            color: customization.colors.text
+            color: customization.colors.textLight
           }}>
-            {showIcons && '📧 '}{contact.email}
+            📧 {contact.email}
           </div>
         )}
       </CardContent>
@@ -89,14 +119,10 @@ const ContactSection: React.FC<{
   customization: PDFCustomization;
   emergencyNumber?: string;
 }> = ({ title, contacts, icon, isEmergency = false, customization, emergencyNumber }) => {
-  const showIcons = customization.sections.formatting.showSectionIcons;
-  const isEmergencyProminent = isEmergency && customization.sections.formatting.emergencyProminent;
+  const isTraditionalForm = customization.theme.name === 'Traditional Form';
+  const isHorrorDense = customization.theme.name === 'Horror Dense';
+  const isIndieMinimal = customization.theme.name === 'Indie Minimal';
   
-  const contactLayout = customization.sections.formatting.contactLayout;
-  const gridClass = contactLayout === 'compact' ? 'grid-cols-3' :
-                   contactLayout === 'cards' ? 'grid-cols-2' :
-                   contactLayout === 'table' ? 'grid-cols-1' : 'grid-cols-2';
-
   const emergencyNumbers = emergencyNumber ? {
     general: emergencyNumber,
     police: emergencyNumber,
@@ -109,16 +135,72 @@ const ContactSection: React.FC<{
     medical: '911'
   };
 
+  if (isTraditionalForm) {
+    return (
+      <div className="mb-6">
+        <div className="border-2 border-black bg-black text-white p-2 mb-2">
+          <h3 className="font-bold text-center" style={{
+            fontSize: `${customization.typography.fontSize.header + 2}px`
+          }}>
+            {title}
+          </h3>
+        </div>
+        <div className="space-y-0">
+          {contacts.map((contact) => (
+            <ContactCard
+              key={contact.id}
+              contact={contact}
+              isEmergency={isEmergency}
+              customization={customization}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isHorrorDense) {
+    return (
+      <div className="mb-6">
+        <div className="bg-black text-white p-3 border-2 border-black">
+          <h3 className="font-bold text-center" style={{
+            fontSize: `${customization.typography.fontSize.header + 2}px`
+          }}>
+            {title}
+          </h3>
+        </div>
+        <div className="border-2 border-black border-t-0">
+          <div className="grid grid-cols-4 bg-gray-200 border-b border-black">
+            <div className="p-2 border-r border-black font-bold text-xs">NAME</div>
+            <div className="p-2 border-r border-black font-bold text-xs">ROLE</div>
+            <div className="p-2 border-r border-black font-bold text-xs">PHONE</div>
+            <div className="p-2 font-bold text-xs">EMAIL</div>
+          </div>
+          {contacts.map((contact) => (
+            <ContactCard
+              key={contact.id}
+              contact={contact}
+              isEmergency={isEmergency}
+              customization={customization}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const gridClass = customization.visual.cardStyle === 'minimal' ? 'space-y-3' :
+                   customization.theme.name === 'Comedy Vibrant' ? 'grid grid-cols-1 md:grid-cols-2 gap-6' :
+                   'grid grid-cols-1 md:grid-cols-2 gap-4';
+
   return (
-    <div className="mb-6 avoid-break">
-      <h3 className={`text-lg font-semibold mb-4 ${isEmergencyProminent ? 'text-red-800' : ''} flex items-center gap-2`} style={{
-        color: isEmergencyProminent ? '#dc2626' : customization.colors.text,
+    <div className="mb-8 avoid-break">
+      <h3 className="font-semibold mb-4 flex items-center gap-2" style={{
+        color: customization.colors.text,
         fontSize: `${customization.typography.fontSize.header + 4}px`,
-        fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
-                   customization.typography.fontWeight.header === 'medium' ? '500' :
-                   customization.typography.fontWeight.header === 'semibold' ? '600' : '700'
+        fontWeight: getFontWeight(customization.typography.fontWeight.header)
       }}>
-        {showIcons && <span className="text-xl">{icon}</span>}
+        {!isIndieMinimal && <span className="text-xl">{icon}</span>}
         {title}
       </h3>
       
@@ -128,7 +210,7 @@ const ContactSection: React.FC<{
         </div>
       )}
       
-      <div className={`grid ${gridClass} gap-4`}>
+      <div className={gridClass}>
         {contacts.map((contact) => (
           <ContactCard
             key={contact.id}
@@ -146,17 +228,89 @@ const ScheduleSection: React.FC<{
   schedule: any[];
   customization: PDFCustomization;
 }> = ({ schedule, customization }) => {
-  const showIcons = customization.sections.formatting.showSectionIcons;
-  const alternateRows = customization.sections.formatting.alternateRowColors;
+  const isTraditionalForm = customization.theme.name === 'Traditional Form';
+  const isEventModern = customization.theme.name === 'Event Modern';
+  const isHorrorDense = customization.theme.name === 'Horror Dense';
+
+  if (isTraditionalForm) {
+    return (
+      <div className="mb-6">
+        <div className="border-2 border-black bg-black text-white p-2 mb-2">
+          <h3 className="font-bold text-center">SCHEDULE</h3>
+        </div>
+        <div className="border-2 border-black border-t-0">
+          <div className="grid grid-cols-5 bg-gray-200 border-b-2 border-black text-xs font-bold">
+            <div className="p-1 border-r border-black">SCENE</div>
+            <div className="p-1 border-r border-black">INT/EXT</div>
+            <div className="p-1 border-r border-black">DESCRIPTION</div>
+            <div className="p-1 border-r border-black">TIME</div>
+            <div className="p-1">PAGES</div>
+          </div>
+          {schedule.map((item, index) => (
+            <div key={index} className="grid grid-cols-5 text-xs border-b border-black">
+              <div className="p-1 border-r border-black font-bold">{item.sceneNumber}</div>
+              <div className="p-1 border-r border-black">{item.intExt}</div>
+              <div className="p-1 border-r border-black">{item.description}</div>
+              <div className="p-1 border-r border-black">{item.estimatedTime}</div>
+              <div className="p-1">{item.pageCount || '-'}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isEventModern) {
+    return (
+      <div className="mb-8">
+        <h3 className="text-2xl font-bold mb-6 text-center" style={{
+          color: customization.colors.accent,
+          fontSize: `${customization.typography.fontSize.header + 8}px`
+        }}>
+          Event Schedule & Contact Details
+        </h3>
+        <div className="space-y-4">
+          {schedule.map((item, index) => (
+            <Card key={index} className="overflow-hidden" style={{
+              background: `linear-gradient(135deg, ${customization.colors.surface}, ${customization.colors.surfaceHover})`,
+              borderRadius: `${customization.visual.cornerRadius}px`,
+              color: customization.colors.text
+            }}>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <div className="font-bold text-lg" style={{ color: customization.colors.accent }}>
+                      {item.estimatedTime}
+                    </div>
+                    <div className="text-sm opacity-80">{item.sceneNumber}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">{item.intExt}</div>
+                    <div className="text-sm opacity-80">{item.location || 'Location TBD'}</div>
+                  </div>
+                  <div>
+                    <div className="font-medium">{item.description}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold" style={{ color: customization.colors.accent }}>
+                      {item.pageCount || '-'}
+                    </div>
+                    <div className="text-sm opacity-80">pages</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const tableStyle = {
     borderRadius: `${customization.visual.cornerRadius}px`,
     backgroundColor: customization.colors.surface,
     borderColor: customization.colors.border,
-    fontFamily: customization.typography.fontFamily === 'inter' ? 'Inter' :
-                customization.typography.fontFamily === 'helvetica' ? 'Helvetica' :
-                customization.typography.fontFamily === 'poppins' ? 'Poppins' :
-                customization.typography.fontFamily === 'montserrat' ? 'Montserrat' : 'Inter'
+    fontFamily: getFontFamily(customization.typography.fontFamily)
   };
 
   return (
@@ -164,12 +318,9 @@ const ScheduleSection: React.FC<{
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{
         color: customization.colors.text,
         fontSize: `${customization.typography.fontSize.header + 4}px`,
-        fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
-                   customization.typography.fontWeight.header === 'medium' ? '500' :
-                   customization.typography.fontWeight.header === 'semibold' ? '600' : '700'
+        fontWeight: getFontWeight(customization.typography.fontWeight.header)
       }}>
-        {showIcons && <span className="text-xl">📋</span>}
-        SCHEDULE
+        📋 SCHEDULE
       </h3>
       
       <Card style={tableStyle}>
@@ -188,7 +339,7 @@ const ScheduleSection: React.FC<{
           </div>
           {schedule.map((item, index) => (
             <div key={index} className="grid grid-cols-5 gap-0 border-b" style={{
-              backgroundColor: alternateRows && index % 2 === 1 ? customization.colors.surface : customization.colors.background,
+              backgroundColor: index % 2 === 1 ? customization.colors.surface : customization.colors.background,
               borderColor: customization.colors.borderLight,
               fontSize: `${customization.typography.fontSize.body}px`,
               color: customization.colors.text
@@ -216,6 +367,26 @@ const ScheduleSection: React.FC<{
   );
 };
 
+const getFontFamily = (fontFamily: string) => {
+  switch (fontFamily) {
+    case 'inter': return 'Inter, sans-serif';
+    case 'helvetica': return 'Helvetica, Arial, sans-serif';
+    case 'poppins': return 'Poppins, sans-serif';
+    case 'montserrat': return 'Montserrat, sans-serif';
+    default: return 'Inter, sans-serif';
+  }
+};
+
+const getFontWeight = (weight: string) => {
+  switch (weight) {
+    case 'normal': return '400';
+    case 'medium': return '500';
+    case 'semibold': return '600';
+    case 'bold': return '700';
+    default: return '400';
+  }
+};
+
 export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({ 
   callsheet, 
   customization,
@@ -234,27 +405,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   const countryCode = getCountryCodeFromLocation(callsheet.location);
   const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers(countryCode);
 
-  const isHeaderCentered = customization.layout.headerStyle === 'minimal' || 
-                          customization.layout.headerStyle === 'creative';
-  
-  const showSectionIcons = customization.sections.formatting.showSectionIcons;
-  const isEmergencyProminent = customization.sections.formatting.emergencyProminent;
-  
-  const contactLayout = customization.sections.formatting.contactLayout;
-  const contactGridClass = contactLayout === 'compact' ? 'grid grid-cols-3 gap-4' :
-                          contactLayout === 'cards' ? 'grid grid-cols-2 gap-4' :
-                          contactLayout === 'table' ? 'space-y-2' : 'grid grid-cols-2 gap-4';
+  const isEventModern = customization.theme.name === 'Event Modern';
+  const isTraditionalForm = customization.theme.name === 'Traditional Form';
+  const isIndieMinimal = customization.theme.name === 'Indie Minimal';
 
   const containerStyles = {
     backgroundColor: customization.colors.background,
     color: customization.colors.text,
-    fontFamily: customization.typography.fontFamily === 'inter' ? 'Inter' :
-                customization.typography.fontFamily === 'helvetica' ? 'Helvetica' :
-                customization.typography.fontFamily === 'poppins' ? 'Poppins' :
-                customization.typography.fontFamily === 'montserrat' ? 'Montserrat' : 'Inter',
+    fontFamily: getFontFamily(customization.typography.fontFamily),
     fontSize: `${customization.typography.fontSize.body}px`,
     lineHeight: customization.typography.lineHeight.body,
-    padding: '2rem',
+    padding: isTraditionalForm ? '1rem' : '2rem',
     minHeight: '100vh',
     position: 'relative' as const,
     paddingBottom: '4rem'
@@ -264,9 +425,21 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     const { headerBackground } = customization.visual;
     const baseStyle = {
       borderRadius: `${customization.visual.cornerRadius}px`,
-      padding: '1.5rem',
+      padding: isEventModern ? '2rem' : '1.5rem',
       marginBottom: '2rem'
     };
+
+    if (isEventModern && customization.colors.gradient) {
+      const { from, to, direction } = customization.colors.gradient;
+      const gradientDirection = direction === 'to-r' ? 'to right' :
+                              direction === 'to-br' ? 'to bottom right' : 'to bottom';
+      return {
+        ...baseStyle,
+        background: `linear-gradient(${gradientDirection}, ${from}, ${to})`,
+        color: customization.colors.headerText,
+        borderRadius: '24px'
+      };
+    }
 
     switch (headerBackground) {
       case 'subtle':
@@ -298,7 +471,13 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           color: customization.colors.headerText
         };
       default:
-        return { 
+        return isTraditionalForm ? {
+          border: '3px solid black',
+          padding: '1rem',
+          marginBottom: '1rem',
+          backgroundColor: 'white',
+          color: 'black'
+        } : { 
           marginBottom: '1.5rem',
           color: customization.colors.text
         };
@@ -306,288 +485,139 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   };
 
   const headerStyles = {
-    textAlign: (isHeaderCentered ? 'center' : 'left') as 'center' | 'left',
+    textAlign: (isEventModern || customization.layout.headerStyle === 'creative' ? 'center' : 'left') as 'center' | 'left',
     ...getHeaderBackgroundStyle()
   };
 
-  // Calculate logo size based on size setting
-  const getLogoSize = () => {
-    if (!customization.branding.logo) return '64px';
-    const size = customization.branding.logo.size;
-    return size === 'small' ? '48px' : size === 'large' ? '80px' : '64px';
-  };
-
-  // Get logo positioning styles
-  const getLogoPositionStyles = () => {
-    if (!customization.branding.logo) return {};
-    
-    const position = customization.branding.logo.position;
-    const baseStyles = {
-      height: getLogoSize(),
-      width: 'auto',
-      maxWidth: '100%'
-    };
-
-    switch (position) {
-      case 'top-left':
-        return { ...baseStyles, position: 'absolute' as const, top: '1rem', left: '2rem' };
-      case 'top-right':
-        return { ...baseStyles, position: 'absolute' as const, top: '1rem', right: '2rem' };
-      case 'top-center':
-        return { ...baseStyles, margin: '0 auto', display: 'block' };
-      case 'header-left':
-        return { ...baseStyles, float: 'left' as const, marginRight: '1rem', marginBottom: '1rem' };
-      case 'header-right':
-        return { ...baseStyles, float: 'right' as const, marginLeft: '1rem', marginBottom: '1rem' };
-      default:
-        return { ...baseStyles, margin: '0 auto', display: 'block' };
-    }
-  };
-
   return (
-    <div className={`max-w-4xl mx-auto bg-white ${className}`} style={containerStyles}>
-      {/* Logo positioning for top positions */}
-      {customization.branding.logo && ['top-left', 'top-right'].includes(customization.branding.logo.position) && (
-        <img 
-          src={customization.branding.logo.url} 
-          alt="Company Logo" 
-          style={getLogoPositionStyles()}
-        />
-      )}
-
-      {/* Company Name Header */}
-      {customization.branding.companyName && customization.branding.companyName.trim() && (
-        <div className="text-center mb-4" style={{
-          fontSize: `${customization.typography.fontSize.header + 2}px`,
-          fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
-                     customization.typography.fontWeight.header === 'medium' ? '500' :
-                     customization.typography.fontWeight.header === 'semibold' ? '600' : '700',
-          color: customization.colors.text
-        }}>
-          {customization.branding.companyName}
-        </div>
-      )}
-
+    <div className={`max-w-4xl mx-auto ${className}`} style={containerStyles}>
       {/* Header Section */}
       <div style={headerStyles}>
-        {customization.branding.logo && ['header-left', 'header-right'].includes(customization.branding.logo.position) && (
-          <img 
-            src={customization.branding.logo.url} 
-            alt="Company Logo" 
-            style={getLogoPositionStyles()}
-          />
-        )}
-        
-        {customization.branding.logo && ['top-center', 'header-center'].includes(customization.branding.logo.position || 'top-center') && (
-          <div className="mb-4">
-            <img 
-              src={customization.branding.logo.url} 
-              alt="Company Logo" 
-              style={getLogoPositionStyles()}
-            />
-          </div>
-        )}
-        
         <h1 className="font-bold mb-3" style={{
           fontSize: `${customization.typography.fontSize.title}px`,
-          fontWeight: customization.typography.fontWeight.title === 'normal' ? '400' :
-                     customization.typography.fontWeight.title === 'medium' ? '500' :
-                     customization.typography.fontWeight.title === 'semibold' ? '600' : '700',
+          fontWeight: getFontWeight(customization.typography.fontWeight.title),
           color: headerStyles.color,
           lineHeight: customization.typography.lineHeight.title,
           margin: '0 0 12px 0'
         }}>
-          {callsheet.projectTitle}
+          {isEventModern ? 'EVENT Call Sheet' : callsheet.projectTitle}
         </h1>
         <h2 className="font-semibold" style={{
           fontSize: `${customization.typography.fontSize.header}px`,
-          fontWeight: customization.typography.fontWeight.header === 'normal' ? '400' :
-                     customization.typography.fontWeight.header === 'medium' ? '500' :
-                     customization.typography.fontWeight.header === 'semibold' ? '600' : '700',
+          fontWeight: getFontWeight(customization.typography.fontWeight.header),
           color: headerStyles.color,
           lineHeight: customization.typography.lineHeight.header,
           margin: 0
         }}>
-          CALL SHEET
+          {isEventModern ? callsheet.projectTitle : 'CALL SHEET'}
         </h2>
       </div>
 
       {/* Production Details Grid */}
-      <div className="grid grid-cols-3 gap-4 mb-8 avoid-break">
-        <Card style={{ 
-          borderRadius: `${customization.visual.cornerRadius}px`,
-          backgroundColor: customization.colors.surface,
-          borderColor: customization.colors.border
-        }}>
-          <CardContent className="p-4 flex items-start gap-2">
-            {showSectionIcons && <span className="text-lg flex-shrink-0">📅</span>}
-            <div className="flex-1">
-              <div className="font-medium mb-1" style={{ 
-                color: customization.colors.text,
-                fontSize: `${customization.typography.fontSize.header}px`
-              }}>
-                Shoot Date
-              </div>
-              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
-                {formatDate(callsheet.shootDate)}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card style={{ 
-          borderRadius: `${customization.visual.cornerRadius}px`,
-          backgroundColor: customization.colors.surface,
-          borderColor: customization.colors.border
-        }}>
-          <CardContent className="p-4 flex items-start gap-2">
-            {showSectionIcons && <span className="text-lg flex-shrink-0">🕐</span>}
-            <div className="flex-1">
-              <div className="font-medium mb-1" style={{ 
-                color: customization.colors.text,
-                fontSize: `${customization.typography.fontSize.header}px`
-              }}>
-                Call Time
-              </div>
-              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
-                {callsheet.generalCallTime}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card style={{ 
-          borderRadius: `${customization.visual.cornerRadius}px`,
-          backgroundColor: customization.colors.surface,
-          borderColor: customization.colors.border
-        }}>
-          <CardContent className="p-4 flex items-start gap-2">
-            {showSectionIcons && <span className="text-lg flex-shrink-0">📍</span>}
-            <div className="flex-1">
-              <div className="font-medium mb-1" style={{ 
-                color: customization.colors.text,
-                fontSize: `${customization.typography.fontSize.header}px`
-              }}>
-                Location
-              </div>
-              <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
-                {callsheet.location}
-              </div>
-              {callsheet.locationAddress && (
-                <div className="text-sm" style={{ 
-                  color: customization.colors.textLight,
-                  fontSize: `${customization.typography.fontSize.small}px`
-                }}>
-                  {callsheet.locationAddress}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {callsheet.weather && customization.sections.visibility.weather && (
+      {!isTraditionalForm && (
+        <div className={`grid ${isEventModern ? 'grid-cols-2' : 'grid-cols-3'} gap-4 mb-8 avoid-break`}>
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
             borderColor: customization.colors.border
           }}>
             <CardContent className="p-4 flex items-start gap-2">
-              {showSectionIcons && <span className="text-lg flex-shrink-0">🌤️</span>}
+              {!isIndieMinimal && <span className="text-lg flex-shrink-0">📅</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
                   color: customization.colors.text,
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
-                  Weather
+                  {isEventModern ? 'Date' : 'Shoot Date'}
                 </div>
                 <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
-                  {callsheet.weather}
+                  {formatDate(callsheet.shootDate)}
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {callsheet.parkingInstructions && (
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
             borderColor: customization.colors.border
           }}>
             <CardContent className="p-4 flex items-start gap-2">
-              {showSectionIcons && <span className="text-lg flex-shrink-0">🅿️</span>}
+              {!isIndieMinimal && <span className="text-lg flex-shrink-0">🕐</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
                   color: customization.colors.text,
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
-                  Parking Instructions
+                  Call Time
                 </div>
                 <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
-                  {callsheet.parkingInstructions}
+                  {callsheet.generalCallTime}
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {callsheet.basecampLocation && (
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
             borderColor: customization.colors.border
           }}>
             <CardContent className="p-4 flex items-start gap-2">
-              {showSectionIcons && <span className="text-lg flex-shrink-0">🏕️</span>}
+              {!isIndieMinimal && <span className="text-lg flex-shrink-0">📍</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
                   color: customization.colors.text,
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
-                  Basecamp Location
+                  Location
                 </div>
                 <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
-                  {callsheet.basecampLocation}
+                  {callsheet.location}
                 </div>
+                {callsheet.locationAddress && (
+                  <div className="text-sm" style={{ 
+                    color: customization.colors.textLight,
+                    fontSize: `${customization.typography.fontSize.small}px`
+                  }}>
+                    {callsheet.locationAddress}
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Special Notes */}
-      {callsheet.specialNotes && customization.sections.visibility.notes && (
-        <div className="mb-8 avoid-break">
-          <Card style={{ 
-            borderRadius: `${customization.visual.cornerRadius}px`,
-            backgroundColor: customization.colors.surface,
-            borderColor: customization.colors.border,
-            borderLeftColor: customization.colors.accent,
-            borderLeftWidth: '4px'
-          }}>
-            <CardContent className="p-5">
-              <h4 className="font-medium mb-3 flex items-center gap-2" style={{
-                color: customization.colors.text,
-                fontSize: `${customization.typography.fontSize.header}px`
-              }}>
-                {showSectionIcons && <span className="text-lg">📝</span>}
-                Special Notes
-              </h4>
-              <p className="leading-relaxed" style={{ 
-                fontSize: `${customization.typography.fontSize.body}px`,
-                color: customization.colors.text,
-                margin: 0,
-                lineHeight: 1.5
-              }}>
-                {callsheet.specialNotes}
-              </p>
             </CardContent>
           </Card>
         </div>
       )}
 
+      {/* Traditional Form Header */}
+      {isTraditionalForm && (
+        <div className="mb-6">
+          <div className="grid grid-cols-3 gap-0 border-2 border-black">
+            <div className="border-r border-black p-3">
+              <div className="font-bold text-xs mb-2">PRODUCTION COMPANY:</div>
+              <div className="font-bold text-xs mb-1">Exec. Producer:</div>
+              <div className="font-bold text-xs mb-1">Producer:</div>
+              <div className="font-bold text-xs mb-1">Director:</div>
+              <div className="font-bold text-xs">1st AD:</div>
+            </div>
+            <div className="border-r border-black p-3 text-center">
+              <div className="text-2xl font-bold mb-2">CALL TIME</div>
+              <div className="text-3xl font-bold mb-2">{callsheet.generalCallTime}</div>
+              <div className="text-xs">Check grid for individual call times</div>
+            </div>
+            <div className="p-3">
+              <div className="font-bold text-xs mb-1">BKFST:</div>
+              <div className="font-bold text-xs mb-1">LUNCH:</div>
+              <div className="font-bold text-xs mb-1">SUNRISE:</div>
+              <div className="font-bold text-xs mb-1">SUNSET:</div>
+              <div className="font-bold text-xs">WEATHER:</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Schedule */}
-      {callsheet.schedule.length > 0 && customization.sections.visibility.schedule && (
+      {callsheet.schedule.length > 0 && (
         <ScheduleSection 
           schedule={callsheet.schedule} 
           customization={customization}
@@ -615,7 +645,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       )}
 
       {/* Emergency Contacts */}
-      {callsheet.emergencyContacts.length > 0 && customization.sections.visibility.emergencyContacts && (
+      {callsheet.emergencyContacts.length > 0 && (
         <ContactSection
           title="EMERGENCY CONTACTS"
           contacts={callsheet.emergencyContacts}
@@ -624,23 +654,6 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           customization={customization}
           emergencyNumber={emergencyNumber}
         />
-      )}
-
-      {/* Footer - positioned at bottom of page */}
-      {customization.branding.footer?.text && customization.branding.footer.text.trim() && (
-        <div style={{
-          position: 'absolute',
-          bottom: '1rem',
-          left: '2rem',
-          right: '2rem',
-          borderTop: `1px solid ${customization.colors.border}`,
-          paddingTop: '1rem',
-          fontSize: `${customization.typography.fontSize.small}px`,
-          color: customization.colors.textLight,
-          textAlign: customization.branding.footer.position as 'center' | 'left' | 'right'
-        }}>
-          {customization.branding.footer.text}
-        </div>
       )}
     </div>
   );
