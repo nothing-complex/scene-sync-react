@@ -1,4 +1,3 @@
-
 export interface PDFCustomization {
   layout: PDFLayout;
   typography: PDFTypography;
@@ -7,6 +6,7 @@ export interface PDFCustomization {
   sections: PDFSectionConfig;
   theme: PDFTheme;
   visual: PDFVisualStyle;
+  smart: PDFSmartFeatures; // New smart features
 }
 
 export interface PDFLayout {
@@ -23,7 +23,7 @@ export interface PDFLayout {
     lineHeight: number;
   };
   pageOrientation: 'portrait' | 'landscape';
-  template: 'minimal' | 'professional' | 'creative' | 'cinematic';
+  template: 'minimal' | 'professional' | 'creative' | 'cinematic' | 'hollywood' | 'indie' | 'horror' | 'comedy' | 'network' | 'documentary';
 }
 
 export interface PDFTypography {
@@ -49,7 +49,17 @@ export interface PDFTypography {
 
 export interface PDFBranding {
   companyName?: string;
+  productionCompany?: string; // New field
+  network?: string; // New field for TV productions
+  season?: string; // New field for TV series
+  episode?: string; // New field for TV series
   logo?: {
+    url: string;
+    position: 'top-left' | 'top-center' | 'top-right' | 'header-left' | 'header-center' | 'header-right';
+    size: 'small' | 'medium' | 'large';
+    opacity: number;
+  };
+  secondaryLogo?: { // New field for production company/network logos
     url: string;
     position: 'top-left' | 'top-center' | 'top-right' | 'header-left' | 'header-center' | 'header-right';
     size: 'small' | 'medium' | 'large';
@@ -59,11 +69,13 @@ export interface PDFBranding {
     text: string;
     position: 'left' | 'center' | 'right';
     style: 'minimal' | 'bordered' | 'accent';
+    unionCompliance?: boolean; // New field
   };
   watermark?: {
     text: string;
     opacity: number;
     position: 'center' | 'diagonal';
+    recipientType?: 'all' | 'talent' | 'crew' | 'client'; // New field
   };
 }
 
@@ -118,7 +130,23 @@ export interface PDFSectionConfig {
     emergencyProminent: boolean;
     showSectionIcons: boolean;
     alternateRowColors: boolean;
+    departmentColorCoding: boolean; // New field
+    urgencyHighlighting: boolean; // New field
   };
+  roleFiltering?: { // New field for role-specific content
+    enabled: boolean;
+    recipientType: 'all' | 'talent' | 'crew' | 'client';
+    hidePersonalInfo: boolean;
+  };
+}
+
+export interface PDFSmartFeatures {
+  productionType: 'feature' | 'short' | 'series' | 'commercial' | 'documentary';
+  urgencyLevel: 'standard' | 'rush' | 'priority';
+  unionCompliant: boolean;
+  departmentColors: boolean;
+  weatherResponsive: boolean;
+  autoTemplate: boolean; // Automatically apply template based on production type
 }
 
 // Predefined sophisticated themes with improved contrast
@@ -277,8 +305,18 @@ export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
       scheduleCompact: false,
       emergencyProminent: true,
       showSectionIcons: false, // Set to false by default to avoid emoji issues
-      alternateRowColors: false
+      alternateRowColors: false,
+      departmentColorCoding: false,
+      urgencyHighlighting: false
     }
+  },
+  smart: {
+    productionType: 'feature',
+    urgencyLevel: 'standard',
+    unionCompliant: false,
+    departmentColors: false,
+    weatherResponsive: true,
+    autoTemplate: false
   }
 };
 
