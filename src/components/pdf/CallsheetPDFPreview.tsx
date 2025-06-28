@@ -33,10 +33,12 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
         fontSize: `${customization.typography.fontSize.body}px`,
         lineHeight: customization.typography.lineHeight.body,
         backgroundColor: customization.colors.surface,
-        color: customization.colors.text
+        color: customization.colors.text,
+        fontFamily: getFontFamily(customization.typography.fontFamily),
+        fontWeight: getFontWeight(customization.typography.fontWeight.body)
       }}>
         <div className="grid grid-cols-3 gap-2 text-xs">
-          <div className="font-bold">{contact.name}</div>
+          <div className="font-bold" style={{ fontWeight: getFontWeight(customization.typography.fontWeight.header) }}>{contact.name}</div>
           <div>{contact.character || contact.role}</div>
           <div>{contact.phone}</div>
         </div>
@@ -49,10 +51,14 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
       <div className="border border-gray-600" style={{
         fontSize: `${customization.typography.fontSize.body}px`,
         color: customization.colors.text,
-        backgroundColor: customization.colors.surface
+        backgroundColor: customization.colors.surface,
+        fontFamily: getFontFamily(customization.typography.fontFamily)
       }}>
         <div className="grid grid-cols-4 gap-0">
-          <div className="p-2 border-r font-semibold text-xs" style={{ borderColor: customization.colors.border }}>{contact.name}</div>
+          <div className="p-2 border-r font-semibold text-xs" style={{ 
+            borderColor: customization.colors.border,
+            fontWeight: getFontWeight(customization.typography.fontWeight.header)
+          }}>{contact.name}</div>
           <div className="p-2 border-r text-xs" style={{ borderColor: customization.colors.border }}>{contact.character || contact.role}</div>
           <div className="p-2 border-r text-xs font-mono" style={{ borderColor: customization.colors.border }}>{contact.phone}</div>
           <div className="p-2 text-xs">{contact.email ? '✓' : '-'}</div>
@@ -86,29 +92,33 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
         <div className="font-medium mb-1" style={{ 
           fontSize: `${customization.typography.fontSize.header}px`,
           fontWeight: getFontWeight(customization.typography.fontWeight.header),
-          color: customization.colors.text
+          color: customization.colors.text,
+          fontFamily: getFontFamily(customization.typography.fontFamily)
         }}>
           {contact.name}
         </div>
         {(contact.character || contact.role) && (
           <div className="mb-2 italic" style={{ 
             color: customization.colors.textLight,
-            fontSize: `${customization.typography.fontSize.small}px`
+            fontSize: `${customization.typography.fontSize.small}px`,
+            fontFamily: getFontFamily(customization.typography.fontFamily)
           }}>
             {contact.character ? `as ${contact.character}` : contact.role}
           </div>
         )}
         <div className="mb-1" style={{ 
           fontSize: `${customization.typography.fontSize.body}px`,
-          fontWeight: isEmergency ? '500' : 'normal',
-          color: customization.colors.text
+          fontWeight: isEmergency ? getFontWeight('medium') : getFontWeight(customization.typography.fontWeight.body),
+          color: customization.colors.text,
+          fontFamily: getFontFamily(customization.typography.fontFamily)
         }}>
           📞 {contact.phone}
         </div>
         {contact.email && !isEmergency && (
           <div style={{ 
             fontSize: `${customization.typography.fontSize.small}px`,
-            color: customization.colors.textLight
+            color: customization.colors.textLight,
+            fontFamily: getFontFamily(customization.typography.fontFamily)
           }}>
             📧 {contact.email}
           </div>
@@ -144,16 +154,18 @@ const ContactSection: React.FC<{
   // For table layouts in Traditional/Dense themes
   if (contactLayout === 'table') {
     return (
-      <div className="mb-6">
+      <div className="mb-6" style={{ marginBottom: `${customization.layout.spacing.sectionGap}px` }}>
         <div style={{
           backgroundColor: customization.colors.headerBackground,
           color: customization.colors.headerText,
           padding: '12px',
           marginBottom: '8px',
-          borderRadius: `${customization.visual.cornerRadius}px`
+          borderRadius: `${customization.visual.cornerRadius}px`,
+          fontFamily: getFontFamily(customization.typography.fontFamily)
         }}>
           <h3 className="font-bold text-center" style={{
-            fontSize: `${customization.typography.fontSize.header + 2}px`
+            fontSize: `${customization.typography.fontSize.header + 2}px`,
+            fontWeight: getFontWeight(customization.typography.fontWeight.header)
           }}>
             {showIcons && <span className="mr-2">{icon}</span>}
             {title}
@@ -171,7 +183,9 @@ const ContactSection: React.FC<{
             <div className="grid grid-cols-4 font-bold text-xs" style={{
               backgroundColor: customization.colors.surfaceHover,
               borderBottom: `1px solid ${customization.colors.border}`,
-              color: customization.colors.text
+              color: customization.colors.text,
+              fontFamily: getFontFamily(customization.typography.fontFamily),
+              fontWeight: getFontWeight(customization.typography.fontWeight.header)
             }}>
               <div className="p-2 border-r" style={{ borderColor: customization.colors.border }}>NAME</div>
               <div className="p-2 border-r" style={{ borderColor: customization.colors.border }}>ROLE</div>
@@ -206,23 +220,25 @@ const ContactSection: React.FC<{
   };
 
   return (
-    <div className="mb-8 avoid-break">
+    <div className="mb-8 avoid-break" style={{ marginBottom: `${customization.layout.spacing.sectionGap}px` }}>
       <h3 className="font-semibold mb-4 flex items-center gap-2" style={{
         color: customization.colors.text,
         fontSize: `${customization.typography.fontSize.header + 4}px`,
-        fontWeight: getFontWeight(customization.typography.fontWeight.header)
+        fontWeight: getFontWeight(customization.typography.fontWeight.header),
+        fontFamily: getFontFamily(customization.typography.fontFamily),
+        marginBottom: `${customization.layout.spacing.itemGap}px`
       }}>
         {showIcons && <span className="text-xl">{icon}</span>}
         {title}
       </h3>
       
       {isEmergency && emergencyNumber && (
-        <div className="mb-4 avoid-break">
+        <div className="mb-4 avoid-break" style={{ marginBottom: `${customization.layout.spacing.itemGap}px` }}>
           <EmergencyNumbers emergencyNumbers={emergencyNumbers} />
         </div>
       )}
       
-      <div className={getGridClass()}>
+      <div className={getGridClass()} style={{ gap: `${customization.layout.spacing.itemGap}px` }}>
         {contacts.map((contact) => (
           <ContactCard
             key={contact.id}
@@ -252,11 +268,13 @@ const ScheduleSection: React.FC<{
   };
 
   return (
-    <div className="mb-6 avoid-break">
+    <div className="mb-6 avoid-break" style={{ marginBottom: `${customization.layout.spacing.sectionGap}px` }}>
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{
         color: customization.colors.text,
         fontSize: `${customization.typography.fontSize.header + 4}px`,
-        fontWeight: getFontWeight(customization.typography.fontWeight.header)
+        fontWeight: getFontWeight(customization.typography.fontWeight.header),
+        fontFamily: getFontFamily(customization.typography.fontFamily),
+        marginBottom: `${customization.layout.spacing.itemGap}px`
       }}>
         {showIcons && <span className="text-xl">📋</span>}
         SCHEDULE
@@ -268,7 +286,9 @@ const ScheduleSection: React.FC<{
             backgroundColor: customization.colors.surfaceHover,
             borderColor: customization.colors.border,
             fontSize: `${customization.typography.fontSize.header}px`,
-            color: customization.colors.text
+            color: customization.colors.text,
+            fontFamily: getFontFamily(customization.typography.fontFamily),
+            fontWeight: getFontWeight(customization.typography.fontWeight.header)
           }}>
             <div className="p-4 border-r" style={{ borderColor: customization.colors.border }}>Scene</div>
             <div className="p-4 border-r" style={{ borderColor: customization.colors.border }}>Int/Ext</div>
@@ -281,9 +301,14 @@ const ScheduleSection: React.FC<{
               backgroundColor: alternateRows && index % 2 === 1 ? customization.colors.surfaceHover : customization.colors.surface,
               borderColor: customization.colors.borderLight,
               fontSize: `${customization.typography.fontSize.body}px`,
-              color: customization.colors.text
+              color: customization.colors.text,
+              fontFamily: getFontFamily(customization.typography.fontFamily),
+              fontWeight: getFontWeight(customization.typography.fontWeight.body)
             }}>
-              <div className="p-3 font-medium border-r" style={{ borderColor: customization.colors.borderLight }}>
+              <div className="p-3 font-medium border-r" style={{ 
+                borderColor: customization.colors.borderLight,
+                fontWeight: getFontWeight('medium')
+              }}>
                 {item.sceneNumber}
               </div>
               <div className="p-3 border-r" style={{ borderColor: customization.colors.borderLight }}>
@@ -322,15 +347,24 @@ const LogoDisplay: React.FC<{ logo: any; customization: PDFCustomization }> = ({
 
   const getLogoPosition = () => {
     switch (logo.position) {
-      case 'top-center': return { textAlign: 'center' as const };
-      case 'top-right': return { textAlign: 'right' as const };
+      case 'top-center': 
+      case 'header-center': 
+        return { textAlign: 'center' as const };
+      case 'top-right': 
+      case 'header-right': 
+        return { textAlign: 'right' as const };
       case 'top-left':
-      default: return { textAlign: 'left' as const };
+      case 'header-left':
+      default: 
+        return { textAlign: 'left' as const };
     }
   };
 
   return (
-    <div style={{ ...getLogoPosition(), marginBottom: `${customization.layout.spacing.itemGap}px` }}>
+    <div style={{ 
+      ...getLogoPosition(), 
+      marginBottom: `${customization.layout.spacing.itemGap}px` 
+    }}>
       <img
         src={logo.url}
         alt="Company Logo"
@@ -340,6 +374,69 @@ const LogoDisplay: React.FC<{ logo: any; customization: PDFCustomization }> = ({
           objectFit: 'contain'
         }}
       />
+    </div>
+  );
+};
+
+const CompanyInfoDisplay: React.FC<{ customization: PDFCustomization }> = ({ customization }) => {
+  const { branding } = customization;
+  if (!branding.companyName && !branding.productionCompany && !branding.network) return null;
+
+  return (
+    <div style={{
+      marginBottom: `${customization.layout.spacing.itemGap}px`,
+      fontSize: `${customization.typography.fontSize.small}px`,
+      color: customization.colors.textLight,
+      fontFamily: getFontFamily(customization.typography.fontFamily),
+      textAlign: 'center'
+    }}>
+      {branding.companyName && (
+        <div style={{ fontWeight: getFontWeight('medium') }}>
+          {branding.companyName}
+        </div>
+      )}
+      {branding.productionCompany && (
+        <div>Production: {branding.productionCompany}</div>
+      )}
+      {branding.network && (
+        <div>Network: {branding.network}</div>
+      )}
+      {branding.season && branding.episode && (
+        <div>Season {branding.season}, Episode {branding.episode}</div>
+      )}
+    </div>
+  );
+};
+
+const WatermarkDisplay: React.FC<{ customization: PDFCustomization }> = ({ customization }) => {
+  const { watermark } = customization.branding;
+  if (!watermark?.text) return null;
+
+  const watermarkStyle: React.CSSProperties = {
+    position: 'fixed',
+    opacity: watermark.opacity || 0.1,
+    color: customization.colors.textLight,
+    fontSize: `${customization.typography.fontSize.title * 2}px`,
+    fontFamily: getFontFamily(customization.typography.fontFamily),
+    fontWeight: getFontWeight('bold'),
+    pointerEvents: 'none',
+    zIndex: 0,
+    userSelect: 'none'
+  };
+
+  if (watermark.position === 'diagonal') {
+    watermarkStyle.top = '50%';
+    watermarkStyle.left = '50%';
+    watermarkStyle.transform = 'translate(-50%, -50%) rotate(-45deg)';
+  } else {
+    watermarkStyle.top = '50%';
+    watermarkStyle.left = '50%';
+    watermarkStyle.transform = 'translate(-50%, -50%)';
+  }
+
+  return (
+    <div style={watermarkStyle}>
+      {watermark.text}
     </div>
   );
 };
@@ -399,7 +496,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     const baseStyle = {
       borderRadius: `${customization.visual.cornerRadius}px`,
       padding: '1.5rem',
-      marginBottom: `${customization.layout.spacing.sectionGap}px`
+      marginBottom: `${customization.layout.spacing.sectionGap}px`,
+      fontFamily: getFontFamily(customization.typography.fontFamily)
     };
 
     if (customization.colors.gradient && headerBackground === 'gradient') {
@@ -431,7 +529,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       default:
         return { 
           marginBottom: `${customization.layout.spacing.sectionGap}px`,
-          color: customization.colors.text
+          color: customization.colors.text,
+          fontFamily: getFontFamily(customization.typography.fontFamily)
         };
     }
   };
@@ -443,10 +542,16 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
   return (
     <div className={`max-w-4xl mx-auto ${className}`} style={containerStyles}>
+      {/* Watermark */}
+      <WatermarkDisplay customization={customization} />
+      
       {/* Logo Display */}
       {customization.branding.logo && (
         <LogoDisplay logo={customization.branding.logo} customization={customization} />
       )}
+      
+      {/* Company Info */}
+      <CompanyInfoDisplay customization={customization} />
       
       {/* Header Section */}
       <div style={headerStyles}>
@@ -455,7 +560,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           fontWeight: getFontWeight(customization.typography.fontWeight.title),
           color: headerStyles.color,
           lineHeight: customization.typography.lineHeight.title,
-          margin: `0 0 ${customization.layout.spacing.itemGap}px 0`
+          margin: `0 0 ${customization.layout.spacing.itemGap}px 0`,
+          fontFamily: getFontFamily(customization.typography.fontFamily)
         }}>
           {callsheet.projectTitle}
         </h1>
@@ -464,7 +570,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           fontWeight: getFontWeight(customization.typography.fontWeight.header),
           color: headerStyles.color,
           lineHeight: customization.typography.lineHeight.header,
-          margin: 0
+          margin: 0,
+          fontFamily: getFontFamily(customization.typography.fontFamily)
         }}>
           CALL SHEET
         </h2>
@@ -491,14 +598,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               <div className="font-medium mb-1" style={{ 
                 color: customization.colors.text,
                 fontSize: `${customization.typography.fontSize.header}px`,
-                fontWeight: getFontWeight(customization.typography.fontWeight.header)
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontFamily: getFontFamily(customization.typography.fontFamily)
               }}>
                 Shoot Date
               </div>
               <div style={{ 
                 fontSize: `${customization.typography.fontSize.body}px`, 
                 color: customization.colors.text,
-                lineHeight: customization.typography.lineHeight.body
+                lineHeight: customization.typography.lineHeight.body,
+                fontFamily: getFontFamily(customization.typography.fontFamily),
+                fontWeight: getFontWeight(customization.typography.fontWeight.body)
               }}>
                 {formatDate(callsheet.shootDate)}
               </div>
@@ -519,14 +629,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               <div className="font-medium mb-1" style={{ 
                 color: customization.colors.text,
                 fontSize: `${customization.typography.fontSize.header}px`,
-                fontWeight: getFontWeight(customization.typography.fontWeight.header)
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontFamily: getFontFamily(customization.typography.fontFamily)
               }}>
                 Call Time
               </div>
               <div style={{ 
                 fontSize: `${customization.typography.fontSize.body}px`, 
                 color: customization.colors.text,
-                lineHeight: customization.typography.lineHeight.body
+                lineHeight: customization.typography.lineHeight.body,
+                fontFamily: getFontFamily(customization.typography.fontFamily),
+                fontWeight: getFontWeight(customization.typography.fontWeight.body)
               }}>
                 {callsheet.generalCallTime}
               </div>
@@ -547,21 +660,25 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               <div className="font-medium mb-1" style={{ 
                 color: customization.colors.text,
                 fontSize: `${customization.typography.fontSize.header}px`,
-                fontWeight: getFontWeight(customization.typography.fontWeight.header)
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontFamily: getFontFamily(customization.typography.fontFamily)
               }}>
                 Location
               </div>
               <div style={{ 
                 fontSize: `${customization.typography.fontSize.body}px`, 
                 color: customization.colors.text,
-                lineHeight: customization.typography.lineHeight.body
+                lineHeight: customization.typography.lineHeight.body,
+                fontFamily: getFontFamily(customization.typography.fontFamily),
+                fontWeight: getFontWeight(customization.typography.fontWeight.body)
               }}>
                 {callsheet.location}
               </div>
               {callsheet.locationAddress && (
                 <div className="text-sm" style={{ 
                   color: customization.colors.textLight,
-                  fontSize: `${customization.typography.fontSize.small}px`
+                  fontSize: `${customization.typography.fontSize.small}px`,
+                  fontFamily: getFontFamily(customization.typography.fontFamily)
                 }}>
                   {callsheet.locationAddress}
                 </div>
@@ -629,6 +746,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           textAlign: customization.branding.footer.position as any,
           fontSize: `${customization.typography.fontSize.caption}px`,
           color: customization.colors.textLight,
+          fontFamily: getFontFamily(customization.typography.fontFamily),
           borderTop: customization.branding.footer.style === 'bordered' ? `1px solid ${customization.colors.borderLight}` : 'none',
           paddingTop: customization.branding.footer.style === 'bordered' ? `${customization.layout.spacing.itemGap / 2}px` : '0'
         }}>
