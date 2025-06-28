@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -19,11 +18,6 @@ export default {
 			}
 		},
 		extend: {
-			fontFamily: {
-				'playfair': ['Playfair Display', 'serif'],
-				'crimson': ['Crimson Text', 'serif'],
-				'sans': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

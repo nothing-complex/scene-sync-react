@@ -44,26 +44,19 @@ const Index = () => {
       <div className="flex h-screen bg-background">
         <Sidebar activeView={activeView} setActiveView={setActiveView} />
         <main className="flex-1 overflow-auto">
-          {/* Editorial Header */}
-          <div className="bg-card border-b border-border/40 px-8 py-4 flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-sans font-medium text-foreground">
-                  {user?.user_metadata?.full_name || 'Creative Professional'}
-                </p>
-                <p className="text-xs text-muted-foreground font-sans">
-                  {user?.email}
-                </p>
-              </div>
+          {/* Softer Header with user info */}
+          <div className="bg-card border-b border-border/30 px-6 py-3 flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <User className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground font-normal">
+                Welcome, {user?.email}
+              </span>
             </div>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={handleSignOut}
-              className="flex items-center space-x-2 font-sans rounded-xl border-border/60 hover:bg-accent/20"
+              className="flex items-center space-x-2 font-normal"
             >
               <LogOut className="w-4 h-4" />
               <span>Sign Out</span>
