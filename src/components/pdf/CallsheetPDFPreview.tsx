@@ -415,7 +415,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     fontFamily: getFontFamily(customization.typography.fontFamily),
     fontSize: `${customization.typography.fontSize.body}px`,
     lineHeight: customization.typography.lineHeight.body,
-    padding: isTraditional ? '1rem' : '2rem',
+    padding: `${customization.layout.margins.top}px ${customization.layout.margins.right}px ${customization.layout.margins.bottom}px ${customization.layout.margins.left}px`,
     minHeight: '100vh',
     position: 'relative' as const,
     paddingBottom: '4rem'
@@ -426,7 +426,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     const baseStyle = {
       borderRadius: `${customization.visual.cornerRadius}px`,
       padding: isEvent ? '2rem' : '1.5rem',
-      marginBottom: '2rem'
+      marginBottom: `${customization.layout.spacing.sectionGap}px`
     };
 
     if (isEvent && customization.colors.gradient) {
@@ -437,7 +437,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         ...baseStyle,
         background: `linear-gradient(${gradientDirection}, ${from}, ${to})`,
         color: customization.colors.headerText,
-        borderRadius: '24px'
+        borderRadius: `${customization.visual.cornerRadius}px`
       };
     }
 
@@ -446,13 +446,15 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         return { 
           ...baseStyle, 
           backgroundColor: customization.colors.surface,
-          color: customization.colors.text
+          color: customization.colors.text,
+          border: customization.visual.shadowIntensity !== 'none' ? `1px solid ${customization.colors.border}` : 'none'
         };
       case 'solid':
         return { 
           ...baseStyle, 
           backgroundColor: customization.colors.headerBackground,
-          color: customization.colors.headerText
+          color: customization.colors.headerText,
+          border: `1px solid ${customization.colors.border}`
         };
       case 'gradient':
         if (customization.colors.gradient) {
@@ -472,13 +474,13 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         };
       default:
         return isTraditional ? {
-          border: '3px solid black',
+          border: `3px solid ${customization.colors.border}`,
           padding: '1rem',
-          marginBottom: '1rem',
-          backgroundColor: 'white',
-          color: 'black'
+          marginBottom: `${customization.layout.spacing.sectionGap}px`,
+          backgroundColor: customization.colors.background,
+          color: customization.colors.text
         } : { 
-          marginBottom: '1.5rem',
+          marginBottom: `${customization.layout.spacing.sectionGap}px`,
           color: customization.colors.text
         };
     }
@@ -489,6 +491,14 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     ...getHeaderBackgroundStyle()
   };
 
+  const getSectionSpacing = () => ({
+    marginBottom: `${customization.layout.spacing.sectionGap}px`
+  });
+
+  const getCardSpacing = () => ({
+    gap: `${customization.layout.spacing.itemGap}px`
+  });
+
   return (
     <div className={`max-w-4xl mx-auto ${className}`} style={containerStyles}>
       {/* Header Section */}
@@ -498,7 +508,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           fontWeight: getFontWeight(customization.typography.fontWeight.title),
           color: headerStyles.color,
           lineHeight: customization.typography.lineHeight.title,
-          margin: '0 0 12px 0'
+          margin: `0 0 ${customization.layout.spacing.itemGap}px 0`
         }}>
           {isEvent ? 'EVENT Call Sheet' : callsheet.projectTitle}
         </h1>
@@ -515,22 +525,32 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
       {/* Production Details Grid */}
       {!isTraditional && (
-        <div className={`grid ${isEvent ? 'grid-cols-2' : 'grid-cols-3'} gap-4 mb-8 avoid-break`}>
+        <div 
+          className={`grid ${isEvent ? 'grid-cols-2' : 'grid-cols-3'} avoid-break`}
+          style={{ ...getSectionSpacing(), ...getCardSpacing() }}
+        >
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
-            borderColor: customization.colors.border
+            borderColor: customization.colors.border,
+            boxShadow: customization.visual.shadowIntensity === 'medium' ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' :
+                      customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1)' : 'none'
           }}>
             <CardContent className="p-4 flex items-start gap-2">
-              {!isMinimal && <span className="text-lg flex-shrink-0">📅</span>}
+              {customization.sections.formatting.showSectionIcons && !isMinimal && <span className="text-lg flex-shrink-0">📅</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
                   color: customization.colors.text,
-                  fontSize: `${customization.typography.fontSize.header}px`
+                  fontSize: `${customization.typography.fontSize.header}px`,
+                  fontWeight: getFontWeight(customization.typography.fontWeight.header)
                 }}>
                   {isEvent ? 'Date' : 'Shoot Date'}
                 </div>
-                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
+                <div style={{ 
+                  fontSize: `${customization.typography.fontSize.body}px`, 
+                  color: customization.colors.text,
+                  lineHeight: customization.typography.lineHeight.body
+                }}>
                   {formatDate(callsheet.shootDate)}
                 </div>
               </div>
@@ -540,18 +560,25 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
-            borderColor: customization.colors.border
+            borderColor: customization.colors.border,
+            boxShadow: customization.visual.shadowIntensity === 'medium' ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' :
+                      customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1)' : 'none'
           }}>
             <CardContent className="p-4 flex items-start gap-2">
-              {!isMinimal && <span className="text-lg flex-shrink-0">🕐</span>}
+              {customization.sections.formatting.showSectionIcons && !isMinimal && <span className="text-lg flex-shrink-0">🕐</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
                   color: customization.colors.text,
-                  fontSize: `${customization.typography.fontSize.header}px`
+                  fontSize: `${customization.typography.fontSize.header}px`,
+                  fontWeight: getFontWeight(customization.typography.fontWeight.header)
                 }}>
                   Call Time
                 </div>
-                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
+                <div style={{ 
+                  fontSize: `${customization.typography.fontSize.body}px`, 
+                  color: customization.colors.text,
+                  lineHeight: customization.typography.lineHeight.body
+                }}>
                   {callsheet.generalCallTime}
                 </div>
               </div>
@@ -561,18 +588,25 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
-            borderColor: customization.colors.border
+            borderColor: customization.colors.border,
+            boxShadow: customization.visual.shadowIntensity === 'medium' ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' :
+                      customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1)' : 'none'
           }}>
             <CardContent className="p-4 flex items-start gap-2">
-              {!isMinimal && <span className="text-lg flex-shrink-0">📍</span>}
+              {customization.sections.formatting.showSectionIcons && !isMinimal && <span className="text-lg flex-shrink-0">📍</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
                   color: customization.colors.text,
-                  fontSize: `${customization.typography.fontSize.header}px`
+                  fontSize: `${customization.typography.fontSize.header}px`,
+                  fontWeight: getFontWeight(customization.typography.fontWeight.header)
                 }}>
                   Location
                 </div>
-                <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
+                <div style={{ 
+                  fontSize: `${customization.typography.fontSize.body}px`, 
+                  color: customization.colors.text,
+                  lineHeight: customization.typography.lineHeight.body
+                }}>
                   {callsheet.location}
                 </div>
                 {callsheet.locationAddress && (
@@ -591,69 +625,164 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
       {/* Traditional Form Header */}
       {isTraditional && (
-        <div className="mb-6">
-          <div className="grid grid-cols-3 gap-0 border-2 border-black">
-            <div className="border-r border-black p-3">
-              <div className="font-bold text-xs mb-2">PRODUCTION COMPANY:</div>
-              <div className="font-bold text-xs mb-1">Exec. Producer:</div>
-              <div className="font-bold text-xs mb-1">Producer:</div>
-              <div className="font-bold text-xs mb-1">Director:</div>
-              <div className="font-bold text-xs">1st AD:</div>
+        <div style={getSectionSpacing()}>
+          <div className="grid grid-cols-3 gap-0" style={{ border: `2px solid ${customization.colors.border}` }}>
+            <div style={{ 
+              borderRight: `1px solid ${customization.colors.border}`, 
+              padding: `${customization.layout.spacing.itemGap}px`,
+              backgroundColor: customization.colors.surface
+            }}>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                marginBottom: `${customization.layout.spacing.itemGap / 2}px`,
+                color: customization.colors.text
+              }}>PRODUCTION COMPANY:</div>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                marginBottom: `${customization.layout.spacing.itemGap / 2}px`,
+                color: customization.colors.text
+              }}>Exec. Producer:</div>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                marginBottom: `${customization.layout.spacing.itemGap / 2}px`,
+                color: customization.colors.text
+              }}>Producer:</div>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                marginBottom: `${customization.layout.spacing.itemGap / 2}px`,
+                color: customization.colors.text
+              }}>Director:</div>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                color: customization.colors.text
+              }}>1st AD:</div>
             </div>
-            <div className="border-r border-black p-3 text-center">
-              <div className="text-2xl font-bold mb-2">CALL TIME</div>
-              <div className="text-3xl font-bold mb-2">{callsheet.generalCallTime}</div>
-              <div className="text-xs">Check grid for individual call times</div>
+            <div style={{ 
+              borderRight: `1px solid ${customization.colors.border}`, 
+              padding: `${customization.layout.spacing.itemGap}px`, 
+              textAlign: 'center',
+              backgroundColor: customization.colors.surface
+            }}>
+              <div style={{ 
+                fontSize: `${customization.typography.fontSize.title}px`,
+                fontWeight: getFontWeight(customization.typography.fontWeight.title),
+                marginBottom: `${customization.layout.spacing.itemGap}px`,
+                color: customization.colors.text
+              }}>CALL TIME</div>
+              <div style={{ 
+                fontSize: `${customization.typography.fontSize.title + 8}px`,
+                fontWeight: getFontWeight(customization.typography.fontWeight.title),
+                marginBottom: `${customization.layout.spacing.itemGap}px`,
+                color: customization.colors.primary
+              }}>{callsheet.generalCallTime}</div>
+              <div style={{ 
+                fontSize: `${customization.typography.fontSize.small}px`,
+                color: customization.colors.textLight
+              }}>Check grid for individual call times</div>
             </div>
-            <div className="p-3">
-              <div className="font-bold text-xs mb-1">BKFST:</div>
-              <div className="font-bold text-xs mb-1">LUNCH:</div>
-              <div className="font-bold text-xs mb-1">SUNRISE:</div>
-              <div className="font-bold text-xs mb-1">SUNSET:</div>
-              <div className="font-bold text-xs">WEATHER:</div>
+            <div style={{ 
+              padding: `${customization.layout.spacing.itemGap}px`,
+              backgroundColor: customization.colors.surface
+            }}>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                marginBottom: `${customization.layout.spacing.itemGap / 2}px`,
+                color: customization.colors.text
+              }}>BKFST:</div>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                marginBottom: `${customization.layout.spacing.itemGap / 2}px`,
+                color: customization.colors.text
+              }}>LUNCH:</div>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                marginBottom: `${customization.layout.spacing.itemGap / 2}px`,
+                color: customization.colors.text
+              }}>SUNRISE:</div>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                marginBottom: `${customization.layout.spacing.itemGap / 2}px`,
+                color: customization.colors.text
+              }}>SUNSET:</div>
+              <div style={{ 
+                fontWeight: getFontWeight(customization.typography.fontWeight.header),
+                fontSize: `${customization.typography.fontSize.small}px`,
+                color: customization.colors.text
+              }}>WEATHER:</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Schedule */}
+      {/* All sections now use proper spacing and styling from customization */}
       {callsheet.schedule.length > 0 && (
-        <ScheduleSection 
-          schedule={callsheet.schedule} 
-          customization={customization}
-        />
+        <div style={getSectionSpacing()}>
+          <ScheduleSection 
+            schedule={callsheet.schedule} 
+            customization={customization}
+          />
+        </div>
       )}
 
-      {/* Cast */}
       {callsheet.cast.length > 0 && (
-        <ContactSection
-          title="CAST"
-          contacts={callsheet.cast}
-          icon="🎭"
-          customization={customization}
-        />
+        <div style={getSectionSpacing()}>
+          <ContactSection
+            title="CAST"
+            contacts={callsheet.cast}
+            icon="🎭"
+            customization={customization}
+          />
+        </div>
       )}
 
-      {/* Crew */}
       {callsheet.crew.length > 0 && (
-        <ContactSection
-          title="CREW"
-          contacts={callsheet.crew}
-          icon="🎬"
-          customization={customization}
-        />
+        <div style={getSectionSpacing()}>
+          <ContactSection
+            title="CREW"
+            contacts={callsheet.crew}
+            icon="🎬"
+            customization={customization}
+          />
+        </div>
       )}
 
-      {/* Emergency Contacts */}
       {callsheet.emergencyContacts.length > 0 && (
-        <ContactSection
-          title="EMERGENCY CONTACTS"
-          contacts={callsheet.emergencyContacts}
-          icon="⚠️"
-          isEmergency={true}
-          customization={customization}
-          emergencyNumber={emergencyNumber}
-        />
+        <div style={getSectionSpacing()}>
+          <ContactSection
+            title="EMERGENCY CONTACTS"
+            contacts={callsheet.emergencyContacts}
+            icon="⚠️"
+            isEmergency={true}
+            customization={customization}
+            emergencyNumber={emergencyNumber}
+          />
+        </div>
+      )}
+
+      {/* Company branding footer if set */}
+      {customization.branding.footer?.text && (
+        <div style={{
+          position: 'absolute',
+          bottom: `${customization.layout.margins.bottom}px`,
+          left: `${customization.layout.margins.left}px`,
+          right: `${customization.layout.margins.right}px`,
+          textAlign: customization.branding.footer.position as any,
+          fontSize: `${customization.typography.fontSize.caption}px`,
+          color: customization.colors.textLight,
+          borderTop: customization.branding.footer.style === 'bordered' ? `1px solid ${customization.colors.borderLight}` : 'none',
+          paddingTop: customization.branding.footer.style === 'bordered' ? `${customization.layout.spacing.itemGap / 2}px` : '0'
+        }}>
+          {customization.branding.footer.text}
+        </div>
       )}
     </div>
   );

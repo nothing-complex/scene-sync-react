@@ -1,11 +1,10 @@
 
-import { PDFTheme, PDFCustomization } from './pdfTypes';
+import { PDFTheme } from './pdfTypes';
 
 export interface IndustryThemeConfig {
   id: string;
   name: string;
   description: string;
-  category: 'film' | 'tv' | 'commercial' | 'documentary';
   theme: PDFTheme;
 }
 
@@ -14,7 +13,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
     id: 'minimal',
     name: 'Minimal',
     description: 'Ultra-clean grid layout with minimal typography and subtle borders',
-    category: 'film',
     theme: {
       name: 'Minimal',
       colors: {
@@ -51,7 +49,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
     id: 'dense',
     name: 'Dense',
     description: 'Compact table-style layout with dark borders and condensed typography',
-    category: 'film',
     theme: {
       name: 'Dense',
       colors: {
@@ -88,7 +85,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
     id: 'network',
     name: 'Network',
     description: 'Corporate table-grid hybrid with structured typography and blue accents',
-    category: 'tv',
     theme: {
       name: 'Network',
       colors: {
@@ -125,7 +121,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
     id: 'event',
     name: 'Event',
     description: 'Vibrant gradient-based design with large headers and card layouts',
-    category: 'commercial',
     theme: {
       name: 'Event',
       colors: {
@@ -163,7 +158,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
     id: 'traditional',
     name: 'Traditional',
     description: 'Classic form-based layout with dense information and clear borders',
-    category: 'film',
     theme: {
       name: 'Traditional',
       colors: {

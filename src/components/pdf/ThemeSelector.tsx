@@ -1,9 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Film, Tv, Camera, FileText, Palette } from 'lucide-react';
+import { Palette } from 'lucide-react';
 import { INDUSTRY_THEMES, IndustryThemeConfig } from '@/types/industryThemes';
 import { PDFCustomization } from '@/types/pdfTypes';
 
@@ -16,19 +15,6 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
   customization,
   onCustomizationChange
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
-  const categoryIcons = {
-    film: Film,
-    tv: Tv,
-    commercial: Camera,
-    documentary: FileText
-  };
-
-  const filteredThemes = selectedCategory === 'all' 
-    ? Object.values(INDUSTRY_THEMES)
-    : Object.values(INDUSTRY_THEMES).filter(theme => theme.category === selectedCategory);
-
   const applyIndustryTheme = (themeConfig: IndustryThemeConfig) => {
     const updatedCustomization: PDFCustomization = {
       ...customization,
@@ -53,31 +39,8 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="film" className="flex items-center gap-1">
-              <Film className="w-3 h-3" />
-              Film
-            </TabsTrigger>
-            <TabsTrigger value="tv" className="flex items-center gap-1">
-              <Tv className="w-3 h-3" />
-              TV
-            </TabsTrigger>
-            <TabsTrigger value="commercial" className="flex items-center gap-1">
-              <Camera className="w-3 h-3" />
-              Commercial
-            </TabsTrigger>
-            <TabsTrigger value="documentary" className="flex items-center gap-1">
-              <FileText className="w-3 h-3" />
-              Documentary
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredThemes.map((themeConfig) => {
-            const IconComponent = categoryIcons[themeConfig.category];
+          {Object.values(INDUSTRY_THEMES).map((themeConfig) => {
             const isSelected = customization.theme.name === themeConfig.theme.name;
             
             return (
@@ -90,12 +53,9 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <IconComponent className="w-4 h-4" />
-                      <h4 className="font-medium text-sm">{themeConfig.name}</h4>
-                    </div>
+                    <h4 className="font-medium text-sm">{themeConfig.name}</h4>
                     <Badge variant="secondary" className="text-xs">
-                      {themeConfig.category}
+                      Theme
                     </Badge>
                   </div>
                   
