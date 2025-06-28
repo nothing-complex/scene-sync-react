@@ -132,60 +132,62 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
     <ErrorBoundary>
       <div className="min-h-screen bg-background">
         <NetworkStatus />
-        <div className="p-8">
-          {/* Enhanced Welcome Section */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-4xl font-light text-foreground mb-2">
+        <div className="p-12 editorial-spacing">
+          {/* Editorial Welcome Section */}
+          <div className="mb-16">
+            <div className="flex items-start justify-between mb-12">
+              <div className="max-w-2xl">
+                <h1 className="hero-text mb-6">
                   {greeting}, {getUserFirstName()}.
                 </h1>
-                <p className="text-muted-foreground text-lg font-light">
-                  Ready to create amazing productions today?
+                <p className="editorial-body text-muted-foreground">
+                  Ready to orchestrate your next cinematic masterpiece? Let's bring your vision to life with precision and artistry.
                 </p>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-4">
                 <Button 
                   onClick={onCreateNew} 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3"
+                  className="btn-primary text-lg"
                   size="lg"
                   disabled={loading}
                 >
-                  <Plus className="w-5 h-5 mr-2" />
-                  New Callsheet
+                  <Plus className="w-5 h-5 mr-3" />
+                  New Production
                 </Button>
               </div>
             </div>
 
             {/* Share Invitations */}
-            <ShareInvitations />
+            <div className="mb-12">
+              <ShareInvitations />
+            </div>
 
             {/* Error Alert */}
             {error && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="flex items-center justify-between">
+              <Alert variant="destructive" className="mb-12 rounded-xl border-l-4">
+                <AlertCircle className="h-5 w-5" />
+                <AlertDescription className="flex items-center justify-between text-base">
                   <span>{error}</span>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={refetch}
-                    className="ml-2"
+                    className="ml-4 rounded-lg"
                   >
-                    <RefreshCw className="w-4 h-4 mr-1" />
+                    <RefreshCw className="w-4 h-4 mr-2" />
                     Retry
                   </Button>
                 </AlertDescription>
               </Alert>
             )}
 
-            {/* Enhanced Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card className="card-hover glass-effect border-0">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Callsheets</CardTitle>
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <FileText className="h-4 w-4 text-primary" />
+            {/* Editorial Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
+              <Card className="editorial-card border-l-4 border-l-primary">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="text-sm font-medium text-muted-foreground font-sans uppercase tracking-wider">Total Productions</CardTitle>
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-primary" />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -193,18 +195,18 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                     <LoadingSpinner size="sm" />
                   ) : (
                     <>
-                      <div className="text-3xl font-light text-foreground">{callsheets.length}</div>
-                      <p className="text-xs text-muted-foreground mt-1">All time</p>
+                      <div className="text-4xl font-playfair font-semibold text-foreground mb-2">{callsheets.length}</div>
+                      <p className="text-sm text-muted-foreground font-sans">All time</p>
                     </>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="card-hover glass-effect border-0">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
-                  <div className="w-8 h-8 bg-accent/30 rounded-lg flex items-center justify-center">
-                    <Calendar className="h-4 w-4 text-primary" />
+              <Card className="editorial-card border-l-4 border-l-accent">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="text-sm font-medium text-muted-foreground font-sans uppercase tracking-wider">This Month</CardTitle>
+                  <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center">
+                    <Calendar className="h-6 w-6 text-accent" />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -212,7 +214,7 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                     <LoadingSpinner size="sm" />
                   ) : (
                     <>
-                      <div className="text-3xl font-light text-foreground">
+                      <div className="text-4xl font-playfair font-semibold text-foreground mb-2">
                         {callsheets.filter(cs => {
                           const callsheetDate = new Date(cs.shootDate);
                           const now = new Date();
@@ -220,17 +222,17 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                                  callsheetDate.getFullYear() === now.getFullYear();
                         }).length}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Productions</p>
+                      <p className="text-sm text-muted-foreground font-sans">Active projects</p>
                     </>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="card-hover glass-effect border-0">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming</CardTitle>
-                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Clock className="h-4 w-4 text-primary" />
+              <Card className="editorial-card border-l-4 border-l-primary">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="text-sm font-medium text-muted-foreground font-sans uppercase tracking-wider">Upcoming</CardTitle>
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-primary" />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -238,20 +240,20 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                     <LoadingSpinner size="sm" />
                   ) : (
                     <>
-                      <div className="text-3xl font-light text-foreground">
+                      <div className="text-4xl font-playfair font-semibold text-foreground mb-2">
                         {callsheets.filter(cs => new Date(cs.shootDate) > new Date()).length}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">This week</p>
+                      <p className="text-sm text-muted-foreground font-sans">This week</p>
                     </>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="card-hover glass-effect border-0">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Active Cast</CardTitle>
-                  <div className="w-8 h-8 bg-accent/30 rounded-lg flex items-center justify-center">
-                    <Users className="h-4 w-4 text-primary" />
+              <Card className="editorial-card border-l-4 border-l-accent">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="text-sm font-medium text-muted-foreground font-sans uppercase tracking-wider">Active Talent</CardTitle>
+                  <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center">
+                    <Users className="h-6 w-6 text-accent" />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -259,10 +261,10 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
                     <LoadingSpinner size="sm" />
                   ) : (
                     <>
-                      <div className="text-3xl font-light text-foreground">
+                      <div className="text-4xl font-playfair font-semibold text-foreground mb-2">
                         {callsheets.reduce((total, cs) => total + cs.cast.length, 0)}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">People</p>
+                      <p className="text-sm text-muted-foreground font-sans">Cast members</p>
                     </>
                   )}
                 </CardContent>
@@ -270,166 +272,176 @@ export const Dashboard = ({ onCreateNew }: DashboardProps) => {
             </div>
           </div>
 
-          {/* Callsheets List */}
-          <div className="space-y-6">
+          {/* Productions List */}
+          <div className="space-y-10">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-light text-foreground">Recent Productions</h2>
+              <h2 className="section-heading">Recent Productions</h2>
               {callsheets.length > 0 && !loading && (
-                <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-                  View all
+                <Button variant="ghost" className="text-muted-foreground hover:text-foreground font-sans">
+                  View all productions
                 </Button>
               )}
             </div>
             
             {loading && callsheets.length === 0 ? (
-              <Card className="glass-effect border-0">
-                <CardContent className="p-16 text-center">
-                  <LoadingSpinner size="lg" text="Loading your callsheets..." />
+              <Card className="editorial-card">
+                <CardContent className="p-20 text-center">
+                  <LoadingSpinner size="lg" text="Loading your productions..." />
                 </CardContent>
               </Card>
             ) : callsheets.length === 0 ? (
-              <Card className="glass-effect border-0">
-                <CardContent className="p-16 text-center">
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Camera className="w-8 h-8 text-primary" />
+              <Card className="editorial-card">
+                <CardContent className="p-20 text-center editorial-spacing">
+                  <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                    <Camera className="w-10 h-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-light text-foreground mb-3">Start your first production</h3>
-                  <p className="text-muted-foreground mb-6 max-w-md mx-auto font-light">
-                    Create professional callsheets and manage your film productions with ease
+                  <h3 className="text-2xl font-playfair font-medium text-foreground mb-4">Begin Your Cinematic Journey</h3>
+                  <p className="editorial-body text-muted-foreground mb-8 max-w-lg mx-auto">
+                    Create your first professional callsheet and start managing film productions with elegance and precision.
                   </p>
                   <Button 
                     onClick={onCreateNew} 
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg rounded-xl"
+                    className="btn-primary text-lg"
                     size="lg"
                   >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Create First Callsheet
+                    <Plus className="w-5 h-5 mr-3" />
+                    Create First Production
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-6">
+              <div className="grid gap-8">
                 {callsheets.map((callsheet) => (
-                  <Card key={callsheet.id} className="card-hover glass-effect border-0 overflow-hidden">
+                  <Card key={callsheet.id} className="editorial-card border-l-4 border-l-primary overflow-hidden">
                     <CardContent className="p-0">
-                      <div className="flex">
-                        {/* Colored accent bar */}
-                        <div className="w-1 bg-primary"></div>
-                        
-                        <div className="flex-1 p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h3 className="text-xl font-medium text-foreground mb-3">
-                                {callsheet.projectTitle}
-                              </h3>
-                              
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground mb-4">
-                                <div className="flex items-center space-x-2">
-                                  <Calendar className="w-4 h-4 text-primary" />
-                                  <span>{new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
-                                    weekday: 'short', 
-                                    month: 'short', 
+                      <div className="p-8">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-2xl font-playfair font-medium text-foreground mb-6">
+                              {callsheet.projectTitle}
+                            </h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                  <Calendar className="w-5 h-5 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-sans font-medium text-muted-foreground">Shoot Date</p>
+                                  <p className="font-sans text-foreground">{new Date(callsheet.shootDate).toLocaleDateString('en-US', { 
+                                    weekday: 'long', 
+                                    month: 'long', 
                                     day: 'numeric' 
-                                  })}</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <Clock className="w-4 h-4 text-primary" />
-                                  <span>Call: {callsheet.generalCallTime}</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <MapPin className="w-4 h-4 text-primary" />
-                                  <span className="truncate">{callsheet.location}</span>
+                                  })}</p>
                                 </div>
                               </div>
-                              
-                              <div className="flex items-center space-x-6 text-xs text-muted-foreground">
-                                <span className="flex items-center">
-                                  <Users className="w-3 h-3 mr-1" />
-                                  {callsheet.cast.length} cast
-                                </span>
-                                <span className="flex items-center">
-                                  <Users className="w-3 h-3 mr-1" />
-                                  {callsheet.crew.length} crew
-                                </span>
-                                <span className="flex items-center">
-                                  <FileText className="w-3 h-3 mr-1" />
-                                  {callsheet.schedule.length} scenes
-                                </span>
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-accent/10 rounded-2xl flex items-center justify-center">
+                                  <Clock className="w-5 h-5 text-accent" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-sans font-medium text-muted-foreground">Call Time</p>
+                                  <p className="font-sans text-foreground">{callsheet.generalCallTime}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                  <MapPin className="w-5 h-5 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-sans font-medium text-muted-foreground">Location</p>
+                                  <p className="font-sans text-foreground truncate">{callsheet.location}</p>
+                                </div>
                               </div>
                             </div>
                             
-                            <div className="flex items-center space-x-1 ml-6">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 p-0 hover:bg-accent"
-                                onClick={() => setEditingCallsheet(callsheet.id)}
-                                disabled={actionLoading !== null}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 p-0 hover:bg-accent"
-                                onClick={() => handleShare(callsheet.id, callsheet.projectTitle)}
-                                disabled={actionLoading !== null}
-                              >
-                                <Share2 className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 p-0 hover:bg-accent"
-                                onClick={() => handleDuplicate(callsheet.id)}
-                                disabled={actionLoading !== null}
-                              >
-                                {actionLoading === `duplicate-${callsheet.id}` ? (
-                                  <LoadingSpinner size="sm" />
-                                ) : (
-                                  <Copy className="w-4 h-4" />
-                                )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 p-0 hover:bg-accent"
-                                onClick={() => handleExportExcel(callsheet.id)}
-                                disabled={actionLoading !== null}
-                              >
-                                {actionLoading === `excel-${callsheet.id}` ? (
-                                  <LoadingSpinner size="sm" />
-                                ) : (
-                                  <FileSpreadsheet className="w-4 h-4" />
-                                )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 p-0 hover:bg-accent"
-                                onClick={() => handleExportPDF(callsheet.id)}
-                                disabled={actionLoading !== null}
-                              >
-                                {actionLoading === `pdf-${callsheet.id}` ? (
-                                  <LoadingSpinner size="sm" />
-                                ) : (
-                                  <FileText className="w-4 h-4" />
-                                )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={() => handleDelete(callsheet.id)}
-                                disabled={actionLoading !== null}
-                              >
-                                {actionLoading === `delete-${callsheet.id}` ? (
-                                  <LoadingSpinner size="sm" />
-                                ) : (
-                                  <Trash2 className="w-4 h-4" />
-                                )}
-                              </Button>
+                            <div className="flex items-center space-x-8 text-sm text-muted-foreground font-sans">
+                              <span className="flex items-center space-x-2">
+                                <Users className="w-4 h-4" />
+                                <span>{callsheet.cast.length} cast</span>
+                              </span>
+                              <span className="flex items-center space-x-2">
+                                <Users className="w-4 h-4" />
+                                <span>{callsheet.crew.length} crew</span>
+                              </span>
+                              <span className="flex items-center space-x-2">
+                                <FileText className="w-4 h-4" />
+                                <span>{callsheet.schedule.length} scenes</span>
+                              </span>
                             </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 ml-8">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 w-10 p-0 hover:bg-accent/20 rounded-xl"
+                              onClick={() => setEditingCallsheet(callsheet.id)}
+                              disabled={actionLoading !== null}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 w-10 p-0 hover:bg-accent/20 rounded-xl"
+                              onClick={() => handleShare(callsheet.id, callsheet.projectTitle)}
+                              disabled={actionLoading !== null}
+                            >
+                              <Share2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 w-10 p-0 hover:bg-accent/20 rounded-xl"
+                              onClick={() => handleDuplicate(callsheet.id)}
+                              disabled={actionLoading !== null}
+                            >
+                              {actionLoading === `duplicate-${callsheet.id}` ? (
+                                <LoadingSpinner size="sm" />
+                              ) : (
+                                <Copy className="w-4 h-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 w-10 p-0 hover:bg-accent/20 rounded-xl"
+                              onClick={() => handleExportExcel(callsheet.id)}
+                              disabled={actionLoading !== null}
+                            >
+                              {actionLoading === `excel-${callsheet.id}` ? (
+                                <LoadingSpinner size="sm" />
+                              ) : (
+                                <FileSpreadsheet className="w-4 h-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 w-10 p-0 hover:bg-accent/20 rounded-xl"
+                              onClick={() => handleExportPDF(callsheet.id)}
+                              disabled={actionLoading !== null}
+                            >
+                              {actionLoading === `pdf-${callsheet.id}` ? (
+                                <LoadingSpinner size="sm" />
+                              ) : (
+                                <FileText className="w-4 h-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 w-10 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
+                              onClick={() => handleDelete(callsheet.id)}
+                              disabled={actionLoading !== null}
+                            >
+                              {actionLoading === `delete-${callsheet.id}` ? (
+                                <LoadingSpinner size="sm" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </Button>
                           </div>
                         </div>
                       </div>
