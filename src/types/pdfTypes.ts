@@ -304,7 +304,7 @@ export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
       contactLayout: 'list',
       scheduleCompact: false,
       emergencyProminent: true,
-      showSectionIcons: false, // Set to false by default to avoid emoji issues
+      showSectionIcons: false,
       alternateRowColors: false,
       departmentColorCoding: false,
       urgencyHighlighting: false

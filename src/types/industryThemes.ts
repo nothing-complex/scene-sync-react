@@ -7,12 +7,6 @@ export interface IndustryThemeConfig {
   description: string;
   category: 'film' | 'tv' | 'commercial' | 'documentary';
   theme: PDFTheme;
-  smartDefaults: {
-    urgencyLevel?: 'standard' | 'rush' | 'priority';
-    productionType: 'feature' | 'short' | 'series' | 'commercial' | 'documentary';
-    unionCompliant: boolean;
-    departmentColors: boolean;
-  };
 }
 
 export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
@@ -40,7 +34,9 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       },
       typography: {
         fontFamily: 'montserrat',
-        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' }
+        fontSize: { title: 28, header: 14, body: 11, small: 9, caption: 8 },
+        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' },
+        lineHeight: { title: 1.2, header: 1.3, body: 1.5 }
       },
       visual: {
         cardStyle: 'elevated',
@@ -50,11 +46,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
         shadowIntensity: 'medium',
         iconStyle: 'solid'
       }
-    },
-    smartDefaults: {
-      productionType: 'feature',
-      unionCompliant: true,
-      departmentColors: true
     }
   },
   indieFilm: {
@@ -80,7 +71,9 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       },
       typography: {
         fontFamily: 'inter',
-        fontWeight: { title: 'semibold', header: 'medium', body: 'normal' }
+        fontSize: { title: 22, header: 12, body: 10, small: 8, caption: 7 },
+        fontWeight: { title: 'semibold', header: 'medium', body: 'normal' },
+        lineHeight: { title: 1.3, header: 1.4, body: 1.4 }
       },
       visual: {
         cardStyle: 'minimal',
@@ -90,11 +83,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
         shadowIntensity: 'none',
         iconStyle: 'minimal'
       }
-    },
-    smartDefaults: {
-      productionType: 'short',
-      unionCompliant: false,
-      departmentColors: false
     }
   },
   horrorThriller: {
@@ -120,7 +108,9 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       },
       typography: {
         fontFamily: 'helvetica',
-        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' }
+        fontSize: { title: 26, header: 13, body: 10, small: 8, caption: 7 },
+        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' },
+        lineHeight: { title: 1.2, header: 1.3, body: 1.4 }
       },
       visual: {
         cardStyle: 'bordered',
@@ -130,11 +120,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
         shadowIntensity: 'subtle',
         iconStyle: 'geometric'
       }
-    },
-    smartDefaults: {
-      productionType: 'feature',
-      unionCompliant: true,
-      departmentColors: true
     }
   },
   comedy: {
@@ -161,7 +146,9 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       },
       typography: {
         fontFamily: 'poppins',
-        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' }
+        fontSize: { title: 26, header: 13, body: 11, small: 9, caption: 8 },
+        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' },
+        lineHeight: { title: 1.3, header: 1.4, body: 1.5 }
       },
       visual: {
         cardStyle: 'gradient',
@@ -171,11 +158,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
         shadowIntensity: 'medium',
         iconStyle: 'solid'
       }
-    },
-    smartDefaults: {
-      productionType: 'feature',
-      unionCompliant: true,
-      departmentColors: true
     }
   },
   networkTv: {
@@ -201,7 +183,9 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       },
       typography: {
         fontFamily: 'helvetica',
-        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' }
+        fontSize: { title: 24, header: 12, body: 10, small: 8, caption: 7 },
+        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' },
+        lineHeight: { title: 1.2, header: 1.3, body: 1.4 }
       },
       visual: {
         cardStyle: 'elevated',
@@ -211,11 +195,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
         shadowIntensity: 'subtle',
         iconStyle: 'geometric'
       }
-    },
-    smartDefaults: {
-      productionType: 'series',
-      unionCompliant: true,
-      departmentColors: true
     }
   },
   documentary: {
@@ -241,7 +220,9 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       },
       typography: {
         fontFamily: 'inter',
-        fontWeight: { title: 'semibold', header: 'medium', body: 'normal' }
+        fontSize: { title: 22, header: 11, body: 9, small: 8, caption: 7 },
+        fontWeight: { title: 'semibold', header: 'medium', body: 'normal' },
+        lineHeight: { title: 1.3, header: 1.4, body: 1.5 }
       },
       visual: {
         cardStyle: 'minimal',
@@ -251,11 +232,6 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
         shadowIntensity: 'none',
         iconStyle: 'minimal'
       }
-    },
-    smartDefaults: {
-      productionType: 'documentary',
-      unionCompliant: false,
-      departmentColors: false
     }
   }
 };
