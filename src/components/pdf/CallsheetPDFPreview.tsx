@@ -118,15 +118,47 @@ const LogoDisplay: React.FC<{
   );
 };
 
-const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false, customization }) => {
-  const isTraditional = customization.theme.name === 'Traditional';
-  const isDense = customization.theme.name === 'Dense';
+// Section Divider Component
+const SectionDivider: React.FC<{ customization: PDFCustomization }> = ({ customization }) => {
+  const { sectionDividers } = customization.visual;
   
+  if (sectionDividers === 'none') return null;
+  
+  if (sectionDividers === 'space') {
+    return <div style={{ height: `${customization.layout.spacing.sectionGap}px` }} />;
+  }
+  
+  if (sectionDividers === 'line') {
+    return (
+      <div style={{
+        height: `${customization.layout.borderWidth}px`,
+        backgroundColor: customization.colors.border,
+        margin: `${customization.layout.spacing.sectionGap / 2}px 0`,
+        borderRadius: `${customization.visual.cornerRadius / 2}px`
+      }} />
+    );
+  }
+  
+  if (sectionDividers === 'accent') {
+    return (
+      <div style={{
+        height: `${customization.layout.borderWidth * 2}px`,
+        backgroundColor: customization.colors.accent,
+        margin: `${customization.layout.spacing.sectionGap / 2}px 0`,
+        borderRadius: `${customization.visual.cornerRadius}px`
+      }} />
+    );
+  }
+  
+  return null;
+};
+
+const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false, customization }) => {
   const contactLayout = customization.sections.formatting.contactLayout;
   
-  if (isTraditional && contactLayout === 'table') {
+  if (contactLayout === 'table') {
     return (
-      <div className="border-2 p-2" style={{
+      <div style={{
         fontSize: `${customization.typography.fontSize.body}px`,
         lineHeight: customization.typography.lineHeight.body,
         backgroundColor: customization.colors.contactCardBackground,
@@ -135,9 +167,11 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
         fontWeight: getFontWeight(customization.typography.fontWeight.body),
         borderColor: customization.colors.contactCardBorder,
         borderWidth: `${customization.layout.borderWidth}px`,
+        borderStyle: 'solid',
+        borderRadius: `${customization.visual.cornerRadius}px`,
         marginBottom: `${customization.layout.spacing.cardSpacing}px`
       }}>
-        <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="grid grid-cols-3 gap-2" style={{ padding: `${customization.layout.spacing.itemGap}px` }}>
           <div style={{ 
             fontWeight: getFontWeight(customization.typography.fontWeight.header),
             fontFamily: getFontFamily(customization.typography.sectionFonts.contacts),
@@ -150,46 +184,25 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
     );
   }
 
-  if (isDense && contactLayout === 'table') {
-    return (
-      <div className="border" style={{
-        fontSize: `${customization.typography.fontSize.body}px`,
-        color: customization.colors.contactNameText,
-        backgroundColor: customization.colors.contactCardBackground,
-        fontFamily: getFontFamily(customization.typography.sectionFonts.contacts),
-        borderColor: customization.colors.contactCardBorder,
-        borderWidth: `${customization.layout.borderWidth}px`,
-        marginBottom: `${customization.layout.spacing.cardSpacing}px`
-      }}>
-        <div className="grid grid-cols-4 gap-0">
-          <div className="p-2 border-r font-semibold text-xs" style={{ 
-            borderColor: customization.colors.contactCardBorder,
-            fontWeight: getFontWeight(customization.typography.fontWeight.header),
-            fontFamily: getFontFamily(customization.typography.sectionFonts.contacts),
-            color: customization.colors.contactNameText
-          }}>{contact.name}</div>
-          <div className="p-2 border-r text-xs" style={{ 
-            borderColor: customization.colors.contactCardBorder,
-            color: customization.colors.contactRoleText
-          }}>{contact.character || contact.role}</div>
-          <div className="p-2 border-r text-xs font-mono" style={{ 
-            borderColor: customization.colors.contactCardBorder,
-            color: customization.colors.contactDetailsText
-          }}>{contact.phone}</div>
-          <div className="p-2 text-xs" style={{ color: customization.colors.contactDetailsText }}>{contact.email ? '✓' : '-'}</div>
-        </div>
-      </div>
-    );
-  }
+  const getCardShadow = () => {
+    switch (customization.visual.shadowIntensity) {
+      case 'medium': return '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+      case 'subtle': return '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)';
+      case 'none':
+      default: return 'none';
+    }
+  };
 
   const cardStyle: React.CSSProperties = {
     borderRadius: `${customization.visual.cornerRadius}px`,
     backgroundColor: isEmergency ? customization.colors.emergencyBackground : customization.colors.contactCardBackground,
     borderColor: isEmergency ? customization.colors.emergencyBorder : customization.colors.contactCardBorder,
     borderWidth: `${customization.layout.borderWidth}px`,
+    borderStyle: 'solid',
     color: customization.colors.contactNameText,
     fontFamily: getFontFamily(customization.typography.sectionFonts.contacts),
-    marginBottom: `${customization.layout.spacing.cardSpacing}px`
+    marginBottom: `${customization.layout.spacing.cardSpacing}px`,
+    boxShadow: getCardShadow()
   };
 
   if (customization.visual.cardStyle === 'gradient' && customization.colors.gradient) {
@@ -197,16 +210,14 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
     const gradientDirection = direction === 'to-r' ? 'to right' :
                             direction === 'to-br' ? 'to bottom right' : 'to bottom';
     cardStyle.background = `linear-gradient(${gradientDirection}, ${from}40, ${to}40)`;
+  } else if (customization.visual.cardStyle === 'elevated') {
+    cardStyle.boxShadow = getCardShadow();
+  } else if (customization.visual.cardStyle === 'bordered') {
+    cardStyle.borderWidth = `${customization.layout.borderWidth * 2}px`;
   }
 
-  const shadowClass = customization.visual.shadowIntensity === 'medium' ? 'shadow-md' :
-                     customization.visual.shadowIntensity === 'subtle' ? 'shadow-sm' : '';
-
   return (
-    <Card className={`${shadowClass} ${isEmergency ? 'border-l-4' : ''}`} style={{
-      ...cardStyle,
-      borderLeftColor: isEmergency ? customization.colors.emergencyText : undefined
-    }}>
+    <Card style={cardStyle}>
       <CardContent style={{ padding: `${customization.layout.spacing.itemGap}px` }}>
         <div style={{ 
           fontSize: `${customization.typography.fontSize.header}px`,
@@ -284,65 +295,6 @@ const ContactSection: React.FC<{
     }
   };
 
-  if (contactLayout === 'table') {
-    return (
-      <div style={{ marginBottom: `${customization.layout.spacing.sectionGap}px` }}>
-        <div style={{
-          backgroundColor: customization.colors.headerBackground,
-          color: customization.colors.headerText,
-          padding: '12px',
-          marginBottom: `${customization.layout.spacing.itemGap}px`,
-          borderRadius: `${customization.visual.cornerRadius}px`,
-          fontFamily: getFontFamily(customization.typography.sectionFonts.headers)
-        }}>
-          <h3 style={{
-            fontSize: `${customization.typography.fontSize.header + 2}px`,
-            fontWeight: getFontWeight(customization.typography.fontWeight.header),
-            textAlign: 'center',
-            margin: 0,
-            fontFamily: getFontFamily(customization.typography.sectionFonts.headers),
-            color: getSectionColor()
-          }}>
-            {showIcons && <span style={{ marginRight: '8px' }}>{icon}</span>}
-            {title}
-          </h3>
-        </div>
-        
-        {isEmergency && emergencyNumber && (
-          <div style={{ marginBottom: `${customization.layout.spacing.itemGap}px` }}>
-            <EmergencyNumbers emergencyNumbers={emergencyNumbers} />
-          </div>
-        )}
-        
-        <div style={{ border: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` }}>
-          {customization.theme.name !== 'Traditional' && (
-            <div className="grid grid-cols-4" style={{
-              backgroundColor: customization.colors.surfaceHover,
-              borderBottom: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}`,
-              color: customization.colors.scheduleHeaderText,
-              fontFamily: getFontFamily(customization.typography.sectionFonts.schedule),
-              fontWeight: getFontWeight(customization.typography.fontWeight.header),
-              fontSize: `${customization.typography.fontSize.small}px`
-            }}>
-              <div className="p-2" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` }}>NAME</div>
-              <div className="p-2" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` }}>ROLE</div>
-              <div className="p-2" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` }}>PHONE</div>
-              <div className="p-2">EMAIL</div>
-            </div>
-          )}
-          {contacts.map((contact) => (
-            <ContactCard
-              key={contact.id}
-              contact={contact}
-              isEmergency={isEmergency}
-              customization={customization}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const getGridClass = () => {
     switch (contactLayout) {
       case 'cards':
@@ -393,6 +345,8 @@ const ContactSection: React.FC<{
           />
         ))}
       </div>
+      
+      <SectionDivider customization={customization} />
     </div>
   );
 };
@@ -410,7 +364,9 @@ const ScheduleSection: React.FC<{
     backgroundColor: customization.colors.scheduleBackground,
     borderColor: customization.colors.scheduleBorder,
     fontFamily: getFontFamily(customization.typography.sectionFonts.schedule),
-    border: `${customization.layout.borderWidth}px solid ${customization.colors.scheduleBorder}`
+    border: `${customization.layout.borderWidth}px solid ${customization.colors.scheduleBorder}`,
+    boxShadow: customization.visual.shadowIntensity === 'medium' ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' :
+              customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1)' : 'none'
   };
 
   return (
@@ -482,6 +438,8 @@ const ScheduleSection: React.FC<{
           ))}
         </div>
       </Card>
+      
+      <SectionDivider customization={customization} />
     </div>
   );
 };
@@ -655,6 +613,20 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   const countryCode = getCountryCodeFromLocation(callsheet.location);
   const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers(countryCode);
 
+  // Apply page orientation
+  const pageOrientation = customization.layout.pageOrientation;
+  const orientationStyles: React.CSSProperties = pageOrientation === 'landscape' ? {
+    width: '100vh',
+    height: '100vw',
+    transform: 'rotate(90deg)',
+    transformOrigin: 'center center',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: '-50vw',
+    marginLeft: '-50vh'
+  } : {};
+
   const containerStyles: React.CSSProperties = {
     backgroundColor: customization.colors.background,
     color: customization.colors.text,
@@ -664,7 +636,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     padding: `${customization.layout.margins.top}px ${customization.layout.margins.right}px ${customization.layout.margins.bottom + 60}px ${customization.layout.margins.left}px`,
     minHeight: '100vh',
     position: 'relative',
-    fontWeight: getFontWeight(customization.typography.fontWeight.body)
+    fontWeight: getFontWeight(customization.typography.fontWeight.body),
+    ...orientationStyles
   };
 
   const getHeaderBackgroundStyle = () => {
@@ -683,7 +656,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       return {
         ...baseStyle,
         background: `linear-gradient(${gradientDirection}, ${from}, ${to})`,
-        color: customization.colors.headerText
+        color: customization.colors.headerText,
+        border: `${customization.layout.borderWidth}px solid ${customization.colors.border}`
       };
     }
 
@@ -766,6 +740,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             CALL SHEET
           </h2>
         </div>
+
+        <SectionDivider customization={customization} />
 
         <div 
           className="grid grid-cols-3"
@@ -883,6 +859,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             </CardContent>
           </Card>
         </div>
+
+        <SectionDivider customization={customization} />
 
         {callsheet.schedule.length > 0 && (
           <ScheduleSection 

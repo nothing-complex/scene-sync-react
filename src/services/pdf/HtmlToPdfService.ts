@@ -1,112 +1,95 @@
 
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 
+interface PDFGenerationOptions {
+  orientation?: 'portrait' | 'landscape';
+  margins?: {
+    top: string;
+    bottom: string;
+    left: string;
+    right: string;
+  };
+  customization?: PDFCustomization;
+}
+
 export class HtmlToPdfService {
-  async generatePDF(
-    callsheet: CallsheetData, 
-    customization: PDFCustomization,
-    elementId: string = 'pdf-preview-container'
-  ): Promise<Blob> {
-    console.log('HtmlToPdfService: Starting HTML to PDF conversion');
+  async generatePDF(htmlContent: string, options: PDFGenerationOptions = {}): Promise<Blob> {
+    console.log('HtmlToPdfService: Starting PDF generation with options:', options);
     
     try {
-      // Find the preview container element
-      const element = document.getElementById(elementId);
-      if (!element) {
-        throw new Error(`Element with ID ${elementId} not found`);
-      }
-
-      console.log('Converting HTML element to canvas...');
+      // Create a temporary container for the HTML content
+      const container = document.createElement('div');
+      container.innerHTML = htmlContent;
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = '210mm'; // A4 width
+      container.style.backgroundColor = '#ffffff';
       
-      // Convert HTML to canvas with high quality settings
-      const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution
+      // Apply page orientation styling
+      if (options.orientation === 'landscape') {
+        container.style.width = '297mm'; // A4 landscape width
+        container.style.transform = 'none'; // Remove any rotation transforms for generation
+      }
+      
+      // Apply margins if specified
+      if (options.margins) {
+        container.style.padding = `${options.margins.top} ${options.margins.right} ${options.margins.bottom} ${options.margins.left}`;
+      }
+      
+      document.body.appendChild(container);
+
+      // Generate canvas from HTML
+      const canvas = await html2canvas(container, {
+        scale: 2,
         useCORS: true,
-        allowTaint: true,
-        backgroundColor: customization.colors.background,
-        width: element.scrollWidth,
-        height: element.scrollHeight,
-        scrollX: 0,
-        scrollY: 0,
+        backgroundColor: '#ffffff',
+        width: options.orientation === 'landscape' ? 1188 : 840, // A4 dimensions in pixels at 72 DPI
+        height: options.orientation === 'landscape' ? 840 : 1188,
         logging: false
       });
 
-      console.log('Canvas created, converting to PDF...');
+      // Remove temporary container
+      document.body.removeChild(container);
 
-      // Calculate PDF dimensions
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: options.orientation || 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
-      // Create PDF document
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      let position = 0;
-
-      // Add the image to PDF
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add additional pages if content is longer than one page
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      const imgData = canvas.toDataURL('image/png');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Calculate image dimensions to fit the page
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      // Add image to PDF
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, pdfHeight));
+      
+      // If content is longer than one page, handle pagination
+      if (imgHeight > pdfHeight) {
+        let position = pdfHeight;
+        while (position < imgHeight) {
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, -position, imgWidth, imgHeight);
+          position += pdfHeight;
+        }
       }
 
-      console.log('PDF generation completed');
-
-      // Convert to blob
-      const pdfBlob = pdf.output('blob');
-      return pdfBlob;
-
+      console.log('HtmlToPdfService: PDF generation completed successfully');
+      
+      // Return as blob
+      const pdfOutput = pdf.output('blob');
+      return pdfOutput;
     } catch (error) {
-      console.error('Error in HTML to PDF conversion:', error);
+      console.error('HtmlToPdfService: Error generating PDF:', error);
       throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }
-
-  async downloadPDF(
-    callsheet: CallsheetData,
-    customization: PDFCustomization,
-    filename?: string,
-    elementId: string = 'pdf-preview-container'
-  ): Promise<void> {
-    const blob = await this.generatePDF(callsheet, customization, elementId);
-    
-    const sanitizedTitle = (callsheet.projectTitle || 'callsheet')
-      .replace(/[^a-z0-9]/gi, '_')
-      .toLowerCase();
-    const fileName = filename || `${sanitizedTitle}_callsheet.pdf`;
-    
-    // Create download link
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }
-
-  async previewPDF(
-    callsheet: CallsheetData,
-    customization: PDFCustomization,
-    elementId: string = 'pdf-preview-container'
-  ): Promise<void> {
-    const blob = await this.generatePDF(callsheet, customization, elementId);
-    
-    // Open in new tab
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    
-    // Clean up after a delay
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 }
