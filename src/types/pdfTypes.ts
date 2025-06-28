@@ -6,7 +6,7 @@ export interface PDFCustomization {
   sections: PDFSectionConfig;
   theme: PDFTheme;
   visual: PDFVisualStyle;
-  smart: PDFSmartFeatures; // New smart features
+  smart: PDFSmartFeatures;
 }
 
 export interface PDFLayout {
@@ -27,7 +27,14 @@ export interface PDFLayout {
 }
 
 export interface PDFTypography {
-  fontFamily: 'inter' | 'helvetica' | 'poppins' | 'montserrat';
+  fontFamily: 'inter' | 'helvetica' | 'poppins' | 'montserrat' | 'roboto' | 'open-sans' | 'lato' | 'source-sans' | 'nunito' | 'raleway' | 'work-sans' | 'playfair' | 'merriweather' | 'crimson' | 'libre-baskerville' | 'pt-serif';
+  sectionFonts: {
+    title: 'inter' | 'helvetica' | 'poppins' | 'montserrat' | 'roboto' | 'open-sans' | 'lato' | 'source-sans' | 'nunito' | 'raleway' | 'work-sans' | 'playfair' | 'merriweather' | 'crimson' | 'libre-baskerville' | 'pt-serif';
+    headers: 'inter' | 'helvetica' | 'poppins' | 'montserrat' | 'roboto' | 'open-sans' | 'lato' | 'source-sans' | 'nunito' | 'raleway' | 'work-sans' | 'playfair' | 'merriweather' | 'crimson' | 'libre-baskerville' | 'pt-serif';
+    body: 'inter' | 'helvetica' | 'poppins' | 'montserrat' | 'roboto' | 'open-sans' | 'lato' | 'source-sans' | 'nunito' | 'raleway' | 'work-sans' | 'playfair' | 'merriweather' | 'crimson' | 'libre-baskerville' | 'pt-serif';
+    contacts: 'inter' | 'helvetica' | 'poppins' | 'montserrat' | 'roboto' | 'open-sans' | 'lato' | 'source-sans' | 'nunito' | 'raleway' | 'work-sans' | 'playfair' | 'merriweather' | 'crimson' | 'libre-baskerville' | 'pt-serif';
+    schedule: 'inter' | 'helvetica' | 'poppins' | 'montserrat' | 'roboto' | 'open-sans' | 'lato' | 'source-sans' | 'nunito' | 'raleway' | 'work-sans' | 'playfair' | 'merriweather' | 'crimson' | 'libre-baskerville' | 'pt-serif';
+  };
   fontSize: {
     title: number;
     header: number;
@@ -49,17 +56,17 @@ export interface PDFTypography {
 
 export interface PDFBranding {
   companyName?: string;
-  productionCompany?: string; // New field
-  network?: string; // New field for TV productions
-  season?: string; // New field for TV series
-  episode?: string; // New field for TV series
+  productionCompany?: string;
+  network?: string;
+  season?: string;
+  episode?: string;
   logo?: {
     url: string;
     position: 'top-left' | 'top-center' | 'top-right' | 'header-left' | 'header-center' | 'header-right';
     size: 'small' | 'medium' | 'large';
     opacity: number;
   };
-  secondaryLogo?: { // New field for production company/network logos
+  secondaryLogo?: {
     url: string;
     position: 'top-left' | 'top-center' | 'top-right' | 'header-left' | 'header-center' | 'header-right';
     size: 'small' | 'medium' | 'large';
@@ -69,29 +76,59 @@ export interface PDFBranding {
     text: string;
     position: 'left' | 'center' | 'right';
     style: 'minimal' | 'bordered' | 'accent';
-    unionCompliance?: boolean; // New field
+    unionCompliance?: boolean;
   };
   watermark?: {
     text: string;
     opacity: number;
     position: 'center' | 'diagonal';
-    recipientType?: 'all' | 'talent' | 'crew' | 'client'; // New field
+    recipientType?: 'all' | 'talent' | 'crew' | 'client';
   };
 }
 
 export interface PDFColors {
+  // Main colors
   primary: string;
   secondary: string;
   accent: string;
+  
+  // Text colors
   text: string;
   textLight: string;
+  titleText: string;
+  headerText: string;
+  contactNameText: string;
+  contactRoleText: string;
+  contactDetailsText: string;
+  scheduleHeaderText: string;
+  scheduleBodyText: string;
+  emergencyText: string;
+  
+  // Background colors
   background: string;
   surface: string;
   surfaceHover: string;
+  headerBackground: string;
+  contactCardBackground: string;
+  scheduleBackground: string;
+  scheduleRowBackground: string;
+  scheduleRowAlternate: string;
+  emergencyBackground: string;
+  
+  // Border colors
   border: string;
   borderLight: string;
-  headerText: string; // Added for header text color
-  headerBackground: string; // Added for header background color
+  contactCardBorder: string;
+  scheduleBorder: string;
+  emergencyBorder: string;
+  
+  // Section-specific colors
+  castSectionColor: string;
+  crewSectionColor: string;
+  scheduleSectionColor: string;
+  emergencySectionColor: string;
+  notesSectionColor: string;
+  
   gradient?: {
     from: string;
     to: string;
@@ -130,10 +167,10 @@ export interface PDFSectionConfig {
     emergencyProminent: boolean;
     showSectionIcons: boolean;
     alternateRowColors: boolean;
-    departmentColorCoding: boolean; // New field
-    urgencyHighlighting: boolean; // New field
+    departmentColorCoding: boolean;
+    urgencyHighlighting: boolean;
   };
-  roleFiltering?: { // New field for role-specific content
+  roleFiltering?: {
     enabled: boolean;
     recipientType: 'all' | 'talent' | 'crew' | 'client';
     hidePersonalInfo: boolean;
@@ -146,10 +183,9 @@ export interface PDFSmartFeatures {
   unionCompliant: boolean;
   departmentColors: boolean;
   weatherResponsive: boolean;
-  autoTemplate: boolean; // Automatically apply template based on production type
+  autoTemplate: boolean;
 }
 
-// Predefined sophisticated themes with improved contrast
 export const PDF_THEMES: Record<string, PDFTheme> = {
   minimal: {
     name: 'Minimal',
@@ -159,16 +195,43 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       accent: '#3b82f6',
       text: '#1f2937',
       textLight: '#6b7280',
+      titleText: '#1f2937',
+      headerText: '#1f2937',
+      contactNameText: '#1f2937',
+      contactRoleText: '#6b7280',
+      contactDetailsText: '#1f2937',
+      scheduleHeaderText: '#1f2937',
+      scheduleBodyText: '#1f2937',
+      emergencyText: '#dc2626',
       background: '#ffffff',
       surface: '#f9fafb',
       surfaceHover: '#f3f4f6',
+      headerBackground: '#ffffff',
+      contactCardBackground: '#f9fafb',
+      scheduleBackground: '#ffffff',
+      scheduleRowBackground: '#ffffff',
+      scheduleRowAlternate: '#f9fafb',
+      emergencyBackground: '#fef2f2',
       border: '#e5e7eb',
       borderLight: '#f3f4f6',
-      headerText: '#1f2937', // Dark text for light backgrounds
-      headerBackground: '#ffffff', // Light background
+      contactCardBorder: '#e5e7eb',
+      scheduleBorder: '#e5e7eb',
+      emergencyBorder: '#fecaca',
+      castSectionColor: '#3b82f6',
+      crewSectionColor: '#10b981',
+      scheduleSectionColor: '#f59e0b',
+      emergencySectionColor: '#dc2626',
+      notesSectionColor: '#8b5cf6'
     },
     typography: {
       fontFamily: 'inter',
+      sectionFonts: {
+        title: 'inter',
+        headers: 'inter',
+        body: 'inter',
+        contacts: 'inter',
+        schedule: 'inter'
+      },
       fontWeight: { title: 'semibold', header: 'medium', body: 'normal' }
     },
     visual: {
@@ -188,16 +251,43 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       accent: '#2563eb',
       text: '#334155',
       textLight: '#64748b',
+      titleText: '#0f172a',
+      headerText: '#ffffff',
+      contactNameText: '#334155',
+      contactRoleText: '#64748b',
+      contactDetailsText: '#334155',
+      scheduleHeaderText: '#ffffff',
+      scheduleBodyText: '#334155',
+      emergencyText: '#dc2626',
       background: '#ffffff',
       surface: '#f8fafc',
       surfaceHover: '#f1f5f9',
+      headerBackground: '#0f172a',
+      contactCardBackground: '#f8fafc',
+      scheduleBackground: '#ffffff',
+      scheduleRowBackground: '#f8fafc',
+      scheduleRowAlternate: '#f1f5f9',
+      emergencyBackground: '#fef2f2',
       border: '#cbd5e1',
       borderLight: '#e2e8f0',
-      headerText: '#ffffff', // White text for dark backgrounds
-      headerBackground: '#0f172a', // Dark background
+      contactCardBorder: '#cbd5e1',
+      scheduleBorder: '#cbd5e1',
+      emergencyBorder: '#fecaca',
+      castSectionColor: '#2563eb',
+      crewSectionColor: '#059669',
+      scheduleSectionColor: '#d97706',
+      emergencySectionColor: '#dc2626',
+      notesSectionColor: '#7c3aed'
     },
     typography: {
       fontFamily: 'helvetica',
+      sectionFonts: {
+        title: 'helvetica',
+        headers: 'helvetica',
+        body: 'helvetica',
+        contacts: 'helvetica',
+        schedule: 'helvetica'
+      },
       fontWeight: { title: 'bold', header: 'semibold', body: 'normal' }
     },
     visual: {
@@ -217,17 +307,44 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       accent: '#f59e0b',
       text: '#1f2937',
       textLight: '#6b7280',
+      titleText: '#ffffff',
+      headerText: '#ffffff',
+      contactNameText: '#1f2937',
+      contactRoleText: '#6b7280',
+      contactDetailsText: '#1f2937',
+      scheduleHeaderText: '#1f2937',
+      scheduleBodyText: '#1f2937',
+      emergencyText: '#dc2626',
       background: '#fefefe',
       surface: '#faf9ff',
       surfaceHover: '#f3f0ff',
+      headerBackground: '#7c3aed',
+      contactCardBackground: '#faf9ff',
+      scheduleBackground: '#ffffff',
+      scheduleRowBackground: '#faf9ff',
+      scheduleRowAlternate: '#f3f0ff',
+      emergencyBackground: '#fef2f2',
       border: '#e5e2ff',
       borderLight: '#f0ecff',
-      headerText: '#ffffff', // White text for gradient backgrounds
-      headerBackground: '#7c3aed', // Purple background
+      contactCardBorder: '#e5e2ff',
+      scheduleBorder: '#e5e2ff',
+      emergencyBorder: '#fecaca',
+      castSectionColor: '#7c3aed',
+      crewSectionColor: '#059669',
+      scheduleSectionColor: '#f59e0b',
+      emergencySectionColor: '#dc2626',
+      notesSectionColor: '#8b5cf6',
       gradient: { from: '#7c3aed', to: '#a855f7', direction: 'to-br' }
     },
     typography: {
       fontFamily: 'poppins',
+      sectionFonts: {
+        title: 'poppins',
+        headers: 'poppins',
+        body: 'poppins',
+        contacts: 'poppins',
+        schedule: 'poppins'
+      },
       fontWeight: { title: 'bold', header: 'semibold', body: 'normal' }
     },
     visual: {
@@ -247,16 +364,43 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       accent: '#d4af37',
       text: '#2d2d2d',
       textLight: '#6b6b6b',
+      titleText: '#fafafa',
+      headerText: '#fafafa',
+      contactNameText: '#2d2d2d',
+      contactRoleText: '#6b6b6b',
+      contactDetailsText: '#2d2d2d',
+      scheduleHeaderText: '#2d2d2d',
+      scheduleBodyText: '#2d2d2d',
+      emergencyText: '#dc2626',
       background: '#fafafa',
       surface: '#f5f5f5',
       surfaceHover: '#eeeeee',
+      headerBackground: '#1a1a1a',
+      contactCardBackground: '#f5f5f5',
+      scheduleBackground: '#ffffff',
+      scheduleRowBackground: '#f5f5f5',
+      scheduleRowAlternate: '#eeeeee',
+      emergencyBackground: '#fef2f2',
       border: '#e0e0e0',
       borderLight: '#f0f0f0',
-      headerText: '#fafafa', // Light text for dark backgrounds
-      headerBackground: '#1a1a1a', // Dark background
+      contactCardBorder: '#e0e0e0',
+      scheduleBorder: '#e0e0e0',
+      emergencyBorder: '#fecaca',
+      castSectionColor: '#d4af37',
+      crewSectionColor: '#059669',
+      scheduleSectionColor: '#f59e0b',
+      emergencySectionColor: '#dc2626',
+      notesSectionColor: '#8b5cf6'
     },
     typography: {
       fontFamily: 'montserrat',
+      sectionFonts: {
+        title: 'montserrat',
+        headers: 'montserrat',
+        body: 'montserrat',
+        contacts: 'montserrat',
+        schedule: 'montserrat'
+      },
       fontWeight: { title: 'bold', header: 'semibold', body: 'normal' }
     },
     visual: {
@@ -280,6 +424,13 @@ export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
   },
   typography: {
     fontFamily: 'inter',
+    sectionFonts: {
+      title: 'inter',
+      headers: 'inter',
+      body: 'inter',
+      contacts: 'inter',
+      schedule: 'inter'
+    },
     fontSize: { title: 24, header: 12, body: 10, small: 8, caption: 7 },
     fontWeight: { title: 'semibold', header: 'medium', body: 'normal' },
     lineHeight: { title: 1.2, header: 1.3, body: 1.4 }

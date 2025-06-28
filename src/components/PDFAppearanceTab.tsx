@@ -16,6 +16,8 @@ import { LogoUpload } from './LogoUpload';
 import { toast } from 'sonner';
 import { ThemeSelector } from './pdf/ThemeSelector';
 import { EnhancedBrandingTab } from './pdf/EnhancedBrandingTab';
+import { ColorCustomizationTab } from './pdf/ColorCustomizationTab';
+import { TypographyCustomizationTab } from './pdf/TypographyCustomizationTab';
 
 interface PDFAppearanceTabProps {
   callsheet: CallsheetData;
@@ -148,18 +150,22 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
         </div>
 
         <Tabs defaultValue="themes" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="themes" className="flex items-center gap-1">
               <Palette className="w-3 h-3" />
               Themes
             </TabsTrigger>
-            <TabsTrigger value="layout" className="flex items-center gap-1">
-              <Layout className="w-3 h-3" />
-              Layout
+            <TabsTrigger value="colors" className="flex items-center gap-1">
+              <Palette className="w-3 h-3" />
+              Colors
             </TabsTrigger>
             <TabsTrigger value="typography" className="flex items-center gap-1">
               <Type className="w-3 h-3" />
               Typography
+            </TabsTrigger>
+            <TabsTrigger value="layout" className="flex items-center gap-1">
+              <Layout className="w-3 h-3" />
+              Layout
             </TabsTrigger>
             <TabsTrigger value="branding" className="flex items-center gap-1">
               <Settings className="w-3 h-3" />
@@ -169,6 +175,20 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
 
           <TabsContent value="themes" className="space-y-4">
             <ThemeSelector
+              customization={customization}
+              onCustomizationChange={onCustomizationChange}
+            />
+          </TabsContent>
+
+          <TabsContent value="colors" className="space-y-4">
+            <ColorCustomizationTab
+              customization={customization}
+              onCustomizationChange={onCustomizationChange}
+            />
+          </TabsContent>
+
+          <TabsContent value="typography" className="space-y-4">
+            <TypographyCustomizationTab
               customization={customization}
               onCustomizationChange={onCustomizationChange}
             />
@@ -236,60 +256,6 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
                       formatting: { ...customization.sections.formatting, emergencyProminent: checked }
                     })}
                   />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="typography" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Typography Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Font Family</Label>
-                  <Select
-                    value={customization.typography.fontFamily}
-                    onValueChange={(value: any) => updateTypography({ fontFamily: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="inter">Inter</SelectItem>
-                      <SelectItem value="helvetica">Helvetica</SelectItem>
-                      <SelectItem value="poppins">Poppins</SelectItem>
-                      <SelectItem value="montserrat">Montserrat</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-sm">Title Size</Label>
-                    <Input
-                      type="number"
-                      value={customization.typography.fontSize.title}
-                      onChange={(e) => updateTypography({
-                        fontSize: { ...customization.typography.fontSize, title: Number(e.target.value) }
-                      })}
-                      min={16}
-                      max={40}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm">Body Size</Label>
-                    <Input
-                      type="number"
-                      value={customization.typography.fontSize.body}
-                      onChange={(e) => updateTypography({
-                        fontSize: { ...customization.typography.fontSize, body: Number(e.target.value) }
-                      })}
-                      min={8}
-                      max={16}
-                    />
-                  </div>
                 </div>
               </CardContent>
             </Card>
