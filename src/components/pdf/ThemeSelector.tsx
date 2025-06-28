@@ -46,8 +46,11 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Palette className="w-5 h-5" />
-          Industry Themes
+          Quick Themes
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Start with a theme, then customize colors, typography, and layout in other tabs
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>

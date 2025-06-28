@@ -10,51 +10,13 @@ export interface IndustryThemeConfig {
 }
 
 export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
-  hollywoodClassic: {
-    id: 'hollywoodClassic',
-    name: 'Hollywood Classic',
-    description: 'Elegant serif typography with gold accents and elevated cards',
-    category: 'film',
-    theme: {
-      name: 'Hollywood Classic',
-      colors: {
-        primary: '#1a1a1a',
-        secondary: '#8b7355',
-        accent: '#d4af37',
-        text: '#2d2d2d',
-        textLight: '#6b6b6b',
-        background: '#fefefe',
-        surface: '#faf9f7',
-        surfaceHover: '#f5f4f1',
-        border: '#e8e6e0',
-        borderLight: '#f0efea',
-        headerText: '#fefefe',
-        headerBackground: '#1a1a1a',
-        gradient: { from: '#d4af37', to: '#b8941f', direction: 'to-br' }
-      },
-      typography: {
-        fontFamily: 'montserrat',
-        fontSize: { title: 32, header: 16, body: 12, small: 10, caption: 8 },
-        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' },
-        lineHeight: { title: 1.1, header: 1.2, body: 1.6 }
-      },
-      visual: {
-        cardStyle: 'elevated',
-        sectionDividers: 'accent',
-        headerBackground: 'gradient',
-        cornerRadius: 12,
-        shadowIntensity: 'medium',
-        iconStyle: 'solid'
-      }
-    }
-  },
-  indieFilm: {
-    id: 'indieFilm',
-    name: 'Indie Minimal',
+  minimal: {
+    id: 'minimal',
+    name: 'Minimal',
     description: 'Ultra-clean grid layout with minimal typography and subtle borders',
     category: 'film',
     theme: {
-      name: 'Indie Minimal',
+      name: 'Minimal',
       colors: {
         primary: '#2d3748',
         secondary: '#4a5568',
@@ -85,13 +47,13 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       }
     }
   },
-  horrorThriller: {
-    id: 'horrorThriller',
-    name: 'Horror Dense',
+  dense: {
+    id: 'dense',
+    name: 'Dense',
     description: 'Compact table-style layout with dark borders and condensed typography',
     category: 'film',
     theme: {
-      name: 'Horror Dense',
+      name: 'Dense',
       colors: {
         primary: '#1a1a1a',
         secondary: '#2d1b1b',
@@ -122,51 +84,13 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       }
     }
   },
-  comedy: {
-    id: 'comedy',
-    name: 'Comedy Vibrant',
-    description: 'Playful card-based layout with bright gradients and rounded corners',
-    category: 'film',
-    theme: {
-      name: 'Comedy Vibrant',
-      colors: {
-        primary: '#7c3aed',
-        secondary: '#a855f7',
-        accent: '#f59e0b',
-        text: '#1f2937',
-        textLight: '#6b7280',
-        background: '#fefefe',
-        surface: '#faf9ff',
-        surfaceHover: '#f3f0ff',
-        border: '#e5e2ff',
-        borderLight: '#f0ecff',
-        headerText: '#ffffff',
-        headerBackground: '#7c3aed',
-        gradient: { from: '#7c3aed', to: '#a855f7', direction: 'to-br' }
-      },
-      typography: {
-        fontFamily: 'poppins',
-        fontSize: { title: 30, header: 15, body: 11, small: 9, caption: 8 },
-        fontWeight: { title: 'bold', header: 'semibold', body: 'normal' },
-        lineHeight: { title: 1.2, header: 1.3, body: 1.6 }
-      },
-      visual: {
-        cardStyle: 'gradient',
-        sectionDividers: 'accent',
-        headerBackground: 'gradient',
-        cornerRadius: 16,
-        shadowIntensity: 'medium',
-        iconStyle: 'solid'
-      }
-    }
-  },
-  networkTv: {
-    id: 'networkTv',
-    name: 'Network Professional',
+  network: {
+    id: 'network',
+    name: 'Network',
     description: 'Corporate table-grid hybrid with structured typography and blue accents',
     category: 'tv',
     theme: {
-      name: 'Network Professional',
+      name: 'Network',
       colors: {
         primary: '#1e40af',
         secondary: '#3b82f6',
@@ -197,50 +121,13 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       }
     }
   },
-  documentary: {
-    id: 'documentary',
-    name: 'Documentary Clean',
-    description: 'Information-dense grid with clean typography and subtle spacing',
-    category: 'documentary',
-    theme: {
-      name: 'Documentary Clean',
-      colors: {
-        primary: '#374151',
-        secondary: '#6b7280',
-        accent: '#059669',
-        text: '#111827',
-        textLight: '#6b7280',
-        background: '#ffffff',
-        surface: '#f9fafb',
-        surfaceHover: '#f3f4f6',
-        border: '#d1d5db',
-        borderLight: '#e5e7eb',
-        headerText: '#374151',
-        headerBackground: '#f9fafb'
-      },
-      typography: {
-        fontFamily: 'inter',
-        fontSize: { title: 22, header: 11, body: 9, small: 8, caption: 7 },
-        fontWeight: { title: 'semibold', header: 'medium', body: 'normal' },
-        lineHeight: { title: 1.3, header: 1.4, body: 1.5 }
-      },
-      visual: {
-        cardStyle: 'minimal',
-        sectionDividers: 'space',
-        headerBackground: 'subtle',
-        cornerRadius: 2,
-        shadowIntensity: 'none',
-        iconStyle: 'minimal'
-      }
-    }
-  },
-  eventModern: {
-    id: 'eventModern',
-    name: 'Event Modern',
+  event: {
+    id: 'event',
+    name: 'Event',
     description: 'Vibrant gradient-based design with large headers and card layouts',
     category: 'commercial',
     theme: {
-      name: 'Event Modern',
+      name: 'Event',
       colors: {
         primary: '#8b5cf6',
         secondary: '#a78bfa',
@@ -272,13 +159,13 @@ export const INDUSTRY_THEMES: Record<string, IndustryThemeConfig> = {
       }
     }
   },
-  traditionalForm: {
-    id: 'traditionalForm',
-    name: 'Traditional Form',
+  traditional: {
+    id: 'traditional',
+    name: 'Traditional',
     description: 'Classic form-based layout with dense information and clear borders',
     category: 'film',
     theme: {
-      name: 'Traditional Form',
+      name: 'Traditional',
       colors: {
         primary: '#000000',
         secondary: '#333333',

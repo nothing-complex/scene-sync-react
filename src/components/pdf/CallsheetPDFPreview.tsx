@@ -20,11 +20,11 @@ interface ContactCardProps {
 }
 
 const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false, customization }) => {
-  const isTraditionalForm = customization.theme.name === 'Traditional Form';
-  const isEventModern = customization.theme.name === 'Event Modern';
-  const isHorrorDense = customization.theme.name === 'Horror Dense';
+  const isTraditional = customization.theme.name === 'Traditional';
+  const isEvent = customization.theme.name === 'Event';
+  const isDense = customization.theme.name === 'Dense';
   
-  if (isTraditionalForm) {
+  if (isTraditional) {
     return (
       <div className="border-2 border-black p-2" style={{
         fontSize: `${customization.typography.fontSize.body}px`,
@@ -39,7 +39,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
     );
   }
 
-  if (isHorrorDense) {
+  if (isDense) {
     return (
       <div className="border border-gray-600 bg-gray-50" style={{
         fontSize: `${customization.typography.fontSize.body}px`,
@@ -55,7 +55,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
     );
   }
 
-  const cardStyle = {
+  const cardStyle: React.CSSProperties = {
     borderRadius: `${customization.visual.cornerRadius}px`,
     backgroundColor: customization.colors.surface,
     borderColor: customization.colors.border,
@@ -79,7 +79,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
         <div className="font-medium mb-1" style={{ 
           fontSize: `${customization.typography.fontSize.header}px`,
           fontWeight: getFontWeight(customization.typography.fontWeight.header),
-          color: isEventModern ? customization.colors.headerText : customization.colors.text
+          color: isEvent ? customization.colors.headerText : customization.colors.text
         }}>
           {contact.name}
         </div>
@@ -94,7 +94,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
         <div className="mb-1" style={{ 
           fontSize: `${customization.typography.fontSize.body}px`,
           fontWeight: isEmergency ? '500' : 'normal',
-          color: isEventModern ? customization.colors.text : customization.colors.text
+          color: isEvent ? customization.colors.text : customization.colors.text
         }}>
           📞 {contact.phone}
         </div>
@@ -119,9 +119,9 @@ const ContactSection: React.FC<{
   customization: PDFCustomization;
   emergencyNumber?: string;
 }> = ({ title, contacts, icon, isEmergency = false, customization, emergencyNumber }) => {
-  const isTraditionalForm = customization.theme.name === 'Traditional Form';
-  const isHorrorDense = customization.theme.name === 'Horror Dense';
-  const isIndieMinimal = customization.theme.name === 'Indie Minimal';
+  const isTraditional = customization.theme.name === 'Traditional';
+  const isDense = customization.theme.name === 'Dense';
+  const isMinimal = customization.theme.name === 'Minimal';
   
   const emergencyNumbers = emergencyNumber ? {
     general: emergencyNumber,
@@ -135,7 +135,7 @@ const ContactSection: React.FC<{
     medical: '911'
   };
 
-  if (isTraditionalForm) {
+  if (isTraditional) {
     return (
       <div className="mb-6">
         <div className="border-2 border-black bg-black text-white p-2 mb-2">
@@ -159,7 +159,7 @@ const ContactSection: React.FC<{
     );
   }
 
-  if (isHorrorDense) {
+  if (isDense) {
     return (
       <div className="mb-6">
         <div className="bg-black text-white p-3 border-2 border-black">
@@ -190,7 +190,7 @@ const ContactSection: React.FC<{
   }
 
   const gridClass = customization.visual.cardStyle === 'minimal' ? 'space-y-3' :
-                   customization.theme.name === 'Comedy Vibrant' ? 'grid grid-cols-1 md:grid-cols-2 gap-6' :
+                   customization.theme.name === 'Event' ? 'grid grid-cols-1 md:grid-cols-2 gap-6' :
                    'grid grid-cols-1 md:grid-cols-2 gap-4';
 
   return (
@@ -200,7 +200,7 @@ const ContactSection: React.FC<{
         fontSize: `${customization.typography.fontSize.header + 4}px`,
         fontWeight: getFontWeight(customization.typography.fontWeight.header)
       }}>
-        {!isIndieMinimal && <span className="text-xl">{icon}</span>}
+        {!isMinimal && <span className="text-xl">{icon}</span>}
         {title}
       </h3>
       
@@ -228,11 +228,11 @@ const ScheduleSection: React.FC<{
   schedule: any[];
   customization: PDFCustomization;
 }> = ({ schedule, customization }) => {
-  const isTraditionalForm = customization.theme.name === 'Traditional Form';
-  const isEventModern = customization.theme.name === 'Event Modern';
-  const isHorrorDense = customization.theme.name === 'Horror Dense';
+  const isTraditional = customization.theme.name === 'Traditional';
+  const isEvent = customization.theme.name === 'Event';
+  const isDense = customization.theme.name === 'Dense';
 
-  if (isTraditionalForm) {
+  if (isTraditional) {
     return (
       <div className="mb-6">
         <div className="border-2 border-black bg-black text-white p-2 mb-2">
@@ -260,7 +260,7 @@ const ScheduleSection: React.FC<{
     );
   }
 
-  if (isEventModern) {
+  if (isEvent) {
     return (
       <div className="mb-8">
         <h3 className="text-2xl font-bold mb-6 text-center" style={{
@@ -405,9 +405,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   const countryCode = getCountryCodeFromLocation(callsheet.location);
   const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers(countryCode);
 
-  const isEventModern = customization.theme.name === 'Event Modern';
-  const isTraditionalForm = customization.theme.name === 'Traditional Form';
-  const isIndieMinimal = customization.theme.name === 'Indie Minimal';
+  const isEvent = customization.theme.name === 'Event';
+  const isTraditional = customization.theme.name === 'Traditional';
+  const isMinimal = customization.theme.name === 'Minimal';
 
   const containerStyles = {
     backgroundColor: customization.colors.background,
@@ -415,7 +415,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     fontFamily: getFontFamily(customization.typography.fontFamily),
     fontSize: `${customization.typography.fontSize.body}px`,
     lineHeight: customization.typography.lineHeight.body,
-    padding: isTraditionalForm ? '1rem' : '2rem',
+    padding: isTraditional ? '1rem' : '2rem',
     minHeight: '100vh',
     position: 'relative' as const,
     paddingBottom: '4rem'
@@ -425,11 +425,11 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     const { headerBackground } = customization.visual;
     const baseStyle = {
       borderRadius: `${customization.visual.cornerRadius}px`,
-      padding: isEventModern ? '2rem' : '1.5rem',
+      padding: isEvent ? '2rem' : '1.5rem',
       marginBottom: '2rem'
     };
 
-    if (isEventModern && customization.colors.gradient) {
+    if (isEvent && customization.colors.gradient) {
       const { from, to, direction } = customization.colors.gradient;
       const gradientDirection = direction === 'to-r' ? 'to right' :
                               direction === 'to-br' ? 'to bottom right' : 'to bottom';
@@ -471,7 +471,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           color: customization.colors.headerText
         };
       default:
-        return isTraditionalForm ? {
+        return isTraditional ? {
           border: '3px solid black',
           padding: '1rem',
           marginBottom: '1rem',
@@ -485,7 +485,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   };
 
   const headerStyles = {
-    textAlign: (isEventModern || customization.layout.headerStyle === 'creative' ? 'center' : 'left') as 'center' | 'left',
+    textAlign: (isEvent || customization.layout.headerStyle === 'creative' ? 'center' : 'left') as 'center' | 'left',
     ...getHeaderBackgroundStyle()
   };
 
@@ -500,7 +500,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           lineHeight: customization.typography.lineHeight.title,
           margin: '0 0 12px 0'
         }}>
-          {isEventModern ? 'EVENT Call Sheet' : callsheet.projectTitle}
+          {isEvent ? 'EVENT Call Sheet' : callsheet.projectTitle}
         </h1>
         <h2 className="font-semibold" style={{
           fontSize: `${customization.typography.fontSize.header}px`,
@@ -509,26 +509,26 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           lineHeight: customization.typography.lineHeight.header,
           margin: 0
         }}>
-          {isEventModern ? callsheet.projectTitle : 'CALL SHEET'}
+          {isEvent ? callsheet.projectTitle : 'CALL SHEET'}
         </h2>
       </div>
 
       {/* Production Details Grid */}
-      {!isTraditionalForm && (
-        <div className={`grid ${isEventModern ? 'grid-cols-2' : 'grid-cols-3'} gap-4 mb-8 avoid-break`}>
+      {!isTraditional && (
+        <div className={`grid ${isEvent ? 'grid-cols-2' : 'grid-cols-3'} gap-4 mb-8 avoid-break`}>
           <Card style={{ 
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
             borderColor: customization.colors.border
           }}>
             <CardContent className="p-4 flex items-start gap-2">
-              {!isIndieMinimal && <span className="text-lg flex-shrink-0">📅</span>}
+              {!isMinimal && <span className="text-lg flex-shrink-0">📅</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
                   color: customization.colors.text,
                   fontSize: `${customization.typography.fontSize.header}px`
                 }}>
-                  {isEventModern ? 'Date' : 'Shoot Date'}
+                  {isEvent ? 'Date' : 'Shoot Date'}
                 </div>
                 <div style={{ fontSize: `${customization.typography.fontSize.body}px`, color: customization.colors.text }}>
                   {formatDate(callsheet.shootDate)}
@@ -543,7 +543,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             borderColor: customization.colors.border
           }}>
             <CardContent className="p-4 flex items-start gap-2">
-              {!isIndieMinimal && <span className="text-lg flex-shrink-0">🕐</span>}
+              {!isMinimal && <span className="text-lg flex-shrink-0">🕐</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
                   color: customization.colors.text,
@@ -564,7 +564,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             borderColor: customization.colors.border
           }}>
             <CardContent className="p-4 flex items-start gap-2">
-              {!isIndieMinimal && <span className="text-lg flex-shrink-0">📍</span>}
+              {!isMinimal && <span className="text-lg flex-shrink-0">📍</span>}
               <div className="flex-1">
                 <div className="font-medium mb-1" style={{ 
                   color: customization.colors.text,
@@ -590,7 +590,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       )}
 
       {/* Traditional Form Header */}
-      {isTraditionalForm && (
+      {isTraditional && (
         <div className="mb-6">
           <div className="grid grid-cols-3 gap-0 border-2 border-black">
             <div className="border-r border-black p-3">
