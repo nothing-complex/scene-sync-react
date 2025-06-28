@@ -18,6 +18,106 @@ interface ContactCardProps {
   customization: PDFCustomization;
 }
 
+const LogoDisplay: React.FC<{ 
+  logo: any; 
+  customization: PDFCustomization; 
+  isSecondary?: boolean;
+}> = ({ logo, customization, isSecondary = false }) => {
+  if (!logo) return null;
+
+  const getLogoSize = () => {
+    switch (logo.size) {
+      case 'small': return { width: '60px', height: '60px' };
+      case 'large': return { width: '120px', height: '120px' };
+      case 'medium':
+      default: return { width: '80px', height: '80px' };
+    }
+  };
+
+  const getLogoPosition = () => {
+    switch (logo.position) {
+      case 'top-center': 
+        return { 
+          position: 'absolute' as const,
+          top: `${customization.layout.margins.top}px`,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10
+        };
+      case 'top-right': 
+        return { 
+          position: 'absolute' as const,
+          top: `${customization.layout.margins.top}px`,
+          right: `${customization.layout.margins.right}px`,
+          zIndex: 10
+        };
+      case 'center-left':
+        return { 
+          position: 'absolute' as const,
+          top: '50%',
+          left: `${customization.layout.margins.left}px`,
+          transform: 'translateY(-50%)',
+          zIndex: 10
+        };
+      case 'center-right':
+        return { 
+          position: 'absolute' as const,
+          top: '50%',
+          right: `${customization.layout.margins.right}px`,
+          transform: 'translateY(-50%)',
+          zIndex: 10
+        };
+      case 'bottom-left':
+        return { 
+          position: 'absolute' as const,
+          bottom: `${customization.layout.margins.bottom + 60}px`,
+          left: `${customization.layout.margins.left}px`,
+          zIndex: 10
+        };
+      case 'bottom-center':
+        return { 
+          position: 'absolute' as const,
+          bottom: `${customization.layout.margins.bottom + 60}px`,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10
+        };
+      case 'bottom-right':
+        return { 
+          position: 'absolute' as const,
+          bottom: `${customization.layout.margins.bottom + 60}px`,
+          right: `${customization.layout.margins.right}px`,
+          zIndex: 10
+        };
+      case 'top-left':
+      default: 
+        return { 
+          position: 'absolute' as const,
+          top: `${customization.layout.margins.top}px`,
+          left: `${customization.layout.margins.left}px`,
+          zIndex: 10
+        };
+    }
+  };
+
+  const positionStyle = getLogoPosition();
+  const sizeStyle = getLogoSize();
+
+  return (
+    <div style={positionStyle}>
+      <img
+        src={logo.url}
+        alt={isSecondary ? "Secondary Logo" : "Company Logo"}
+        style={{
+          ...sizeStyle,
+          opacity: logo.opacity || 1,
+          objectFit: 'contain'
+        }}
+      />
+    </div>
+  );
+};
+
 const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false, customization }) => {
   const isTraditional = customization.theme.name === 'Traditional';
   const isDense = customization.theme.name === 'Dense';
@@ -33,7 +133,9 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
         color: customization.colors.contactNameText,
         fontFamily: getFontFamily(customization.typography.sectionFonts.contacts),
         fontWeight: getFontWeight(customization.typography.fontWeight.body),
-        borderColor: customization.colors.contactCardBorder
+        borderColor: customization.colors.contactCardBorder,
+        borderWidth: `${customization.layout.borderWidth}px`,
+        marginBottom: `${customization.layout.spacing.cardSpacing}px`
       }}>
         <div className="grid grid-cols-3 gap-2 text-xs">
           <div style={{ 
@@ -55,7 +157,9 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
         color: customization.colors.contactNameText,
         backgroundColor: customization.colors.contactCardBackground,
         fontFamily: getFontFamily(customization.typography.sectionFonts.contacts),
-        borderColor: customization.colors.contactCardBorder
+        borderColor: customization.colors.contactCardBorder,
+        borderWidth: `${customization.layout.borderWidth}px`,
+        marginBottom: `${customization.layout.spacing.cardSpacing}px`
       }}>
         <div className="grid grid-cols-4 gap-0">
           <div className="p-2 border-r font-semibold text-xs" style={{ 
@@ -82,8 +186,10 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
     borderRadius: `${customization.visual.cornerRadius}px`,
     backgroundColor: isEmergency ? customization.colors.emergencyBackground : customization.colors.contactCardBackground,
     borderColor: isEmergency ? customization.colors.emergencyBorder : customization.colors.contactCardBorder,
+    borderWidth: `${customization.layout.borderWidth}px`,
     color: customization.colors.contactNameText,
-    fontFamily: getFontFamily(customization.typography.sectionFonts.contacts)
+    fontFamily: getFontFamily(customization.typography.sectionFonts.contacts),
+    marginBottom: `${customization.layout.spacing.cardSpacing}px`
   };
 
   if (customization.visual.cardStyle === 'gradient' && customization.colors.gradient) {
@@ -101,7 +207,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ contact, isEmergency = false,
       ...cardStyle,
       borderLeftColor: isEmergency ? customization.colors.emergencyText : undefined
     }}>
-      <CardContent className="p-4">
+      <CardContent style={{ padding: `${customization.layout.spacing.itemGap}px` }}>
         <div style={{ 
           fontSize: `${customization.typography.fontSize.header}px`,
           fontWeight: getFontWeight(customization.typography.fontWeight.header),
@@ -208,19 +314,19 @@ const ContactSection: React.FC<{
           </div>
         )}
         
-        <div style={{ border: `2px solid ${customization.colors.contactCardBorder}` }}>
+        <div style={{ border: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` }}>
           {customization.theme.name !== 'Traditional' && (
             <div className="grid grid-cols-4" style={{
               backgroundColor: customization.colors.surfaceHover,
-              borderBottom: `1px solid ${customization.colors.contactCardBorder}`,
+              borderBottom: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}`,
               color: customization.colors.scheduleHeaderText,
               fontFamily: getFontFamily(customization.typography.sectionFonts.schedule),
               fontWeight: getFontWeight(customization.typography.fontWeight.header),
               fontSize: `${customization.typography.fontSize.small}px`
             }}>
-              <div className="p-2" style={{ borderRight: `1px solid ${customization.colors.contactCardBorder}` }}>NAME</div>
-              <div className="p-2" style={{ borderRight: `1px solid ${customization.colors.contactCardBorder}` }}>ROLE</div>
-              <div className="p-2" style={{ borderRight: `1px solid ${customization.colors.contactCardBorder}` }}>PHONE</div>
+              <div className="p-2" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` }}>NAME</div>
+              <div className="p-2" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` }}>ROLE</div>
+              <div className="p-2" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` }}>PHONE</div>
               <div className="p-2">EMAIL</div>
             </div>
           )}
@@ -277,7 +383,7 @@ const ContactSection: React.FC<{
         </div>
       )}
       
-      <div className={getGridClass()} style={{ gap: `${customization.layout.spacing.itemGap}px` }}>
+      <div className={getGridClass()} style={{ gap: `${customization.layout.spacing.cardSpacing}px` }}>
         {contacts.map((contact) => (
           <ContactCard
             key={contact.id}
@@ -304,7 +410,7 @@ const ScheduleSection: React.FC<{
     backgroundColor: customization.colors.scheduleBackground,
     borderColor: customization.colors.scheduleBorder,
     fontFamily: getFontFamily(customization.typography.sectionFonts.schedule),
-    border: `1px solid ${customization.colors.scheduleBorder}`
+    border: `${customization.layout.borderWidth}px solid ${customization.colors.scheduleBorder}`
   };
 
   return (
@@ -330,41 +436,41 @@ const ScheduleSection: React.FC<{
         <div style={{ overflow: 'hidden' }}>
           <div className={`grid ${isCompact ? 'grid-cols-4' : 'grid-cols-5'} gap-0`} style={{
             backgroundColor: customization.colors.surfaceHover,
-            borderBottom: `2px solid ${customization.colors.scheduleBorder}`,
+            borderBottom: `${customization.layout.borderWidth * 2}px solid ${customization.colors.scheduleBorder}`,
             fontSize: `${customization.typography.fontSize.header}px`,
             color: customization.colors.scheduleHeaderText,
             fontFamily: getFontFamily(customization.typography.sectionFonts.schedule),
             fontWeight: getFontWeight(customization.typography.fontWeight.header)
           }}>
-            <div className="p-4" style={{ borderRight: `1px solid ${customization.colors.scheduleBorder}` }}>Scene</div>
-            <div className="p-4" style={{ borderRight: `1px solid ${customization.colors.scheduleBorder}` }}>Int/Ext</div>
-            <div className="p-4" style={{ borderRight: `1px solid ${customization.colors.scheduleBorder}` }}>Description</div>
-            <div className="p-4" style={{ borderRight: isCompact ? 'none' : `1px solid ${customization.colors.scheduleBorder}` }}>Time</div>
+            <div className="p-4" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.scheduleBorder}` }}>Scene</div>
+            <div className="p-4" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.scheduleBorder}` }}>Int/Ext</div>
+            <div className="p-4" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.scheduleBorder}` }}>Description</div>
+            <div className="p-4" style={{ borderRight: isCompact ? 'none' : `${customization.layout.borderWidth}px solid ${customization.colors.scheduleBorder}` }}>Time</div>
             {!isCompact && <div className="p-4">Pages</div>}
           </div>
           {schedule.map((item, index) => (
             <div key={index} className={`grid ${isCompact ? 'grid-cols-4' : 'grid-cols-5'} gap-0`} style={{
               backgroundColor: alternateRows && index % 2 === 1 ? customization.colors.scheduleRowAlternate : customization.colors.scheduleRowBackground,
-              borderBottom: `1px solid ${customization.colors.borderLight}`,
+              borderBottom: `${customization.layout.borderWidth}px solid ${customization.colors.borderLight}`,
               fontSize: `${customization.typography.fontSize.body}px`,
               color: customization.colors.scheduleBodyText,
               fontFamily: getFontFamily(customization.typography.sectionFonts.schedule),
               fontWeight: getFontWeight(customization.typography.fontWeight.body)
             }}>
               <div className="p-3" style={{ 
-                borderRight: `1px solid ${customization.colors.borderLight}`,
+                borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.borderLight}`,
                 fontWeight: getFontWeight('medium'),
                 fontFamily: getFontFamily(customization.typography.sectionFonts.schedule)
               }}>
                 {item.sceneNumber}
               </div>
-              <div className="p-3" style={{ borderRight: `1px solid ${customization.colors.borderLight}` }}>
+              <div className="p-3" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.borderLight}` }}>
                 {item.intExt}
               </div>
-              <div className="p-3" style={{ borderRight: `1px solid ${customization.colors.borderLight}` }}>
+              <div className="p-3" style={{ borderRight: `${customization.layout.borderWidth}px solid ${customization.colors.borderLight}` }}>
                 {item.description}
               </div>
-              <div className="p-3" style={{ borderRight: isCompact ? 'none' : `1px solid ${customization.colors.borderLight}` }}>
+              <div className="p-3" style={{ borderRight: isCompact ? 'none' : `${customization.layout.borderWidth}px solid ${customization.colors.borderLight}` }}>
                 {item.estimatedTime}
               </div>
               {!isCompact && (
@@ -376,71 +482,6 @@ const ScheduleSection: React.FC<{
           ))}
         </div>
       </Card>
-    </div>
-  );
-};
-
-const LogoDisplay: React.FC<{ 
-  logo: any; 
-  customization: PDFCustomization; 
-  isSecondary?: boolean;
-}> = ({ logo, customization, isSecondary = false }) => {
-  if (!logo) return null;
-
-  const getLogoSize = () => {
-    switch (logo.size) {
-      case 'small': return { width: '60px', height: '60px' };
-      case 'large': return { width: '120px', height: '120px' };
-      case 'medium':
-      default: return { width: '80px', height: '80px' };
-    }
-  };
-
-  const getLogoPosition = () => {
-    switch (logo.position) {
-      case 'top-center': 
-      case 'header-center': 
-        return { 
-          textAlign: 'center' as const,
-          justifyContent: 'center',
-          display: 'flex'
-        };
-      case 'top-right': 
-      case 'header-right': 
-        return { 
-          textAlign: 'right' as const,
-          justifyContent: 'flex-end',
-          display: 'flex'
-        };
-      case 'top-left':
-      case 'header-left':
-      default: 
-        return { 
-          textAlign: 'left' as const,
-          justifyContent: 'flex-start',
-          display: 'flex'
-        };
-    }
-  };
-
-  const positionStyle = getLogoPosition();
-  const sizeStyle = getLogoSize();
-
-  return (
-    <div style={{ 
-      ...positionStyle,
-      marginBottom: `${customization.layout.spacing.itemGap}px`,
-      width: '100%'
-    }}>
-      <img
-        src={logo.url}
-        alt={isSecondary ? "Secondary Logo" : "Company Logo"}
-        style={{
-          ...sizeStyle,
-          opacity: logo.opacity || 1,
-          objectFit: 'contain'
-        }}
-      />
     </div>
   );
 };
@@ -539,7 +580,7 @@ const FooterDisplay: React.FC<{ customization: PDFCustomization }> = ({ customiz
     fontSize: `${customization.typography.fontSize.caption}px`,
     color: customization.colors.textLight,
     fontFamily: getFontFamily(customization.typography.sectionFonts.body),
-    borderTop: footer.style === 'bordered' ? `1px solid ${customization.colors.borderLight}` : 'none',
+    borderTop: footer.style === 'bordered' ? `${customization.layout.borderWidth}px solid ${customization.colors.borderLight}` : 'none',
     paddingTop: footer.style === 'bordered' ? `${customization.layout.spacing.itemGap / 2}px` : '0'
   };
 
@@ -619,7 +660,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     color: customization.colors.text,
     fontFamily: getFontFamily(customization.typography.sectionFonts.body),
     fontSize: `${customization.typography.fontSize.body}px`,
-    lineHeight: customization.typography.lineHeight.body,
+    lineHeight: customization.layout.spacing.lineHeight,
     padding: `${customization.layout.margins.top}px ${customization.layout.margins.right}px ${customization.layout.margins.bottom + 60}px ${customization.layout.margins.left}px`,
     minHeight: '100vh',
     position: 'relative',
@@ -652,14 +693,14 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           ...baseStyle, 
           backgroundColor: customization.colors.surface,
           color: customization.colors.titleText,
-          border: `1px solid ${customization.colors.border}`
+          border: `${customization.layout.borderWidth}px solid ${customization.colors.border}`
         };
       case 'solid':
         return { 
           ...baseStyle, 
           backgroundColor: customization.colors.headerBackground,
           color: customization.colors.headerText,
-          border: `1px solid ${customization.colors.border}`
+          border: `${customization.layout.borderWidth}px solid ${customization.colors.border}`
         };
       default:
         return { 
@@ -671,7 +712,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   };
 
   const headerStyles = {
-    textAlign: (customization.layout.headerStyle === 'creative' ? 'center' : 'left') as 'center' | 'left',
+    textAlign: customization.layout.headerAlignment as 'center' | 'left' | 'right',
     ...getHeaderBackgroundStyle()
   };
 
@@ -690,7 +731,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         
         {customization.branding.secondaryLogo && (
           <LogoDisplay 
-            logo={customization.branding.secondaryLogo} 
+            logo={{
+              ...customization.branding.secondaryLogo,
+              position: customization.branding.secondaryLogo.lockToPrimary ? 
+                customization.branding.logo?.position || 'top-right' :
+                customization.branding.secondaryLogo.position
+            }} 
             customization={customization} 
             isSecondary={true}
           />
@@ -725,7 +771,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           className="grid grid-cols-3"
           style={{ 
             marginBottom: `${customization.layout.spacing.sectionGap}px`,
-            gap: `${customization.layout.spacing.itemGap}px`,
+            gap: `${customization.layout.spacing.cardSpacing}px`,
             pageBreakInside: 'avoid'
           }}
         >
@@ -733,6 +779,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
             borderColor: customization.colors.border,
+            borderWidth: `${customization.layout.borderWidth}px`,
             boxShadow: customization.visual.shadowIntensity === 'medium' ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' :
                       customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1)' : 'none'
           }}>
@@ -765,6 +812,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
             borderColor: customization.colors.border,
+            borderWidth: `${customization.layout.borderWidth}px`,
             boxShadow: customization.visual.shadowIntensity === 'medium' ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' :
                       customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1)' : 'none'
           }}>
@@ -797,6 +845,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             borderRadius: `${customization.visual.cornerRadius}px`,
             backgroundColor: customization.colors.surface,
             borderColor: customization.colors.border,
+            borderWidth: `${customization.layout.borderWidth}px`,
             boxShadow: customization.visual.shadowIntensity === 'medium' ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' :
                       customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px 0 rgba(0, 0, 0, 0.1)' : 'none'
           }}>

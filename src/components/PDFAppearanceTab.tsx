@@ -1,23 +1,22 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { Download, Eye, Palette, Type, Layout, Settings } from 'lucide-react';
 import { CallsheetData } from '@/contexts/CallsheetContext';
-import { PDFCustomization, PDF_THEMES } from '@/types/pdfTypes';
+import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetPDFPreview } from './pdf/CallsheetPDFPreview';
 import { PDFService } from '@/services/pdf/PDFService';
-import { LogoUpload } from './LogoUpload';
 import { toast } from 'sonner';
 import { ThemeSelector } from './pdf/ThemeSelector';
 import { EnhancedBrandingTab } from './pdf/EnhancedBrandingTab';
 import { ColorCustomizationTab } from './pdf/ColorCustomizationTab';
 import { TypographyCustomizationTab } from './pdf/TypographyCustomizationTab';
+import { LayoutCustomizationTab } from './pdf/LayoutCustomizationTab';
 
 interface PDFAppearanceTabProps {
   callsheet: CallsheetData;
@@ -36,62 +35,9 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
     onCustomizationChange({ ...customization, ...updates });
   };
 
-  const updateBranding = (updates: Partial<typeof customization.branding>) => {
-    updateCustomization({
-      branding: { ...customization.branding, ...updates }
-    });
-  };
-
-  const updateColors = (updates: Partial<typeof customization.colors>) => {
-    updateCustomization({
-      colors: { ...customization.colors, ...updates }
-    });
-  };
-
-  const updateTypography = (updates: Partial<typeof customization.typography>) => {
-    updateCustomization({
-      typography: { ...customization.typography, ...updates }
-    });
-  };
-
-  const updateLayout = (updates: Partial<typeof customization.layout>) => {
-    updateCustomization({
-      layout: { ...customization.layout, ...updates }
-    });
-  };
-
-  const updateVisual = (updates: Partial<typeof customization.visual>) => {
-    updateCustomization({
-      visual: { ...customization.visual, ...updates }
-    });
-  };
-
   const updateSections = (updates: Partial<typeof customization.sections>) => {
     updateCustomization({
       sections: { ...customization.sections, ...updates }
-    });
-  };
-
-  const handleThemeChange = (themeName: string) => {
-    const theme = PDF_THEMES[themeName];
-    if (theme) {
-      updateCustomization({
-        theme: theme,
-        colors: theme.colors,
-        typography: { ...customization.typography, ...theme.typography },
-        visual: theme.visual
-      });
-    }
-  };
-
-  const handleLogoChange = (logoData: { url: string; size: 'small' | 'medium' | 'large' } | null) => {
-    updateBranding({
-      logo: logoData ? {
-        url: logoData.url,
-        position: 'top-left',
-        size: logoData.size,
-        opacity: 1
-      } : undefined
     });
   };
 
@@ -155,6 +101,10 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
               <Palette className="w-3 h-3" />
               Themes
             </TabsTrigger>
+            <TabsTrigger value="layout" className="flex items-center gap-1">
+              <Layout className="w-3 h-3" />
+              Layout
+            </TabsTrigger>
             <TabsTrigger value="colors" className="flex items-center gap-1">
               <Palette className="w-3 h-3" />
               Colors
@@ -162,10 +112,6 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
             <TabsTrigger value="typography" className="flex items-center gap-1">
               <Type className="w-3 h-3" />
               Typography
-            </TabsTrigger>
-            <TabsTrigger value="layout" className="flex items-center gap-1">
-              <Layout className="w-3 h-3" />
-              Layout
             </TabsTrigger>
             <TabsTrigger value="branding" className="flex items-center gap-1">
               <Settings className="w-3 h-3" />
@@ -175,6 +121,13 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
 
           <TabsContent value="themes" className="space-y-4">
             <ThemeSelector
+              customization={customization}
+              onCustomizationChange={onCustomizationChange}
+            />
+          </TabsContent>
+
+          <TabsContent value="layout" className="space-y-4">
+            <LayoutCustomizationTab
               customization={customization}
               onCustomizationChange={onCustomizationChange}
             />
@@ -194,30 +147,18 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
             />
           </TabsContent>
 
-          <TabsContent value="layout" className="space-y-4">
+          <TabsContent value="branding" className="space-y-4">
+            <EnhancedBrandingTab
+              customization={customization}
+              onCustomizationChange={onCustomizationChange}
+            />
+            
+            {/* Quick Section Options */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Layout Settings</CardTitle>
+                <CardTitle className="text-base">Section Options</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label>Header Style</Label>
-                  <Select
-                    value={customization.layout.headerStyle}
-                    onValueChange={(value: any) => updateLayout({ headerStyle: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="minimal">Minimal</SelectItem>
-                      <SelectItem value="professional">Professional</SelectItem>
-                      <SelectItem value="creative">Creative</SelectItem>
-                      <SelectItem value="cinematic">Cinematic</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div>
                   <Label>Contact Layout</Label>
                   <Select
@@ -257,15 +198,18 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
                     })}
                   />
                 </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>Alternate Row Colors</Label>
+                  <Switch
+                    checked={customization.sections.formatting.alternateRowColors}
+                    onCheckedChange={(checked) => updateSections({
+                      formatting: { ...customization.sections.formatting, alternateRowColors: checked }
+                    })}
+                  />
+                </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="branding" className="space-y-4">
-            <EnhancedBrandingTab
-              customization={customization}
-              onCustomizationChange={onCustomizationChange}
-            />
           </TabsContent>
         </Tabs>
       </div>

@@ -10,7 +10,7 @@ export interface PDFCustomization {
 }
 
 export interface PDFLayout {
-  headerStyle: 'minimal' | 'professional' | 'creative' | 'cinematic';
+  headerAlignment: 'left' | 'center' | 'right';
   margins: {
     top: number;
     bottom: number;
@@ -20,10 +20,13 @@ export interface PDFLayout {
   spacing: {
     sectionGap: number;
     itemGap: number;
+    cardSpacing: number;
     lineHeight: number;
   };
   pageOrientation: 'portrait' | 'landscape';
   template: 'minimal' | 'professional' | 'creative' | 'cinematic' | 'hollywood' | 'indie' | 'horror' | 'comedy' | 'network' | 'documentary';
+  borderWidth: number;
+  cornerRadius: number;
 }
 
 export interface PDFTypography {
@@ -62,15 +65,16 @@ export interface PDFBranding {
   episode?: string;
   logo?: {
     url: string;
-    position: 'top-left' | 'top-center' | 'top-right' | 'header-left' | 'header-center' | 'header-right';
+    position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'center-left' | 'center-right';
     size: 'small' | 'medium' | 'large';
     opacity: number;
   };
   secondaryLogo?: {
     url: string;
-    position: 'top-left' | 'top-center' | 'top-right' | 'header-left' | 'header-center' | 'header-right';
+    position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'center-left' | 'center-right';
     size: 'small' | 'medium' | 'large';
     opacity: number;
+    lockToPrimary: boolean;
   };
   footer?: {
     text: string;
@@ -416,11 +420,13 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
 
 export const DEFAULT_PDF_CUSTOMIZATION: PDFCustomization = {
   layout: {
-    headerStyle: 'minimal',
+    headerAlignment: 'left',
     margins: { top: 32, bottom: 32, left: 32, right: 32 },
-    spacing: { sectionGap: 24, itemGap: 12, lineHeight: 1.4 },
+    spacing: { sectionGap: 24, itemGap: 12, cardSpacing: 16, lineHeight: 1.4 },
     pageOrientation: 'portrait',
-    template: 'minimal'
+    template: 'minimal',
+    borderWidth: 1,
+    cornerRadius: 8
   },
   typography: {
     fontFamily: 'inter',
