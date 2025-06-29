@@ -28,14 +28,15 @@ export class HtmlToPdfService {
       container.style.left = '-9999px';
       container.style.top = '0';
       container.style.backgroundColor = '#ffffff';
+      container.style.color = '#000000';
       
-      // Set dimensions based on orientation
+      // Set dimensions based on orientation (A4 size)
       if (isLandscape) {
         container.style.width = '297mm'; // A4 landscape width
-        container.style.minHeight = '210mm'; // A4 landscape height
+        container.style.height = '210mm'; // A4 landscape height
       } else {
         container.style.width = '210mm'; // A4 portrait width
-        container.style.minHeight = '297mm'; // A4 portrait height
+        container.style.height = '297mm'; // A4 portrait height
       }
       
       // Apply margins if specified
@@ -43,21 +44,36 @@ export class HtmlToPdfService {
         container.style.padding = `${options.margins.top} ${options.margins.right} ${options.margins.bottom} ${options.margins.left}`;
       }
       
+      // Ensure all fonts and styles are loaded
+      container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      container.style.fontSize = '12px';
+      container.style.lineHeight = '1.4';
+      
       document.body.appendChild(container);
 
-      // Calculate canvas dimensions based on orientation
-      const canvasWidth = isLandscape ? 1188 : 840; // A4 dimensions in pixels at 72 DPI
-      const canvasHeight = isLandscape ? 840 : 1188;
+      // Wait a moment for styles to be applied
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Generate canvas from HTML
+      // Calculate canvas dimensions based on orientation (high DPI for better quality)
+      const scaleFactor = 2; // For better quality
+      const canvasWidth = isLandscape ? 1122 : 794; // A4 dimensions in pixels at 96 DPI
+      const canvasHeight = isLandscape ? 794 : 1122;
+
+      // Generate canvas from HTML with better options
       const canvas = await html2canvas(container, {
-        scale: 2,
+        scale: scaleFactor,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: '#ffffff',
         width: canvasWidth,
         height: canvasHeight,
-        logging: false
+        logging: false,
+        removeContainer: false,
+        foreignObjectRendering: true,
+        imageTimeout: 5000
       });
+
+      console.log('HtmlToPdfService: Canvas generated with dimensions:', canvas.width, 'x', canvas.height);
 
       // Remove temporary container
       document.body.removeChild(container);
@@ -66,29 +82,40 @@ export class HtmlToPdfService {
       const pdf = new jsPDF({
         orientation: isLandscape ? 'landscape' : 'portrait',
         unit: 'mm',
-        format: 'a4'
+        format: 'a4',
+        compress: true
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 0.95);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      // Calculate image dimensions to fit the page
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      console.log('HtmlToPdfService: PDF dimensions:', pdfWidth, 'x', pdfHeight);
+      
+      // Calculate image dimensions to fit the page properly
+      const imgAspectRatio = canvas.width / canvas.height;
+      const pdfAspectRatio = pdfWidth / pdfHeight;
+      
+      let imgWidth, imgHeight;
+      
+      if (imgAspectRatio > pdfAspectRatio) {
+        // Image is wider than PDF page
+        imgWidth = pdfWidth;
+        imgHeight = pdfWidth / imgAspectRatio;
+      } else {
+        // Image is taller than PDF page
+        imgHeight = pdfHeight;
+        imgWidth = pdfHeight * imgAspectRatio;
+      }
+      
+      // Center the image on the page
+      const xOffset = (pdfWidth - imgWidth) / 2;
+      const yOffset = (pdfHeight - imgHeight) / 2;
       
       // Add image to PDF
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, pdfHeight));
+      pdf.addImage(imgData, 'PNG', xOffset, yOffset, imgWidth, imgHeight, undefined, 'FAST');
       
-      // If content is longer than one page, handle pagination
-      if (imgHeight > pdfHeight) {
-        let position = pdfHeight;
-        while (position < imgHeight) {
-          pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 0, -position, imgWidth, imgHeight);
-          position += pdfHeight;
-        }
-      }
+      console.log('HtmlToPdfService: Image added to PDF with dimensions:', imgWidth, 'x', imgHeight);
 
       console.log('HtmlToPdfService: PDF generation completed successfully');
       

@@ -613,7 +613,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   const countryCode = getCountryCodeFromLocation(callsheet.location);
   const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers(countryCode);
 
-  // Apply page orientation - simplified approach
+  // Apply page orientation with proper dimensions
   const pageOrientation = customization.layout.pageOrientation;
   const isLandscape = pageOrientation === 'landscape';
 
@@ -627,9 +627,11 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     minHeight: '100vh',
     position: 'relative',
     fontWeight: getFontWeight(customization.typography.fontWeight.body),
-    // For landscape, adjust the container dimensions
+    // Set proper dimensions based on orientation - fixed duplicate property issue
     width: isLandscape ? '297mm' : '210mm',
-    minHeight: isLandscape ? '210mm' : '297mm'
+    height: isLandscape ? '210mm' : '297mm',
+    maxWidth: isLandscape ? '297mm' : '210mm',
+    boxSizing: 'border-box'
   };
 
   const getHeaderBackgroundStyle = () => {

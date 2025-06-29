@@ -19,7 +19,7 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
     // Notify parent component when the PDF preview is ready
     if (onReady) {
       // Small delay to ensure all styles are applied
-      const timer = setTimeout(onReady, 100);
+      const timer = setTimeout(onReady, 200);
       return () => clearTimeout(timer);
     }
   }, [onReady]);
@@ -30,19 +30,17 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
     <div 
       id="pdf-preview-container"
       style={{
-        position: 'absolute',
-        top: '-9999px',
-        left: '-9999px',
-        width: isLandscape ? '297mm' : '210mm', // A4 dimensions
-        minHeight: isLandscape ? '210mm' : '297mm',
-        backgroundColor: customization.colors.background,
+        backgroundColor: customization.colors.background || '#ffffff',
         fontFamily: 'system-ui, -apple-system, sans-serif',
         fontSize: '12px',
         lineHeight: '1.4',
-        color: '#000',
+        color: '#000000',
         padding: 0,
         margin: 0,
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        width: isLandscape ? '297mm' : '210mm',
+        height: isLandscape ? '210mm' : '297mm',
+        overflow: 'hidden'
       }}
     >
       <CallsheetPDFPreview
@@ -51,21 +49,23 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
         className="print-optimized"
       />
       
-      <style>{`
-        .print-optimized {
-          box-shadow: none !important;
-          border-radius: 0 !important;
-        }
-        .print-optimized * {
-          -webkit-print-color-adjust: exact !important;
-          color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        .avoid-break {
-          page-break-inside: avoid;
-          break-inside: avoid;
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .print-optimized {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+          }
+          .print-optimized * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .avoid-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+        `
+      }} />
     </div>
   );
 };
