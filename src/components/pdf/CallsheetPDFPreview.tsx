@@ -19,8 +19,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   // Calculate proper content dimensions
   const containerStyle = {
     width: isLandscape ? '297mm' : '210mm',
-    minHeight: 'auto', // Allow content to determine height
-    height: 'auto', // Allow content to expand
+    minHeight: 'auto',
+    height: 'auto',
     maxWidth: isLandscape ? '297mm' : '210mm',
     backgroundColor: customization.colors.background || '#ffffff',
     fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -30,8 +30,46 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     padding: `${customization.layout.margins.top}px ${customization.layout.margins.right}px ${customization.layout.margins.bottom}px ${customization.layout.margins.left}px`,
     margin: 0,
     boxSizing: 'border-box' as const,
-    overflow: 'visible', // Allow content to be visible
+    overflow: 'visible',
     position: 'relative' as const
+  };
+
+  // Logo positioning helper
+  const getLogoPosition = (position: string) => {
+    switch (position) {
+      case 'top-left':
+        return { top: '16px', left: '16px' };
+      case 'top-center':
+        return { top: '16px', left: '50%', transform: 'translateX(-50%)' };
+      case 'top-right':
+        return { top: '16px', right: '16px' };
+      case 'center-left':
+        return { top: '50%', left: '16px', transform: 'translateY(-50%)' };
+      case 'center-right':
+        return { top: '50%', right: '16px', transform: 'translateY(-50%)' };
+      case 'bottom-left':
+        return { bottom: '16px', left: '16px' };
+      case 'bottom-center':
+        return { bottom: '16px', left: '50%', transform: 'translateX(-50%)' };
+      case 'bottom-right':
+        return { bottom: '16px', right: '16px' };
+      default:
+        return { top: '16px', left: '16px' };
+    }
+  };
+
+  // Logo size helper
+  const getLogoSize = (size: string) => {
+    switch (size) {
+      case 'small':
+        return { width: '40px', height: '40px' };
+      case 'medium':
+        return { width: '60px', height: '60px' };
+      case 'large':
+        return { width: '80px', height: '80px' };
+      default:
+        return { width: '60px', height: '60px' };
+    }
   };
 
   return (
@@ -39,22 +77,93 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       className={`callsheet-pdf-preview ${className}`}
       style={containerStyle}
     >
+      {/* Logos */}
+      {customization.branding?.logo && (
+        <div
+          style={{
+            position: 'absolute',
+            zIndex: 10,
+            opacity: customization.branding.logo.opacity || 1,
+            ...getLogoPosition(customization.branding.logo.position),
+            ...getLogoSize(customization.branding.logo.size)
+          }}
+        >
+          <img
+            src={customization.branding.logo.url}
+            alt="Company Logo"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain'
+            }}
+          />
+        </div>
+      )}
+
+      {customization.branding?.secondaryLogo && (
+        <div
+          style={{
+            position: 'absolute',
+            zIndex: 10,
+            opacity: customization.branding.secondaryLogo.opacity || 1,
+            ...getLogoPosition(customization.branding.secondaryLogo.position),
+            ...getLogoSize(customization.branding.secondaryLogo.size)
+          }}
+        >
+          <img
+            src={customization.branding.secondaryLogo.url}
+            alt="Secondary Logo"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain'
+            }}
+          />
+        </div>
+      )}
+
+      {/* Watermark */}
+      {customization.branding?.watermark && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: customization.branding.watermark.position === 'diagonal' 
+              ? 'translate(-50%, -50%) rotate(-45deg)' 
+              : 'translate(-50%, -50%)',
+            fontSize: '48px',
+            fontWeight: 'bold',
+            color: customization.colors.textLight,
+            opacity: customization.branding.watermark.opacity || 0.1,
+            zIndex: 1,
+            pointerEvents: 'none',
+            userSelect: 'none'
+          }}
+        >
+          {customization.branding.watermark.text}
+        </div>
+      )}
+
       {/* Header Section */}
-      <div className="pdf-header" style={{ marginBottom: `${customization.layout.spacing.sectionGap}px` }}>
+      <div className="pdf-header" style={{ 
+        marginBottom: `${customization.layout.spacing.sectionGap + 4}px`,
+        paddingTop: customization.branding?.logo?.position?.includes('top') ? '80px' : '0'
+      }}>
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'flex-start',
-          marginBottom: '20px',
+          marginBottom: '24px',
           flexWrap: 'wrap',
-          gap: '16px'
+          gap: '20px'
         }}>
           <div style={{ flex: '1', minWidth: '200px' }}>
             <h1 style={{
               fontSize: `${customization.typography.fontSize.title}px`,
               fontWeight: customization.typography.fontWeight.title,
               color: customization.colors.titleText,
-              margin: '0 0 8px 0',
+              margin: '0 0 10px 0',
               lineHeight: customization.typography.lineHeight.title
             }}>
               {callsheet.projectTitle || 'Untitled Project'}
@@ -69,7 +178,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             </p>
           </div>
           
-          {customization.branding?.companyName && (
+          {customization.branding?.companyName && !customization.branding?.logo && (
             <div style={{
               fontSize: `${customization.typography.fontSize.header}px`,
               fontWeight: customization.typography.fontWeight.header,
@@ -85,14 +194,14 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         <div style={{
           display: 'grid',
           gridTemplateColumns: isLandscape ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
-          gap: '16px',
-          marginBottom: '24px'
+          gap: '20px',
+          marginBottom: '28px'
         }}>
           <div>
             <div style={{
               fontSize: `${customization.typography.fontSize.small}px`,
               color: customization.colors.textLight,
-              marginBottom: '4px',
+              marginBottom: '6px',
               fontWeight: 'medium'
             }}>
               Shoot Date
@@ -109,7 +218,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             <div style={{
               fontSize: `${customization.typography.fontSize.small}px`,
               color: customization.colors.textLight,
-              marginBottom: '4px',
+              marginBottom: '6px',
               fontWeight: 'medium'
             }}>
               Call Time
@@ -126,7 +235,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             <div style={{
               fontSize: `${customization.typography.fontSize.small}px`,
               color: customization.colors.textLight,
-              marginBottom: '4px',
+              marginBottom: '6px',
               fontWeight: 'medium'
             }}>
               Location
@@ -141,7 +250,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               <div style={{
                 fontSize: `${customization.typography.fontSize.small}px`,
                 color: customization.colors.textLight,
-                marginTop: '2px'
+                marginTop: '3px'
               }}>
                 {callsheet.locationAddress}
               </div>
@@ -152,14 +261,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
       {/* Schedule Section */}
       {callsheet.schedule && callsheet.schedule.length > 0 && (
-        <div className="pdf-section avoid-break" style={{ marginBottom: `${customization.layout.spacing.sectionGap}px` }}>
+        <div className="pdf-section avoid-break" style={{ 
+          marginBottom: `${customization.layout.spacing.sectionGap + 4}px`,
+          breakInside: 'avoid'
+        }}>
           <h2 style={{
             fontSize: `${customization.typography.fontSize.header}px`,
             fontWeight: customization.typography.fontWeight.header,
             color: customization.colors.scheduleSectionColor,
-            margin: `0 0 ${customization.layout.spacing.itemGap}px 0`,
+            margin: `0 0 ${customization.layout.spacing.itemGap + 4}px 0`,
             borderBottom: `1px solid ${customization.colors.border}`,
-            paddingBottom: '8px'
+            paddingBottom: '10px'
           }}>
             SCHEDULE
           </h2>
@@ -174,8 +286,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             <div style={{
               display: 'grid',
               gridTemplateColumns: '80px 80px 1fr 120px 80px',
-              gap: '12px',
-              padding: '12px',
+              gap: '16px',
+              padding: '14px',
               backgroundColor: customization.colors.scheduleRowAlternate,
               borderBottom: `1px solid ${customization.colors.scheduleBorder}`,
               fontSize: `${customization.typography.fontSize.small}px`,
@@ -196,8 +308,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '80px 80px 1fr 120px 80px',
-                  gap: '12px',
-                  padding: '12px',
+                  gap: '16px',
+                  padding: '14px',
                   backgroundColor: index % 2 === 0 ? customization.colors.scheduleRowBackground : customization.colors.scheduleRowAlternate,
                   borderBottom: index < callsheet.schedule.length - 1 ? `1px solid ${customization.colors.scheduleBorder}` : 'none',
                   fontSize: `${customization.typography.fontSize.body}px`,
@@ -217,14 +329,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
       {/* Cast Section */}
       {callsheet.cast && callsheet.cast.length > 0 && (
-        <div className="pdf-section avoid-break" style={{ marginBottom: `${customization.layout.spacing.sectionGap}px` }}>
+        <div className="pdf-section avoid-break" style={{ 
+          marginBottom: `${customization.layout.spacing.sectionGap + 4}px`,
+          breakInside: 'avoid'
+        }}>
           <h2 style={{
             fontSize: `${customization.typography.fontSize.header}px`,
             fontWeight: customization.typography.fontWeight.header,
             color: customization.colors.castSectionColor,
-            margin: `0 0 ${customization.layout.spacing.itemGap}px 0`,
+            margin: `0 0 ${customization.layout.spacing.itemGap + 4}px 0`,
             borderBottom: `1px solid ${customization.colors.border}`,
-            paddingBottom: '8px'
+            paddingBottom: '10px'
           }}>
             CAST
           </h2>
@@ -232,7 +347,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           <div style={{
             display: 'grid',
             gridTemplateColumns: isLandscape ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
-            gap: `${customization.layout.spacing.itemGap}px`
+            gap: `${customization.layout.spacing.itemGap + 4}px`
           }}>
             {callsheet.cast.map((member, index) => (
               <div
@@ -242,7 +357,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   backgroundColor: customization.colors.contactCardBackground,
                   border: `1px solid ${customization.colors.contactCardBorder}`,
                   borderRadius: `${customization.visual.cornerRadius}px`,
-                  padding: '12px',
+                  padding: '14px',
                   breakInside: 'avoid'
                 }}
               >
@@ -250,7 +365,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   fontSize: `${customization.typography.fontSize.body}px`,
                   fontWeight: 'medium',
                   color: customization.colors.contactNameText,
-                  marginBottom: '4px'
+                  marginBottom: '6px'
                 }}>
                   {member.name}
                 </div>
@@ -258,14 +373,14 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   <div style={{
                     fontSize: `${customization.typography.fontSize.small}px`,
                     color: customization.colors.contactRoleText,
-                    marginBottom: '8px'
+                    marginBottom: '10px'
                   }}>
                     as {member.character}
                   </div>
                 )}
                 <div style={{ fontSize: `${customization.typography.fontSize.small}px`, color: customization.colors.contactDetailsText }}>
                   {member.phone && (
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
                       <span>📞 {member.phone}</span>
                     </div>
                   )}
@@ -283,14 +398,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
       {/* Crew Section */}
       {callsheet.crew && callsheet.crew.length > 0 && (
-        <div className="pdf-section avoid-break" style={{ marginBottom: `${customization.layout.spacing.sectionGap}px` }}>
+        <div className="pdf-section avoid-break" style={{ 
+          marginBottom: `${customization.layout.spacing.sectionGap + 4}px`,
+          breakInside: 'avoid'
+        }}>
           <h2 style={{
             fontSize: `${customization.typography.fontSize.header}px`,
             fontWeight: customization.typography.fontWeight.header,
             color: customization.colors.crewSectionColor,
-            margin: `0 0 ${customization.layout.spacing.itemGap}px 0`,
+            margin: `0 0 ${customization.layout.spacing.itemGap + 4}px 0`,
             borderBottom: `1px solid ${customization.colors.border}`,
-            paddingBottom: '8px'
+            paddingBottom: '10px'
           }}>
             CREW
           </h2>
@@ -298,7 +416,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           <div style={{
             display: 'grid',
             gridTemplateColumns: isLandscape ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
-            gap: `${customization.layout.spacing.itemGap}px`
+            gap: `${customization.layout.spacing.itemGap + 4}px`
           }}>
             {callsheet.crew.map((member, index) => (
               <div
@@ -308,7 +426,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   backgroundColor: customization.colors.contactCardBackground,
                   border: `1px solid ${customization.colors.contactCardBorder}`,
                   borderRadius: `${customization.visual.cornerRadius}px`,
-                  padding: '12px',
+                  padding: '14px',
                   breakInside: 'avoid'
                 }}
               >
@@ -316,20 +434,20 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   fontSize: `${customization.typography.fontSize.body}px`,
                   fontWeight: 'medium',
                   color: customization.colors.contactNameText,
-                  marginBottom: '4px'
+                  marginBottom: '6px'
                 }}>
                   {member.name}
                 </div>
                 <div style={{
                   fontSize: `${customization.typography.fontSize.small}px`,
                   color: customization.colors.contactRoleText,
-                  marginBottom: '8px'
+                  marginBottom: '10px'
                 }}>
                   {member.role}
                 </div>
                 <div style={{ fontSize: `${customization.typography.fontSize.small}px`, color: customization.colors.contactDetailsText }}>
                   {member.phone && (
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
                       <span>📞 {member.phone}</span>
                     </div>
                   )}
@@ -347,14 +465,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
       {/* Emergency Contacts */}
       {callsheet.emergencyContacts && callsheet.emergencyContacts.length > 0 && (
-        <div className="pdf-section avoid-break" style={{ marginBottom: `${customization.layout.spacing.sectionGap}px` }}>
+        <div className="pdf-section avoid-break" style={{ 
+          marginBottom: `${customization.layout.spacing.sectionGap + 4}px`,
+          breakInside: 'avoid'
+        }}>
           <h2 style={{
             fontSize: `${customization.typography.fontSize.header}px`,
             fontWeight: customization.typography.fontWeight.header,
             color: customization.colors.emergencySectionColor,
-            margin: `0 0 ${customization.layout.spacing.itemGap}px 0`,
+            margin: `0 0 ${customization.layout.spacing.itemGap + 4}px 0`,
             borderBottom: `2px solid ${customization.colors.emergencySectionColor}`,
-            paddingBottom: '8px'
+            paddingBottom: '10px'
           }}>
             EMERGENCY CONTACTS
           </h2>
@@ -363,12 +484,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             backgroundColor: customization.colors.emergencyBackground,
             border: `2px solid ${customization.colors.emergencyBorder}`,
             borderRadius: `${customization.visual.cornerRadius}px`,
-            padding: '16px'
+            padding: '18px'
           }}>
             <div style={{
               display: 'grid',
               gridTemplateColumns: isLandscape ? 'repeat(2, 1fr)' : '1fr',
-              gap: `${customization.layout.spacing.itemGap}px`
+              gap: `${customization.layout.spacing.itemGap + 4}px`
             }}>
               {callsheet.emergencyContacts.map((contact, index) => (
                 <div key={index} className="avoid-break" style={{ breakInside: 'avoid' }}>
@@ -376,14 +497,14 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                     fontSize: `${customization.typography.fontSize.body}px`,
                     fontWeight: 'bold',
                     color: customization.colors.emergencyText,
-                    marginBottom: '4px'
+                    marginBottom: '6px'
                   }}>
                     {contact.name}
                   </div>
                   <div style={{
                     fontSize: `${customization.typography.fontSize.small}px`,
                     color: customization.colors.emergencyText,
-                    marginBottom: '8px'
+                    marginBottom: '10px'
                   }}>
                     {contact.role}
                   </div>
@@ -403,14 +524,17 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
       {/* Notes Section */}
       {callsheet.specialNotes && (
-        <div className="pdf-section avoid-break">
+        <div className="pdf-section avoid-break" style={{
+          marginBottom: customization.branding?.footer ? '60px' : '0',
+          breakInside: 'avoid'
+        }}>
           <h2 style={{
             fontSize: `${customization.typography.fontSize.header}px`,
             fontWeight: customization.typography.fontWeight.header,
             color: customization.colors.notesSectionColor,
-            margin: `0 0 ${customization.layout.spacing.itemGap}px 0`,
+            margin: `0 0 ${customization.layout.spacing.itemGap + 4}px 0`,
             borderBottom: `1px solid ${customization.colors.border}`,
-            paddingBottom: '8px'
+            paddingBottom: '10px'
           }}>
             NOTES
           </h2>
@@ -419,7 +543,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             backgroundColor: customization.colors.surface,
             border: `1px solid ${customization.colors.border}`,
             borderRadius: `${customization.visual.cornerRadius}px`,
-            padding: '16px',
+            padding: '18px',
             fontSize: `${customization.typography.fontSize.body}px`,
             color: customization.colors.text,
             lineHeight: customization.typography.lineHeight.body,
@@ -428,6 +552,32 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           }}>
             {callsheet.specialNotes}
           </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      {customization.branding?.footer?.text && (
+        <div style={{
+          position: 'absolute',
+          bottom: '16px',
+          left: customization.branding.footer.position === 'left' ? '16px' : 
+                customization.branding.footer.position === 'right' ? 'auto' : '50%',
+          right: customization.branding.footer.position === 'right' ? '16px' : 'auto',
+          transform: customization.branding.footer.position === 'center' ? 'translateX(-50%)' : 'none',
+          fontSize: `${customization.typography.fontSize.small}px`,
+          color: customization.colors.textLight,
+          textAlign: customization.branding.footer.position as any,
+          padding: customization.branding.footer.style === 'bordered' ? '8px 12px' : '4px 0',
+          border: customization.branding.footer.style === 'bordered' ? `1px solid ${customization.colors.border}` : 'none',
+          borderRadius: customization.branding.footer.style === 'bordered' ? `${customization.visual.cornerRadius}px` : '0',
+          backgroundColor: customization.branding.footer.style === 'accent' ? customization.colors.accent : 'transparent'
+        }}>
+          {customization.branding.footer.text}
+          {customization.branding.footer.unionCompliance && (
+            <span style={{ display: 'block', marginTop: '4px', fontSize: '6px' }}>
+              This production complies with all applicable union regulations and safety standards.
+            </span>
+          )}
         </div>
       )}
     </div>
