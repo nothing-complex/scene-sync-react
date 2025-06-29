@@ -21,62 +21,88 @@ export class HtmlToPdfService {
     try {
       const isLandscape = options.orientation === 'landscape';
       
-      // Create a temporary container for the HTML content
-      const container = document.createElement('div');
-      container.innerHTML = htmlContent;
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '0';
-      container.style.backgroundColor = '#ffffff';
-      container.style.color = '#000000';
+      // Create a temporary iframe to render the HTML content properly
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.left = '-9999px';
+      iframe.style.top = '0';
+      iframe.style.width = isLandscape ? '297mm' : '210mm';
+      iframe.style.height = isLandscape ? '210mm' : '297mm';
+      iframe.style.border = 'none';
       
-      // Set dimensions based on orientation (A4 size)
+      document.body.appendChild(iframe);
+      
+      // Wait for iframe to be ready
+      await new Promise((resolve) => {
+        iframe.onload = resolve;
+        // Set a fallback timeout in case onload doesn't fire
+        setTimeout(resolve, 100);
+      });
+
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) {
+        throw new Error('Unable to access iframe document');
+      }
+
+      // Write the HTML content to the iframe
+      iframeDoc.open();
+      iframeDoc.write(htmlContent);
+      iframeDoc.close();
+
+      // Wait for styles and content to load
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      console.log('HtmlToPdfService: HTML content loaded in iframe');
+
+      // Get the body element from the iframe
+      const bodyElement = iframeDoc.body;
+      if (!bodyElement) {
+        throw new Error('No body element found in iframe');
+      }
+
+      // Calculate canvas dimensions for high quality (A4 dimensions at 300 DPI)
+      const scaleFactor = 3; // High quality scaling
+      let canvasWidth, canvasHeight;
+      
       if (isLandscape) {
-        container.style.width = '297mm'; // A4 landscape width
-        container.style.height = '210mm'; // A4 landscape height
+        canvasWidth = Math.floor(11.7 * 300); // 11.7 inches * 300 DPI
+        canvasHeight = Math.floor(8.3 * 300);  // 8.3 inches * 300 DPI
       } else {
-        container.style.width = '210mm'; // A4 portrait width
-        container.style.height = '297mm'; // A4 portrait height
+        canvasWidth = Math.floor(8.3 * 300);   // 8.3 inches * 300 DPI
+        canvasHeight = Math.floor(11.7 * 300); // 11.7 inches * 300 DPI
       }
-      
-      // Apply margins if specified
-      if (options.margins) {
-        container.style.padding = `${options.margins.top} ${options.margins.right} ${options.margins.bottom} ${options.margins.left}`;
-      }
-      
-      // Ensure all fonts and styles are loaded
-      container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-      container.style.fontSize = '12px';
-      container.style.lineHeight = '1.4';
-      
-      document.body.appendChild(container);
 
-      // Wait a moment for styles to be applied
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('HtmlToPdfService: Target canvas dimensions:', canvasWidth, 'x', canvasHeight);
 
-      // Calculate canvas dimensions based on orientation (high DPI for better quality)
-      const scaleFactor = 2; // For better quality
-      const canvasWidth = isLandscape ? 1122 : 794; // A4 dimensions in pixels at 96 DPI
-      const canvasHeight = isLandscape ? 794 : 1122;
-
-      // Generate canvas from HTML with better options
-      const canvas = await html2canvas(container, {
+      // Generate canvas from the iframe content
+      const canvas = await html2canvas(bodyElement, {
         scale: scaleFactor,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: canvasWidth,
-        height: canvasHeight,
+        width: canvasWidth / scaleFactor,
+        height: canvasHeight / scaleFactor,
         logging: false,
         removeContainer: false,
         foreignObjectRendering: true,
-        imageTimeout: 5000
+        imageTimeout: 10000,
+        onclone: (clonedDoc) => {
+          // Ensure all styles are properly applied in the cloned document
+          const clonedBody = clonedDoc.body;
+          if (clonedBody) {
+            clonedBody.style.width = isLandscape ? '297mm' : '210mm';
+            clonedBody.style.height = isLandscape ? '210mm' : '297mm';
+            clonedBody.style.margin = '0';
+            clonedBody.style.padding = '0';
+            clonedBody.style.overflow = 'hidden';
+          }
+        }
       });
 
       console.log('HtmlToPdfService: Canvas generated with dimensions:', canvas.width, 'x', canvas.height);
 
-      // Remove temporary container
-      document.body.removeChild(container);
+      // Clean up iframe
+      document.body.removeChild(iframe);
 
       // Create PDF with correct orientation
       const pdf = new jsPDF({
@@ -86,36 +112,16 @@ export class HtmlToPdfService {
         compress: true
       });
 
-      const imgData = canvas.toDataURL('image/png', 0.95);
+      const imgData = canvas.toDataURL('image/jpeg', 0.98); // High quality JPEG
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
       console.log('HtmlToPdfService: PDF dimensions:', pdfWidth, 'x', pdfHeight);
       
-      // Calculate image dimensions to fit the page properly
-      const imgAspectRatio = canvas.width / canvas.height;
-      const pdfAspectRatio = pdfWidth / pdfHeight;
+      // Add image to PDF with proper scaling
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
       
-      let imgWidth, imgHeight;
-      
-      if (imgAspectRatio > pdfAspectRatio) {
-        // Image is wider than PDF page
-        imgWidth = pdfWidth;
-        imgHeight = pdfWidth / imgAspectRatio;
-      } else {
-        // Image is taller than PDF page
-        imgHeight = pdfHeight;
-        imgWidth = pdfHeight * imgAspectRatio;
-      }
-      
-      // Center the image on the page
-      const xOffset = (pdfWidth - imgWidth) / 2;
-      const yOffset = (pdfHeight - imgHeight) / 2;
-      
-      // Add image to PDF
-      pdf.addImage(imgData, 'PNG', xOffset, yOffset, imgWidth, imgHeight, undefined, 'FAST');
-      
-      console.log('HtmlToPdfService: Image added to PDF with dimensions:', imgWidth, 'x', imgHeight);
+      console.log('HtmlToPdfService: Image added to PDF successfully');
 
       console.log('HtmlToPdfService: PDF generation completed successfully');
       

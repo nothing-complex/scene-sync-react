@@ -118,7 +118,6 @@ const LogoDisplay: React.FC<{
   );
 };
 
-// Section Divider Component
 const SectionDivider: React.FC<{ customization: PDFCustomization }> = ({ customization }) => {
   const { sectionDividers } = customization.visual;
   
@@ -617,6 +616,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   const pageOrientation = customization.layout.pageOrientation;
   const isLandscape = pageOrientation === 'landscape';
 
+  // CRITICAL FIX: Proper container styles for landscape mode
   const containerStyles: React.CSSProperties = {
     backgroundColor: customization.colors.background,
     color: customization.colors.text,
@@ -624,14 +624,16 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     fontSize: `${customization.typography.fontSize.body}px`,
     lineHeight: customization.layout.spacing.lineHeight,
     padding: `${customization.layout.margins.top}px ${customization.layout.margins.right}px ${customization.layout.margins.bottom + 60}px ${customization.layout.margins.left}px`,
-    minHeight: '100vh',
+    minHeight: isLandscape ? '210mm' : '297mm',
     position: 'relative',
     fontWeight: getFontWeight(customization.typography.fontWeight.body),
-    // Set proper dimensions based on orientation - fixed duplicate property issue
+    // FIXED: Proper dimensions based on orientation
     width: isLandscape ? '297mm' : '210mm',
     height: isLandscape ? '210mm' : '297mm',
     maxWidth: isLandscape ? '297mm' : '210mm',
-    boxSizing: 'border-box'
+    maxHeight: isLandscape ? '210mm' : '297mm',
+    boxSizing: 'border-box',
+    overflow: 'hidden' // Prevent content overflow
   };
 
   const getHeaderBackgroundStyle = () => {
@@ -684,9 +686,26 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     ...getHeaderBackgroundStyle()
   };
 
+  // CRITICAL FIX: Responsive layout adjustments for landscape
+  const getResponsiveGridClass = (defaultClass: string) => {
+    if (isLandscape) {
+      // In landscape, we have more horizontal space, so we can use more columns
+      if (defaultClass.includes('grid-cols-3')) {
+        return 'grid grid-cols-4 lg:grid-cols-5'; // More columns in landscape
+      }
+      if (defaultClass.includes('md:grid-cols-2')) {
+        return 'grid grid-cols-2 lg:grid-cols-3'; // More columns in landscape
+      }
+      if (defaultClass.includes('md:grid-cols-3')) {
+        return 'grid grid-cols-3 lg:grid-cols-4'; // More columns in landscape
+      }
+    }
+    return defaultClass;
+  };
+
   return (
     <>
-      <div className={`max-w-4xl mx-auto ${className}`} style={containerStyles}>
+      <div className={`${className}`} style={containerStyles}>
         <WatermarkDisplay customization={customization} />
         
         {customization.branding.logo && (
@@ -737,8 +756,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 
         <SectionDivider customization={customization} />
 
+        {/* FIXED: Responsive grid for landscape */}
         <div 
-          className="grid grid-cols-3"
+          className={getResponsiveGridClass("grid grid-cols-3")}
           style={{ 
             marginBottom: `${customization.layout.spacing.sectionGap}px`,
             gap: `${customization.layout.spacing.cardSpacing}px`,
