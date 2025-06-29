@@ -24,6 +24,8 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
     }
   }, [onReady]);
 
+  const isLandscape = customization.layout.pageOrientation === 'landscape';
+
   return (
     <div 
       id="pdf-preview-container"
@@ -31,8 +33,8 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
         position: 'absolute',
         top: '-9999px',
         left: '-9999px',
-        width: '210mm', // A4 width
-        minHeight: '297mm', // A4 height
+        width: isLandscape ? '297mm' : '210mm', // A4 dimensions
+        minHeight: isLandscape ? '210mm' : '297mm',
         backgroundColor: customization.colors.background,
         fontFamily: 'system-ui, -apple-system, sans-serif',
         fontSize: '12px',

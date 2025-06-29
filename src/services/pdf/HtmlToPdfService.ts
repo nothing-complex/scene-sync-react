@@ -19,19 +19,23 @@ export class HtmlToPdfService {
     console.log('HtmlToPdfService: Starting PDF generation with options:', options);
     
     try {
+      const isLandscape = options.orientation === 'landscape';
+      
       // Create a temporary container for the HTML content
       const container = document.createElement('div');
       container.innerHTML = htmlContent;
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       container.style.top = '0';
-      container.style.width = '210mm'; // A4 width
       container.style.backgroundColor = '#ffffff';
       
-      // Apply page orientation styling
-      if (options.orientation === 'landscape') {
+      // Set dimensions based on orientation
+      if (isLandscape) {
         container.style.width = '297mm'; // A4 landscape width
-        container.style.transform = 'none'; // Remove any rotation transforms for generation
+        container.style.minHeight = '210mm'; // A4 landscape height
+      } else {
+        container.style.width = '210mm'; // A4 portrait width
+        container.style.minHeight = '297mm'; // A4 portrait height
       }
       
       // Apply margins if specified
@@ -41,22 +45,26 @@ export class HtmlToPdfService {
       
       document.body.appendChild(container);
 
+      // Calculate canvas dimensions based on orientation
+      const canvasWidth = isLandscape ? 1188 : 840; // A4 dimensions in pixels at 72 DPI
+      const canvasHeight = isLandscape ? 840 : 1188;
+
       // Generate canvas from HTML
       const canvas = await html2canvas(container, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
-        width: options.orientation === 'landscape' ? 1188 : 840, // A4 dimensions in pixels at 72 DPI
-        height: options.orientation === 'landscape' ? 840 : 1188,
+        width: canvasWidth,
+        height: canvasHeight,
         logging: false
       });
 
       // Remove temporary container
       document.body.removeChild(container);
 
-      // Create PDF
+      // Create PDF with correct orientation
       const pdf = new jsPDF({
-        orientation: options.orientation || 'portrait',
+        orientation: isLandscape ? 'landscape' : 'portrait',
         unit: 'mm',
         format: 'a4'
       });

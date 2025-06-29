@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CallsheetData } from '@/contexts/CallsheetContext';
@@ -613,19 +614,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   const countryCode = getCountryCodeFromLocation(callsheet.location);
   const emergencyNumbers = EmergencyServiceApi.getEmergencyNumbers(countryCode);
 
-  // Apply page orientation
+  // Apply page orientation - simplified approach
   const pageOrientation = customization.layout.pageOrientation;
-  const orientationStyles: React.CSSProperties = pageOrientation === 'landscape' ? {
-    width: '100vh',
-    height: '100vw',
-    transform: 'rotate(90deg)',
-    transformOrigin: 'center center',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: '-50vw',
-    marginLeft: '-50vh'
-  } : {};
+  const isLandscape = pageOrientation === 'landscape';
 
   const containerStyles: React.CSSProperties = {
     backgroundColor: customization.colors.background,
@@ -637,7 +628,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     minHeight: '100vh',
     position: 'relative',
     fontWeight: getFontWeight(customization.typography.fontWeight.body),
-    ...orientationStyles
+    // For landscape, adjust the container dimensions
+    width: isLandscape ? '297mm' : '210mm',
+    minHeight: isLandscape ? '210mm' : '297mm'
   };
 
   const getHeaderBackgroundStyle = () => {
