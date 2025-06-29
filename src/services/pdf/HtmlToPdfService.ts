@@ -27,8 +27,10 @@ export class HtmlToPdfService {
       iframe.style.left = '-9999px';
       iframe.style.top = '0';
       iframe.style.width = isLandscape ? '297mm' : '210mm';
-      iframe.style.height = isLandscape ? '210mm' : '297mm';
+      iframe.style.height = 'auto'; // Allow content to expand
+      iframe.style.minHeight = isLandscape ? '210mm' : '297mm';
       iframe.style.border = 'none';
+      iframe.style.overflow = 'visible';
       
       document.body.appendChild(iframe);
       
@@ -49,8 +51,8 @@ export class HtmlToPdfService {
       iframeDoc.write(htmlContent);
       iframeDoc.close();
 
-      // Wait for styles and content to load
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for styles and content to load, and for any dynamic sizing
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       console.log('HtmlToPdfService: HTML content loaded in iframe');
 
@@ -60,17 +62,16 @@ export class HtmlToPdfService {
         throw new Error('No body element found in iframe');
       }
 
-      // Calculate canvas dimensions for high quality (A4 dimensions at 300 DPI)
-      const scaleFactor = 3; // High quality scaling
-      let canvasWidth, canvasHeight;
+      // Get the actual content dimensions
+      const actualWidth = bodyElement.scrollWidth;
+      const actualHeight = bodyElement.scrollHeight;
       
-      if (isLandscape) {
-        canvasWidth = Math.floor(11.7 * 300); // 11.7 inches * 300 DPI
-        canvasHeight = Math.floor(8.3 * 300);  // 8.3 inches * 300 DPI
-      } else {
-        canvasWidth = Math.floor(8.3 * 300);   // 8.3 inches * 300 DPI
-        canvasHeight = Math.floor(11.7 * 300); // 11.7 inches * 300 DPI
-      }
+      console.log('HtmlToPdfService: Actual content dimensions:', actualWidth, 'x', actualHeight);
+
+      // Calculate canvas dimensions for high quality
+      const scaleFactor = 2; // Balanced quality and performance
+      const canvasWidth = Math.max(actualWidth, isLandscape ? 1100 : 800);
+      const canvasHeight = Math.max(actualHeight, isLandscape ? 800 : 1100);
 
       console.log('HtmlToPdfService: Target canvas dimensions:', canvasWidth, 'x', canvasHeight);
 
@@ -80,21 +81,23 @@ export class HtmlToPdfService {
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: canvasWidth / scaleFactor,
-        height: canvasHeight / scaleFactor,
+        width: canvasWidth,
+        height: canvasHeight,
         logging: false,
         removeContainer: false,
         foreignObjectRendering: true,
-        imageTimeout: 10000,
+        imageTimeout: 15000,
         onclone: (clonedDoc) => {
           // Ensure all styles are properly applied in the cloned document
           const clonedBody = clonedDoc.body;
           if (clonedBody) {
             clonedBody.style.width = isLandscape ? '297mm' : '210mm';
-            clonedBody.style.height = isLandscape ? '210mm' : '297mm';
+            clonedBody.style.height = 'auto';
+            clonedBody.style.minHeight = isLandscape ? '210mm' : '297mm';
             clonedBody.style.margin = '0';
             clonedBody.style.padding = '0';
-            clonedBody.style.overflow = 'hidden';
+            clonedBody.style.overflow = 'visible';
+            clonedBody.style.boxSizing = 'border-box';
           }
         }
       });
@@ -112,17 +115,57 @@ export class HtmlToPdfService {
         compress: true
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.98); // High quality JPEG
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
       console.log('HtmlToPdfService: PDF dimensions:', pdfWidth, 'x', pdfHeight);
       
-      // Add image to PDF with proper scaling
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      // Calculate scaling to fit content properly
+      const imgAspectRatio = canvas.width / canvas.height;
+      const pdfAspectRatio = pdfWidth / pdfHeight;
+      
+      let finalWidth = pdfWidth;
+      let finalHeight = pdfHeight;
+      
+      // If content is taller than PDF page, create multiple pages
+      if (canvas.height > canvas.width * (pdfHeight / pdfWidth)) {
+        // Content needs multiple pages
+        const pageHeight = canvas.width * (pdfHeight / pdfWidth);
+        const numPages = Math.ceil(canvas.height / pageHeight);
+        
+        for (let i = 0; i < numPages; i++) {
+          if (i > 0) {
+            pdf.addPage();
+          }
+          
+          // Create a temporary canvas for this page
+          const pageCanvas = document.createElement('canvas');
+          const pageCtx = pageCanvas.getContext('2d');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = pageHeight;
+          
+          if (pageCtx) {
+            pageCtx.fillStyle = '#ffffff';
+            pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+            pageCtx.drawImage(canvas, 0, -i * pageHeight);
+            
+            const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+            pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+          }
+        }
+      } else {
+        // Single page - fit content maintaining aspect ratio
+        if (imgAspectRatio > pdfAspectRatio) {
+          finalHeight = pdfWidth / imgAspectRatio;
+        } else {
+          finalWidth = pdfHeight * imgAspectRatio;
+        }
+        
+        pdf.addImage(imgData, 'JPEG', 0, 0, finalWidth, finalHeight, undefined, 'FAST');
+      }
       
       console.log('HtmlToPdfService: Image added to PDF successfully');
-
       console.log('HtmlToPdfService: PDF generation completed successfully');
       
       // Return as blob

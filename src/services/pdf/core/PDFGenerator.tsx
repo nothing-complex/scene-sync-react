@@ -23,10 +23,13 @@ export class PDFGenerator {
       container.style.left = '-9999px';
       container.style.top = '0';
       container.style.visibility = 'hidden';
+      container.style.pointerEvents = 'none';
       
       const isLandscape = customization.layout.pageOrientation === 'landscape';
       container.style.width = isLandscape ? '297mm' : '210mm';
-      container.style.height = isLandscape ? '210mm' : '297mm';
+      container.style.height = 'auto';
+      container.style.minHeight = isLandscape ? '210mm' : '297mm';
+      container.style.overflow = 'visible';
       
       document.body.appendChild(container);
 
@@ -51,15 +54,18 @@ export class PDFGenerator {
           setTimeout(() => {
             console.log('PDFGenerator: Using fallback timeout for component rendering');
             resolve();
-          }, 1000);
+          }, 1500);
         } catch (error) {
           reject(error);
         }
       });
 
+      // Additional wait to ensure all content is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Get the rendered HTML
       const htmlContent = container.innerHTML;
-      console.log('PDFGenerator: Component HTML extracted');
+      console.log('PDFGenerator: Component HTML extracted, content length:', htmlContent.length);
 
       // Create a complete HTML document with all necessary styles for PDF generation
       const fullHtml = `
@@ -83,8 +89,9 @@ export class PDFGenerator {
               print-color-adjust: exact;
               color-adjust: exact;
               width: 100%;
-              height: 100%;
-              overflow: hidden;
+              height: auto;
+              min-height: 100%;
+              overflow: visible;
             }
             
             /* Grid System */
@@ -145,13 +152,20 @@ export class PDFGenerator {
               break-inside: avoid;
             }
             
-            /* Ensure proper sizing */
+            /* Ensure proper sizing and no cutoff */
             body > * {
               width: ${isLandscape ? '297mm' : '210mm'};
-              height: ${isLandscape ? '210mm' : '297mm'};
+              height: auto;
+              min-height: ${isLandscape ? '210mm' : '297mm'};
               max-width: ${isLandscape ? '297mm' : '210mm'};
-              max-height: ${isLandscape ? '210mm' : '297mm'};
-              overflow: hidden;
+              overflow: visible;
+            }
+            
+            /* Prevent content cutoff */
+            .callsheet-pdf-preview {
+              height: auto !important;
+              min-height: 100% !important;
+              overflow: visible !important;
             }
           </style>
         </head>

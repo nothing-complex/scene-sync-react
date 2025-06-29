@@ -22,7 +22,7 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
       const timer = setTimeout(() => {
         console.log('CallsheetPDFForGeneration: Component ready, calling onReady');
         onReady();
-      }, 800);
+      }, 1000); // Increased delay for content rendering
       return () => clearTimeout(timer);
     }
   }, [onReady, callsheet, customization]);
@@ -42,10 +42,10 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
         margin: 0,
         boxSizing: 'border-box',
         width: isLandscape ? '297mm' : '210mm',
-        height: isLandscape ? '210mm' : '297mm',
+        minHeight: isLandscape ? '210mm' : '297mm',
+        height: 'auto', // Allow content to expand
         maxWidth: isLandscape ? '297mm' : '210mm',
-        maxHeight: isLandscape ? '210mm' : '297mm',
-        overflow: 'hidden',
+        overflow: 'visible', // Don't cut off content
         position: 'relative'
       }}
     >
@@ -61,10 +61,10 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
             box-shadow: none !important;
             border-radius: 0 !important;
             width: 100% !important;
-            height: 100% !important;
+            height: auto !important;
+            min-height: 100% !important;
             max-width: 100% !important;
-            max-height: 100% !important;
-            overflow: hidden !important;
+            overflow: visible !important;
           }
           .print-optimized * {
             -webkit-print-color-adjust: exact !important;
@@ -95,6 +95,13 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
             .lg\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
             .lg\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
             .lg\\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+          }
+          
+          /* Ensure content doesn't get cut off */
+          body, html {
+            height: auto !important;
+            min-height: 100% !important;
+            overflow: visible !important;
           }
         `
       }} />
