@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
 import { CallsheetPDFPreview } from './CallsheetPDFPreview';
-import { HtmlToPdfService } from '@/services/pdf/HtmlToPdfService';
+import { generateCustomCallsheetPDF, previewCallsheetPDF } from '@/services/pdfService';
 import { Download, Eye, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,8 +28,7 @@ export const PDFPreviewDialog: React.FC<PDFPreviewDialogProps> = ({
     setIsGenerating(true);
     try {
       console.log('Starting PDF download with customization:', customization);
-      const service = new HtmlToPdfService();
-      await service.downloadPDF(callsheet, customization);
+      await generateCustomCallsheetPDF(callsheet, customization);
       toast.success('PDF downloaded successfully!');
     } catch (error) {
       console.error('Error downloading PDF:', error);
@@ -43,8 +42,7 @@ export const PDFPreviewDialog: React.FC<PDFPreviewDialogProps> = ({
     setIsGenerating(true);
     try {
       console.log('Starting PDF preview with customization:', customization);
-      const service = new HtmlToPdfService();
-      await service.previewPDF(callsheet, customization);
+      await previewCallsheetPDF(callsheet, customization);
       toast.success('PDF preview opened in new tab!');
     } catch (error) {
       console.error('Error previewing PDF:', error);
