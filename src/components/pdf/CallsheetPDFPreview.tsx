@@ -19,7 +19,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   // Calculate proper content dimensions
   const containerStyle = {
     width: isLandscape ? '297mm' : '210mm',
-    minHeight: isLandscape ? '210mm' : '297mm',
+    minHeight: 'auto', // Allow content to determine height
     height: 'auto', // Allow content to expand
     maxWidth: isLandscape ? '297mm' : '210mm',
     backgroundColor: customization.colors.background || '#ffffff',
@@ -118,7 +118,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               fontSize: `${customization.typography.fontSize.body}px`,
               color: customization.colors.text
             }}>
-              {callsheet.callTime || 'TBD'}
+              {callsheet.generalCallTime || 'TBD'}
             </div>
           </div>
           
@@ -135,15 +135,15 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               fontSize: `${customization.typography.fontSize.body}px`,
               color: customization.colors.text
             }}>
-              {callsheet.location?.name || 'TBD'}
+              {callsheet.location || 'TBD'}
             </div>
-            {callsheet.location?.address && (
+            {callsheet.locationAddress && (
               <div style={{
                 fontSize: `${customization.typography.fontSize.small}px`,
                 color: customization.colors.textLight,
                 marginTop: '2px'
               }}>
-                {callsheet.location.address}
+                {callsheet.locationAddress}
               </div>
             )}
           </div>
@@ -204,11 +204,11 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   color: customization.colors.scheduleBodyText
                 }}
               >
-                <div style={{ fontWeight: 'medium' }}>{item.scene}</div>
+                <div style={{ fontWeight: 'medium' }}>{item.sceneNumber}</div>
                 <div>{item.intExt}</div>
                 <div style={{ wordBreak: 'break-word' }}>{item.description}</div>
-                <div>{item.time}</div>
-                <div>{item.pages}</div>
+                <div>{item.estimatedTime}</div>
+                <div>{item.pageCount}</div>
               </div>
             ))}
           </div>
@@ -231,7 +231,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isLandscape ? 'repeat(2, 1fr)' : '1fr',
+            gridTemplateColumns: isLandscape ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
             gap: `${customization.layout.spacing.itemGap}px`
           }}>
             {callsheet.cast.map((member, index) => (
@@ -242,7 +242,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   backgroundColor: customization.colors.contactCardBackground,
                   border: `1px solid ${customization.colors.contactCardBorder}`,
                   borderRadius: `${customization.visual.cornerRadius}px`,
-                  padding: '12px'
+                  padding: '12px',
+                  breakInside: 'avoid'
                 }}
               >
                 <div style={{
@@ -253,13 +254,15 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 }}>
                   {member.name}
                 </div>
-                <div style={{
-                  fontSize: `${customization.typography.fontSize.small}px`,
-                  color: customization.colors.contactRoleText,
-                  marginBottom: '8px'
-                }}>
-                  as {member.character}
-                </div>
+                {member.character && (
+                  <div style={{
+                    fontSize: `${customization.typography.fontSize.small}px`,
+                    color: customization.colors.contactRoleText,
+                    marginBottom: '8px'
+                  }}>
+                    as {member.character}
+                  </div>
+                )}
                 <div style={{ fontSize: `${customization.typography.fontSize.small}px`, color: customization.colors.contactDetailsText }}>
                   {member.phone && (
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2px' }}>
@@ -294,7 +297,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isLandscape ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
+            gridTemplateColumns: isLandscape ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
             gap: `${customization.layout.spacing.itemGap}px`
           }}>
             {callsheet.crew.map((member, index) => (
@@ -305,7 +308,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                   backgroundColor: customization.colors.contactCardBackground,
                   border: `1px solid ${customization.colors.contactCardBorder}`,
                   borderRadius: `${customization.visual.cornerRadius}px`,
-                  padding: '12px'
+                  padding: '12px',
+                  breakInside: 'avoid'
                 }}
               >
                 <div style={{
@@ -367,7 +371,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               gap: `${customization.layout.spacing.itemGap}px`
             }}>
               {callsheet.emergencyContacts.map((contact, index) => (
-                <div key={index} className="avoid-break">
+                <div key={index} className="avoid-break" style={{ breakInside: 'avoid' }}>
                   <div style={{
                     fontSize: `${customization.typography.fontSize.body}px`,
                     fontWeight: 'bold',
@@ -398,7 +402,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       )}
 
       {/* Notes Section */}
-      {callsheet.notes && (
+      {callsheet.specialNotes && (
         <div className="pdf-section avoid-break">
           <h2 style={{
             fontSize: `${customization.typography.fontSize.header}px`,
@@ -422,7 +426,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word'
           }}>
-            {callsheet.notes}
+            {callsheet.specialNotes}
           </div>
         </div>
       )}
