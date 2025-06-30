@@ -1,21 +1,26 @@
 
-import { useState } from 'react';
-import { ArrowLeft, Search, Plus, Edit, Trash2, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { useCallsheet, Contact } from '@/contexts/CallsheetContext';
+import { ContactConsentDialog } from '@/components/gdpr/ContactConsentDialog';
+import { useDataProcessingLog } from '@/hooks/useDataProcessingLog';
+import { ArrowLeft, Plus, Pencil, Trash2, Users, Shield, ShieldCheck } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ContactsManagerProps {
   onBack: () => void;
 }
 
-export const ContactsManager = ({ onBack }: ContactsManagerProps) => {
+export const ContactsManager: React.FC<ContactsManagerProps> = ({ onBack }) => {
   const { contacts, addContact, updateContact, deleteContact } = useCallsheet();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const { logActivity } = useDataProcessingLog();
+  const { toast } = useToast();
+
   const [formData, setFormData] = useState({
     name: '',
     role: '',
@@ -25,14 +30,11 @@ export const ContactsManager = ({ onBack }: ContactsManagerProps) => {
     department: '',
   });
 
-  const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (contact.character && contact.character.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (contact.department && contact.department.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [pendingContactData, setPendingContactData] = useState<any>(null);
 
-  const handleCreateNew = () => {
+  const resetForm = () => {
     setFormData({
       name: '',
       role: '',
@@ -41,8 +43,65 @@ export const ContactsManager = ({ onBack }: ContactsManagerProps) => {
       character: '',
       department: '',
     });
-    setEditingContact(null);
-    setShowForm(true);
+    setEditingId(null);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.role || !formData.phone) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in name, role, and phone number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if we're adding a new contact (not editing)
+    if (!editingId) {
+      setPendingContactData(formData);
+      setShowConsentDialog(true);
+      return;
+    }
+
+    // If editing, proceed directly
+    handleContactSave(false);
+  };
+
+  const handleContactSave = async (consentObtained: boolean) => {
+    try {
+      const contactData = {
+        ...formData,
+        consent_obtained: consentObtained,
+        consent_date: consentObtained ? new Date().toISOString() : null,
+        data_source: 'user_input',
+      };
+
+      if (editingId) {
+        await updateContact(editingId, contactData);
+        await logActivity('update', 'contact', editingId);
+        toast({
+          title: "Contact updated",
+          description: `${formData.name} has been updated successfully.`,
+        });
+      } else {
+        const newContact = await addContact(contactData);
+        await logActivity('create', 'contact', newContact.id);
+        toast({
+          title: "Contact added",
+          description: `${formData.name} has been added to your contacts.`,
+        });
+      }
+
+      resetForm();
+    } catch (error) {
+      toast({
+        title: "Error saving contact",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEdit = (contact: Contact) => {
@@ -50,297 +109,203 @@ export const ContactsManager = ({ onBack }: ContactsManagerProps) => {
       name: contact.name,
       role: contact.role,
       phone: contact.phone,
-      email: contact.email,
+      email: contact.email || '',
       character: contact.character || '',
       department: contact.department || '',
     });
-    setEditingContact(contact);
-    setShowForm(true);
+    setEditingId(contact.id);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.role || !formData.phone) {
-      alert('Please fill in name, role, and phone number');
-      return;
-    }
-
-    const contactData = {
-      name: formData.name,
-      role: formData.role,
-      phone: formData.phone,
-      email: formData.email,
-      character: formData.character || undefined,
-      department: formData.department || undefined,
-    };
-
-    if (editingContact) {
-      updateContact(editingContact.id, contactData);
-    } else {
-      addContact(contactData);
-    }
-
-    setShowForm(false);
-    setEditingContact(null);
-  };
-
-  const handleDelete = (contact: Contact) => {
-    if (confirm(`Are you sure you want to delete ${contact.name}?`)) {
-      deleteContact(contact.id);
+  const handleDelete = async (contact: Contact) => {
+    if (window.confirm(`Are you sure you want to delete ${contact.name}?`)) {
+      try {
+        await deleteContact(contact.id);
+        await logActivity('delete', 'contact', contact.id);
+        toast({
+          title: "Contact deleted",
+          description: `${contact.name} has been removed from your contacts.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error deleting contact",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  if (showForm) {
-    return (
-      <div className="p-8 max-w-2xl">
-        <div className="flex items-center mb-8">
-          <Button variant="ghost" onClick={() => setShowForm(false)} className="mr-4">
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Contacts
+  return (
+    <div className="container mx-auto py-6 px-4">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            className="mr-4 flex items-center"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
           </Button>
-          <h1 className="text-2xl font-bold text-foreground">
-            {editingContact ? 'Edit Contact' : 'Create New Contact'}
+          <h1 className="text-2xl font-bold flex items-center">
+            <Users className="w-6 h-6 mr-2" />
+            Contacts Manager
           </h1>
         </div>
+      </div>
 
-        <Card className="bg-card text-card-foreground border-border">
-          <CardContent className="p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Add/Edit Contact Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {editingId ? 'Edit Contact' : 'Add New Contact'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name" className="text-foreground">Name *</Label>
+                  <Label htmlFor="name">Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter full name"
-                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="role" className="text-foreground">Role *</Label>
+                  <Label htmlFor="role">Role *</Label>
                   <Input
                     id="role"
                     value={formData.role}
-                    onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-                    placeholder="e.g., Director, Actor, DP"
-                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     required
                   />
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="phone" className="text-foreground">Phone *</Label>
+                  <Label htmlFor="phone">Phone *</Label>
                   <Input
                     id="phone"
+                    type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="(555) 123-4567"
-                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email" className="text-foreground">Email</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="email@example.com"
-                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="character" className="text-foreground">Character Name</Label>
+                  <Label htmlFor="character">Character</Label>
                   <Input
                     id="character"
                     value={formData.character}
-                    onChange={(e) => setFormData(prev => ({ ...prev, character: e.target.value }))}
-                    placeholder="For cast members"
-                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                    onChange={(e) => setFormData({ ...formData, character: e.target.value })}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="department" className="text-foreground">Department</Label>
+                  <Label htmlFor="department">Department</Label>
                   <Input
                     id="department"
                     value={formData.department}
-                    onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                    placeholder="e.g., Camera, Sound, Wardrobe"
-                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-4 pt-4">
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                  Cancel
+              <div className="flex space-x-2">
+                <Button type="submit" className="flex items-center">
+                  <Plus className="w-4 h-4 mr-2" />
+                  {editingId ? 'Update Contact' : 'Add Contact'}
                 </Button>
-                <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  {editingContact ? 'Update Contact' : 'Create Contact'}
-                </Button>
+                {editingId && (
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                )}
               </div>
             </form>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
 
-  return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center">
-          <Button variant="ghost" onClick={onBack} className="mr-4">
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Contact Database</h1>
-            <p className="text-muted-foreground mt-1">Manage your cast, crew, and emergency contacts</p>
-          </div>
-        </div>
-        <Button onClick={handleCreateNew} className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="w-5 h-5 mr-2" />
-          New Contact
-        </Button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="bg-card text-card-foreground border-border">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">Total Contacts</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        {/* Contacts List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Contacts ({contacts.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{contacts.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card text-card-foreground border-border">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">Cast Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {contacts.filter(c => c.character).length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card text-card-foreground border-border">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">Crew Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {contacts.filter(c => c.department && !c.character).length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-        <Input
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search contacts by name, role, character, or department..."
-          className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground"
-        />
-      </div>
-
-      {/* Contacts List */}
-      <div className="space-y-4">
-        {filteredContacts.length === 0 && !searchTerm && (
-          <Card className="bg-card text-card-foreground border-border">
-            <CardContent className="p-12 text-center">
-              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No contacts yet</h3>
-              <p className="text-muted-foreground mb-4">Start building your contact database</p>
-              <Button onClick={handleCreateNew} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Plus className="w-5 h-5 mr-2" />
-                Create First Contact
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {filteredContacts.length === 0 && searchTerm && (
-          <Card className="bg-card text-card-foreground border-border">
-            <CardContent className="p-12 text-center">
-              <div className="text-muted-foreground">No contacts found matching your search.</div>
-            </CardContent>
-          </Card>
-        )}
-
-        {filteredContacts.map((contact) => (
-          <Card key={contact.id} className="hover:shadow-md transition-shadow bg-card text-card-foreground border-border">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-foreground mb-2">{contact.name}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                    <div>
-                      <div className="font-medium text-foreground">Role</div>
-                      <div>{contact.role}</div>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {contacts.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">
+                  No contacts yet. Add your first contact to get started.
+                </p>
+              ) : (
+                contacts.map((contact) => (
+                  <div key={contact.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-medium">{contact.name}</h3>
+                        <p className="text-sm text-muted-foreground">{contact.role}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {contact.consent_obtained ? (
+                          <ShieldCheck className="w-4 h-4 text-green-600" title="Consent obtained" />
+                        ) : (
+                          <Shield className="w-4 h-4 text-orange-500" title="Consent status unknown" />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(contact)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(contact)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    {contact.character && (
-                      <div>
-                        <div className="font-medium text-foreground">Character</div>
-                        <div>{contact.character}</div>
-                      </div>
-                    )}
-                    {contact.department && (
-                      <div>
-                        <div className="font-medium text-foreground">Department</div>
-                        <div>{contact.department}</div>
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-medium text-foreground">Phone</div>
-                      <div>{contact.phone}</div>
+                    
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p>📞 {contact.phone}</p>
+                      {contact.email && <p>✉️ {contact.email}</p>}
+                      {contact.character && <p>🎭 {contact.character}</p>}
+                      {contact.department && <p>🏢 {contact.department}</p>}
                     </div>
-                    {contact.email && (
-                      <div>
-                        <div className="font-medium text-foreground">Email</div>
-                        <div>{contact.email}</div>
-                      </div>
-                    )}
                   </div>
-                </div>
-                <div className="flex items-center space-x-2 ml-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit(contact)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                    onClick={() => handleDelete(contact)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <ContactConsentDialog
+        isOpen={showConsentDialog}
+        onClose={() => {
+          setShowConsentDialog(false);
+          setPendingContactData(null);
+        }}
+        onConfirm={handleContactSave}
+        contactName={pendingContactData?.name || ''}
+      />
     </div>
   );
 };

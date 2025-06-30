@@ -5,8 +5,10 @@ import { Dashboard } from '@/components/Dashboard';
 import { CallsheetForm } from '@/components/CallsheetForm';
 import { ContactsManager } from '@/components/ContactsManager';
 import { MasterPDFSettings } from '@/components/MasterPDFSettings';
+import { PrivacyPage } from '@/components/PrivacyPage';
 import { CallsheetProvider } from '@/contexts/CallsheetContext';
 import { LandingPage } from '@/components/LandingPage';
+import { ConsentBanner } from '@/components/gdpr/ConsentBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
@@ -34,6 +36,8 @@ const Index = () => {
         return <ContactsManager onBack={() => setActiveView('dashboard')} />;
       case 'pdf-settings':
         return <MasterPDFSettings onBack={() => setActiveView('dashboard')} />;
+      case 'privacy':
+        return <PrivacyPage onBack={() => setActiveView('dashboard')} />;
       default:
         return <Dashboard onCreateNew={() => setActiveView('create')} />;
     }
@@ -44,7 +48,7 @@ const Index = () => {
       <div className="flex h-screen bg-background">
         <Sidebar activeView={activeView} setActiveView={setActiveView} />
         <main className="flex-1 overflow-auto">
-          {/* Softer Header with user info */}
+          {/* Header with user info */}
           <div className="bg-card border-b border-border/30 px-6 py-3 flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <User className="w-4 h-4 text-muted-foreground" />
@@ -65,6 +69,7 @@ const Index = () => {
           {renderActiveView()}
         </main>
       </div>
+      <ConsentBanner />
     </CallsheetProvider>
   );
 };

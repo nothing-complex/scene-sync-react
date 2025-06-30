@@ -127,7 +127,10 @@ export type Database = {
       contacts: {
         Row: {
           character: string | null
+          consent_date: string | null
+          consent_obtained: boolean | null
           created_at: string
+          data_source: string | null
           department: string | null
           email: string | null
           id: string
@@ -139,7 +142,10 @@ export type Database = {
         }
         Insert: {
           character?: string | null
+          consent_date?: string | null
+          consent_obtained?: boolean | null
           created_at?: string
+          data_source?: string | null
           department?: string | null
           email?: string | null
           id?: string
@@ -151,7 +157,10 @@ export type Database = {
         }
         Update: {
           character?: string | null
+          consent_date?: string | null
+          consent_obtained?: boolean | null
           created_at?: string
+          data_source?: string | null
           department?: string | null
           email?: string | null
           id?: string
@@ -160,6 +169,69 @@ export type Database = {
           role?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      data_processing_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      data_retention_policies: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          resource_type: string
+          retention_days: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          resource_type: string
+          retention_days: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          resource_type?: string
+          retention_days?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -192,8 +264,12 @@ export type Database = {
           avatar_url: string | null
           company: string | null
           created_at: string
+          data_processing_consent: boolean | null
           full_name: string | null
           id: string
+          last_privacy_update: string | null
+          marketing_consent: boolean | null
+          privacy_settings: Json | null
           role: string | null
           updated_at: string
         }
@@ -201,8 +277,12 @@ export type Database = {
           avatar_url?: string | null
           company?: string | null
           created_at?: string
+          data_processing_consent?: boolean | null
           full_name?: string | null
           id: string
+          last_privacy_update?: string | null
+          marketing_consent?: boolean | null
+          privacy_settings?: Json | null
           role?: string | null
           updated_at?: string
         }
@@ -210,8 +290,12 @@ export type Database = {
           avatar_url?: string | null
           company?: string | null
           created_at?: string
+          data_processing_consent?: boolean | null
           full_name?: string | null
           id?: string
+          last_privacy_update?: string | null
+          marketing_consent?: boolean | null
+          privacy_settings?: Json | null
           role?: string | null
           updated_at?: string
         }
@@ -288,12 +372,64 @@ export type Database = {
         }
         Relationships: []
       }
+      user_consents: {
+        Row: {
+          consent_type: string
+          created_at: string
+          granted: boolean
+          granted_at: string | null
+          id: string
+          ip_address: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          consent_type: string
+          created_at?: string
+          granted?: boolean
+          granted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          consent_type?: string
+          created_at?: string
+          granted?: boolean
+          granted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      log_data_processing: {
+        Args: {
+          p_user_id: string
+          p_action: string
+          p_resource_type: string
+          p_resource_id?: string
+          p_details?: Json
+        }
+        Returns: undefined
+      }
+      update_user_consent: {
+        Args: { p_user_id: string; p_consent_type: string; p_granted: boolean }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
