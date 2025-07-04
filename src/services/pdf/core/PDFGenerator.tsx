@@ -79,9 +79,10 @@ export class PDFGenerator {
               box-sizing: border-box;
             }
             html, body {
-              font-family: ${customization.typography.fontFamily}, system-ui, -apple-system, sans-serif;
+              font-family: ${customization.typography.sectionFonts.body || customization.typography.fontFamily}, system-ui, -apple-system, sans-serif;
               background-color: ${customization.colors.background};
               color: ${customization.colors.text};
+              line-height: ${customization.layout.spacing.lineHeight || customization.typography.lineHeight.body};
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
               color-adjust: exact;
@@ -119,6 +120,18 @@ export class PDFGenerator {
             .p-3 { padding: 0.75rem; }
             .p-4 { padding: 1rem; }
             .space-y-3 > * + * { margin-top: 0.75rem; }
+            
+            /* PDF Specific Spacing */
+            .contact-card {
+              margin-bottom: ${customization.layout.spacing.cardSpacing}px;
+              line-height: ${customization.layout.spacing.lineHeight || customization.typography.lineHeight.body};
+            }
+            .pdf-section {
+              margin-bottom: ${customization.layout.spacing.sectionGap}px;
+            }
+            .pdf-section-item {
+              margin-bottom: ${customization.layout.spacing.itemGap}px;
+            }
             
             /* Flexbox */
             .flex { display: flex; }

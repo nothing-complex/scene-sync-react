@@ -131,6 +131,27 @@ export const EnhancedBrandingTab: React.FC<EnhancedBrandingTabProps> = ({
               />
             </div>
           </div>
+
+          {(customization.branding.companyName || customization.branding.productionCompany || customization.branding.customText1 || customization.branding.customText2 || customization.branding.customText3) && (
+            <div>
+              <Label>Company Information Alignment</Label>
+              <Select
+                value={customization.layout.headerAlignment}
+                onValueChange={(value: 'left' | 'center' | 'right') => updateCustomization({
+                  layout: { ...customization.layout, headerAlignment: value }
+                })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="center">Center</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </Card>
 
