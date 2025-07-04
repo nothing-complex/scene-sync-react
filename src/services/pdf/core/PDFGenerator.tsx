@@ -82,9 +82,9 @@ export class PDFGenerator {
               box-sizing: border-box;
             }
             html, body {
-              font-family: system-ui, -apple-system, sans-serif;
-              background-color: white;
-              color: black;
+              font-family: ${customization.typography.fontFamily}, system-ui, -apple-system, sans-serif;
+              background-color: ${customization.colors.background};
+              color: ${customization.colors.text};
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
               color-adjust: exact;

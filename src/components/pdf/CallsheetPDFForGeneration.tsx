@@ -34,10 +34,10 @@ export const CallsheetPDFForGeneration: React.FC<CallsheetPDFForGenerationProps>
       id="pdf-preview-container"
       style={{
         backgroundColor: customization.colors.background || '#ffffff',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        fontSize: '12px',
-        lineHeight: '1.4',
-        color: '#000000',
+        fontFamily: `${customization.typography.fontFamily}, system-ui, -apple-system, sans-serif`,
+        fontSize: `${customization.typography.fontSize.body}px`,
+        lineHeight: customization.typography.lineHeight.body,
+        color: customization.colors.text,
         padding: 0,
         margin: 0,
         boxSizing: 'border-box',
