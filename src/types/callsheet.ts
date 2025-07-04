@@ -8,6 +8,9 @@ export interface Contact {
   character?: string;
   department?: string;
   company?: string;
+  consent_obtained?: boolean;
+  consent_date?: string;
+  data_source?: string;
 }
 
 export interface ScheduleItem {

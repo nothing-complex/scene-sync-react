@@ -262,9 +262,9 @@ export const ContactsManager: React.FC<ContactsManagerProps> = ({ onBack }) => {
                       </div>
                       <div className="flex items-center space-x-2">
                         {contact.consent_obtained ? (
-                          <ShieldCheck className="w-4 h-4 text-green-600" title="Consent obtained" />
+                          <ShieldCheck className="w-4 h-4 text-green-600" />
                         ) : (
-                          <Shield className="w-4 h-4 text-orange-500" title="Consent status unknown" />
+                          <Shield className="w-4 h-4 text-orange-500" />
                         )}
                         <Button
                           variant="ghost"
