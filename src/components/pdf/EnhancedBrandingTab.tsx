@@ -105,32 +105,30 @@ export const EnhancedBrandingTab: React.FC<EnhancedBrandingTabProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <Label>Network</Label>
+              <Label>Custom Text 1</Label>
               <Input
-                value={customization.branding.network || ''}
-                onChange={(e) => updateBranding({ network: e.target.value })}
-                placeholder="Network/Channel"
+                value={customization.branding.customText1 || ''}
+                onChange={(e) => updateBranding({ customText1: e.target.value })}
+                placeholder="Network, Genre, etc."
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label>Season</Label>
-                <Input
-                  value={customization.branding.season || ''}
-                  onChange={(e) => updateBranding({ season: e.target.value })}
-                  placeholder="1"
-                />
-              </div>
-              <div>
-                <Label>Episode</Label>
-                <Input
-                  value={customization.branding.episode || ''}
-                  onChange={(e) => updateBranding({ episode: e.target.value })}
-                  placeholder="1"
-                />
-              </div>
+            <div>
+              <Label>Custom Text 2</Label>
+              <Input
+                value={customization.branding.customText2 || ''}
+                onChange={(e) => updateBranding({ customText2: e.target.value })}
+                placeholder="Season, Year, etc."
+              />
+            </div>
+            <div>
+              <Label>Custom Text 3</Label>
+              <Input
+                value={customization.branding.customText3 || ''}
+                onChange={(e) => updateBranding({ customText3: e.target.value })}
+                placeholder="Episode, Version, etc."
+              />
             </div>
           </div>
         </CardContent>

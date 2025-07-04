@@ -60,9 +60,9 @@ export interface PDFTypography {
 export interface PDFBranding {
   companyName?: string;
   productionCompany?: string;
-  network?: string;
-  season?: string;
-  episode?: string;
+  customText1?: string;
+  customText2?: string;
+  customText3?: string;
   logo?: {
     url: string;
     position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'center-left' | 'center-right';

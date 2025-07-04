@@ -3,7 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
-import { CallsheetPDFForGeneration } from '../../../components/pdf/CallsheetPDFForGeneration';
+import { CallsheetPDFPreview } from '../../../components/pdf/CallsheetPDFPreview';
 import { HtmlToPdfService } from '../HtmlToPdfService';
 
 export class PDFGenerator {
@@ -40,21 +40,18 @@ export class PDFGenerator {
       await new Promise<void>((resolve, reject) => {
         try {
           root.render(
-            React.createElement(CallsheetPDFForGeneration, {
+            React.createElement(CallsheetPDFPreview, {
               callsheet,
               customization,
-              onReady: () => {
-                console.log('PDFGenerator: React component rendered and ready');
-                resolve();
-              }
+              className: 'print-optimized'
             })
           );
           
-          // Fallback timeout in case onReady doesn't fire
+          // Wait for component to render completely
           setTimeout(() => {
-            console.log('PDFGenerator: Using fallback timeout for component rendering');
+            console.log('PDFGenerator: Component rendered, proceeding with PDF generation');
             resolve();
-          }, 1500);
+          }, 2000); // Increased timeout for better rendering
         } catch (error) {
           reject(error);
         }

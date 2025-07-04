@@ -16,7 +16,7 @@ export class PDFService {
   async generatePDF(callsheet: CallsheetData, customization: Partial<PDFCustomization> = {}): Promise<Blob> {
     console.log('PDFService: Starting PDF generation');
     
-    const mergedCustomization = CustomizationMerger.mergeCustomization(customization);
+    const mergedCustomization = await CustomizationMerger.mergeCustomization(customization);
     return await this.generator.generatePDF(callsheet, mergedCustomization);
   }
 

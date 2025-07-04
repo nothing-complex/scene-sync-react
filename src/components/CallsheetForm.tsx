@@ -76,6 +76,22 @@ export const CallsheetForm = ({ onBack, callsheetId }: CallsheetFormProps) => {
   const [pdfCustomization, setPdfCustomization] = useState<PDFCustomization>(DEFAULT_PDF_CUSTOMIZATION);
   const [activeTab, setActiveTab] = useState('basic');
 
+  // Load master PDF settings on component mount
+  useEffect(() => {
+    const loadMasterSettings = async () => {
+      try {
+        const { MasterPDFSettingsService } = await import('@/services/masterPdfSettingsService');
+        const masterSettings = await MasterPDFSettingsService.loadMasterSettings();
+        setPdfCustomization(masterSettings);
+        console.log('CallsheetForm: Master PDF settings loaded:', masterSettings);
+      } catch (error) {
+        console.error('CallsheetForm: Error loading master PDF settings:', error);
+      }
+    };
+
+    loadMasterSettings();
+  }, []);
+
   useEffect(() => {
     if (existingCallsheet) {
       setFormData(existingCallsheet);

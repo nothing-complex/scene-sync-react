@@ -1,5 +1,6 @@
 
 import { PDFCustomization, DEFAULT_PDF_CUSTOMIZATION } from '@/types/pdfTypes';
+import { MasterPDFSettingsService } from '@/services/masterPdfSettingsService';
 
 export class CustomizationMerger {
   static safeDeepMerge(target: any, source: any): any {
@@ -20,24 +21,49 @@ export class CustomizationMerger {
     return result;
   }
 
-  static mergeCustomization(customization: Partial<PDFCustomization>): PDFCustomization {
-    console.log('CustomizationMerger: Merging customization with defaults');
+  static async mergeCustomization(customization: Partial<PDFCustomization>): Promise<PDFCustomization> {
+    console.log('CustomizationMerger: Loading master settings and merging customization');
     
-    const merged = this.safeDeepMerge(DEFAULT_PDF_CUSTOMIZATION, customization);
-    
-    // Ensure cornerRadius is always a valid number
-    if (!merged.visual) {
-      merged.visual = { ...DEFAULT_PDF_CUSTOMIZATION.visual };
+    try {
+      // Load master settings first
+      const masterSettings = await MasterPDFSettingsService.loadMasterSettings();
+      console.log('CustomizationMerger: Master settings loaded:', masterSettings);
+      
+      // Merge: DEFAULT_PDF_CUSTOMIZATION <- masterSettings <- provided customization
+      let merged = this.safeDeepMerge(DEFAULT_PDF_CUSTOMIZATION, masterSettings);
+      merged = this.safeDeepMerge(merged, customization);
+      
+      // Ensure cornerRadius is always a valid number
+      if (!merged.visual) {
+        merged.visual = { ...DEFAULT_PDF_CUSTOMIZATION.visual };
+      }
+      
+      if (typeof merged.visual.cornerRadius !== 'number' || 
+          isNaN(merged.visual.cornerRadius) || 
+          merged.visual.cornerRadius < 0) {
+        console.warn('CustomizationMerger: Invalid cornerRadius, using default:', DEFAULT_PDF_CUSTOMIZATION.visual.cornerRadius);
+        merged.visual.cornerRadius = DEFAULT_PDF_CUSTOMIZATION.visual.cornerRadius;
+      }
+      
+      console.log('CustomizationMerger: Final merged customization:', merged);
+      return merged;
+    } catch (error) {
+      console.error('CustomizationMerger: Error loading master settings, using defaults:', error);
+      
+      // Fallback to default merge if master settings fail
+      const merged = this.safeDeepMerge(DEFAULT_PDF_CUSTOMIZATION, customization);
+      
+      if (!merged.visual) {
+        merged.visual = { ...DEFAULT_PDF_CUSTOMIZATION.visual };
+      }
+      
+      if (typeof merged.visual.cornerRadius !== 'number' || 
+          isNaN(merged.visual.cornerRadius) || 
+          merged.visual.cornerRadius < 0) {
+        merged.visual.cornerRadius = DEFAULT_PDF_CUSTOMIZATION.visual.cornerRadius;
+      }
+      
+      return merged;
     }
-    
-    if (typeof merged.visual.cornerRadius !== 'number' || 
-        isNaN(merged.visual.cornerRadius) || 
-        merged.visual.cornerRadius < 0) {
-      console.warn('CustomizationMerger: Invalid cornerRadius, using default:', DEFAULT_PDF_CUSTOMIZATION.visual.cornerRadius);
-      merged.visual.cornerRadius = DEFAULT_PDF_CUSTOMIZATION.visual.cornerRadius;
-    }
-    
-    console.log('CustomizationMerger: Final cornerRadius:', merged.visual.cornerRadius);
-    return merged;
   }
 }

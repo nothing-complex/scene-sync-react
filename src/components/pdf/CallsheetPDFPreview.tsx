@@ -186,8 +186,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           </div>
         )}
 
-        {/* Watermark */}
-        {customization.branding?.watermark && (
+        {/* Watermark - positioned OVER content */}
+        {customization.branding?.watermark?.text && (
           <div
             style={{
               position: 'absolute',
@@ -196,13 +196,16 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               transform: customization.branding.watermark.position === 'diagonal' 
                 ? 'translate(-50%, -50%) rotate(-45deg)' 
                 : 'translate(-50%, -50%)',
-              fontSize: '48px',
+              fontSize: '72px',
               fontWeight: 'bold',
-              color: customization.colors.textLight,
-              opacity: customization.branding.watermark.opacity || 0.1,
-              zIndex: 1,
+              color: customization.colors.primary,
+              opacity: Math.min((customization.branding.watermark.opacity || 20) / 100, 0.5),
+              zIndex: 100,
               pointerEvents: 'none',
-              userSelect: 'none'
+              userSelect: 'none',
+              textAlign: 'center',
+              whiteSpace: 'nowrap',
+              fontFamily: `${customization.typography.fontFamily}, system-ui, -apple-system, sans-serif`
             }}
           >
             {customization.branding.watermark.text}
@@ -256,14 +259,37 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 </p>
               </div>
               
-              {customization.branding?.companyName && !customization.branding?.logo && (
+              {(customization.branding?.companyName || customization.branding?.productionCompany || customization.branding?.customText1 || customization.branding?.customText2 || customization.branding?.customText3) && (
                 <div style={{
                   fontSize: `${customization.typography.fontSize.header}px`,
                   fontWeight: customization.typography.fontWeight.header,
                   color: customization.colors.headerText,
-                  textAlign: 'right'
+                  textAlign: 'right',
+                  lineHeight: 1.4
                 }}>
-                  {customization.branding.companyName}
+                  {customization.branding?.companyName && (
+                    <div style={{ marginBottom: '4px' }}>{customization.branding.companyName}</div>
+                  )}
+                  {customization.branding?.productionCompany && (
+                    <div style={{ marginBottom: '4px', fontSize: `${customization.typography.fontSize.small}px` }}>
+                      {customization.branding.productionCompany}
+                    </div>
+                  )}
+                  {customization.branding?.customText1 && (
+                    <div style={{ marginBottom: '2px', fontSize: `${customization.typography.fontSize.small}px` }}>
+                      {customization.branding.customText1}
+                    </div>
+                  )}
+                  {customization.branding?.customText2 && (
+                    <div style={{ marginBottom: '2px', fontSize: `${customization.typography.fontSize.small}px` }}>
+                      {customization.branding.customText2}
+                    </div>
+                  )}
+                  {customization.branding?.customText3 && (
+                    <div style={{ fontSize: `${customization.typography.fontSize.small}px` }}>
+                      {customization.branding.customText3}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -337,6 +363,22 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             </div>
           </div>
 
+          {/* Section Divider */}
+          {customization.visual.sectionDividers !== 'none' && (
+            <div style={{
+              marginBottom: `${customization.layout.spacing.sectionGap}px`,
+              marginTop: `${customization.layout.spacing.sectionGap}px`,
+              ...(customization.visual.sectionDividers === 'line' && {
+                borderBottom: `1px solid ${customization.colors.border}`,
+                paddingBottom: '12px'
+              }),
+              ...(customization.visual.sectionDividers === 'accent' && {
+                borderBottom: `2px solid ${customization.colors.primary}`,
+                paddingBottom: '12px'
+              })
+            }} />
+          )}
+
           {/* Schedule Section */}
           {callsheet.schedule && callsheet.schedule.length > 0 && (
             <div className="pdf-section avoid-break">
@@ -345,7 +387,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 fontWeight: customization.typography.fontWeight.header,
                 color: customization.colors.scheduleSectionColor,
                 margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
-                borderBottom: `1px solid ${customization.colors.border}`,
+                borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 
+                            customization.visual.sectionDividers === 'accent' ? `2px solid ${customization.colors.primary}` : 'none',
                 paddingBottom: '12px',
                 fontFamily: customization.typography.sectionFonts.headers,
                 display: 'flex',
@@ -441,11 +484,16 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                     key={index}
                     className="contact-card avoid-break"
                      style={{
-                       backgroundColor: customization.colors.contactCardBackground,
-                       border: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}`,
+                       backgroundColor: customization.visual.cardStyle === 'gradient' ? 'transparent' : customization.colors.contactCardBackground,
+                       background: customization.visual.cardStyle === 'gradient' && customization.colors.gradient ? 
+                         `linear-gradient(${customization.colors.gradient.direction}, ${customization.colors.gradient.from}, ${customization.colors.gradient.to})` : 
+                         customization.colors.contactCardBackground,
+                       border: customization.visual.cardStyle === 'bordered' ? `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` :
+                              customization.visual.cardStyle === 'elevated' ? 'none' : 
+                              `1px solid ${customization.colors.contactCardBorder}`,
                        borderRadius: `${customization.visual.cornerRadius}px`,
                        padding: '18px',
-                       boxShadow: customization.visual.shadowIntensity === 'medium' ? '0 4px 6px rgba(0,0,0,0.1)' :
+                       boxShadow: customization.visual.cardStyle === 'elevated' || customization.visual.shadowIntensity === 'medium' ? '0 4px 6px rgba(0,0,0,0.1)' :
                                  customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
                      }}
                   >
@@ -515,11 +563,16 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                     key={index}
                     className="contact-card avoid-break"
                      style={{
-                       backgroundColor: customization.colors.contactCardBackground,
-                       border: `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}`,
+                       backgroundColor: customization.visual.cardStyle === 'gradient' ? 'transparent' : customization.colors.contactCardBackground,
+                       background: customization.visual.cardStyle === 'gradient' && customization.colors.gradient ? 
+                         `linear-gradient(${customization.colors.gradient.direction}, ${customization.colors.gradient.from}, ${customization.colors.gradient.to})` : 
+                         customization.colors.contactCardBackground,
+                       border: customization.visual.cardStyle === 'bordered' ? `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` :
+                              customization.visual.cardStyle === 'elevated' ? 'none' : 
+                              `1px solid ${customization.colors.contactCardBorder}`,
                        borderRadius: `${customization.visual.cornerRadius}px`,
                        padding: '18px',
-                       boxShadow: customization.visual.shadowIntensity === 'medium' ? '0 4px 6px rgba(0,0,0,0.1)' :
+                       boxShadow: customization.visual.cardStyle === 'elevated' || customization.visual.shadowIntensity === 'medium' ? '0 4px 6px rgba(0,0,0,0.1)' :
                                  customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
                      }}
                   >
