@@ -16,20 +16,44 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 }) => {
   const isLandscape = customization.layout.pageOrientation === 'landscape';
   
+  // FIX: Font family mapping function to ensure fonts work correctly - moved to top
+  const getFontFamily = (fontName: string): string => {
+    const fontMap: Record<string, string> = {
+      'inter': '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      'helvetica': '"Helvetica Neue", Helvetica, Arial, sans-serif',
+      'poppins': '"Poppins", system-ui, -apple-system, sans-serif',
+      'montserrat': '"Montserrat", system-ui, -apple-system, sans-serif',
+      'roboto': '"Roboto", system-ui, -apple-system, sans-serif',
+      'open-sans': '"Open Sans", system-ui, -apple-system, sans-serif',
+      'lato': '"Lato", system-ui, -apple-system, sans-serif',
+      'source-sans': '"Source Sans Pro", system-ui, -apple-system, sans-serif',
+      'nunito': '"Nunito", system-ui, -apple-system, sans-serif',
+      'raleway': '"Raleway", system-ui, -apple-system, sans-serif',
+      'work-sans': '"Work Sans", system-ui, -apple-system, sans-serif',
+      'playfair': '"Playfair Display", Georgia, serif',
+      'merriweather': '"Merriweather", Georgia, serif',
+      'crimson': '"Crimson Text", Georgia, serif',
+      'libre-baskerville': '"Libre Baskerville", Georgia, serif',
+      'pt-serif': '"PT Serif", Georgia, serif'
+    };
+    return fontMap[fontName] || fontMap['inter'];
+  };
+  
+  // CRITICAL FIX: Proper page dimensions for consistent preview/generation
   // Page container - represents the full page including margins
   const pageContainerStyle: React.CSSProperties = {
     width: isLandscape ? '297mm' : '210mm',
-    minHeight: isLandscape ? '210mm' : '297mm',
-    height: 'auto',
+    height: isLandscape ? '210mm' : '297mm', // Fixed height, not minHeight to prevent overflow
     backgroundColor: '#ffffff',
     margin: 0,
     padding: 0,
     boxSizing: 'border-box',
     position: 'relative',
-    overflow: 'visible'
+    overflow: 'hidden', // CRITICAL: Prevent content overflow - forces proper pagination
+    pageBreakAfter: 'always'
   };
 
-  // Content area - the actual printable area with margins applied
+  // CRITICAL FIX: Content area with proper font application and dimensions
   const contentAreaStyle: React.CSSProperties = {
     position: 'absolute',
     top: `${customization.layout.margins.top}px`,
@@ -37,15 +61,16 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     right: `${customization.layout.margins.right}px`,
     bottom: `${customization.layout.margins.bottom + 40}px`, // Extra space for footer
     width: `calc(100% - ${customization.layout.margins.left + customization.layout.margins.right}px)`,
-    minHeight: `calc(100% - ${customization.layout.margins.top + customization.layout.margins.bottom + 40}px)`,
+    height: `calc(100% - ${customization.layout.margins.top + customization.layout.margins.bottom + 40}px)`, // Fixed height for pagination
     backgroundColor: customization.colors.background || '#ffffff',
-    fontFamily: `${customization.typography.sectionFonts.body || customization.typography.fontFamily}, system-ui, -apple-system, sans-serif`,
+    // FIX: Apply default font family properly with proper fallbacks
+    fontFamily: getFontFamily(customization.typography.fontFamily),
     fontSize: `${customization.typography.fontSize.body}px`,
     lineHeight: customization.layout.spacing.lineHeight || customization.typography.lineHeight.body,
     color: customization.colors.text,
     padding: 0,
     boxSizing: 'border-box',
-    overflow: 'visible'
+    overflow: 'hidden' // CRITICAL: Prevent overflow for proper pagination
   };
 
   // Logo positioning helper
@@ -187,7 +212,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           </div>
         )}
 
-        {/* Watermark - positioned OVER content with proper opacity and color */}
+        {/* FIXED: Watermark - positioned OVER content with proper visibility */}
         {customization.branding?.watermark?.text && (
           <div
             style={{
@@ -199,29 +224,43 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 : 'translate(-50%, -50%)',
               fontSize: '72px',
               fontWeight: 'bold',
-              color: customization.colors.accent || customization.colors.primary,
-              opacity: Math.min((customization.branding.watermark.opacity || 10) / 100, 0.5),
+              // FIX: Use primary color with better contrast and ensure visibility
+              color: customization.colors.primary || '#1f2937',
+              // FIX: Ensure watermark is visible with minimum 20% opacity, max 50%
+              opacity: Math.max(Math.min((customization.branding.watermark.opacity || 30) / 100, 0.5), 0.2),
               zIndex: 1000,
               pointerEvents: 'none',
               userSelect: 'none',
               textAlign: 'center',
               whiteSpace: 'nowrap',
-              fontFamily: `${customization.typography.sectionFonts.title || customization.typography.fontFamily}, system-ui, -apple-system, sans-serif`,
-              textShadow: '0 0 4px rgba(255,255,255,0.8)'
+              fontFamily: getFontFamily(customization.typography.sectionFonts.title || customization.typography.fontFamily),
+              // FIX: Better text shadow for visibility
+              textShadow: '2px 2px 4px rgba(255,255,255,0.8), -2px -2px 4px rgba(255,255,255,0.8)'
             }}
           >
             {customization.branding.watermark.text}
           </div>
         )}
 
-        {/* Main content container */}
+        {/* Main content container with proper card styling */}
         <div style={{ 
           padding: '20px',
           position: 'relative',
           zIndex: 2,
-          borderRadius: `${customization.visual.cornerRadius}px`
+          borderRadius: `${customization.visual.cornerRadius}px`,
+          // FIX: Apply card styling based on customization
+          ...(customization.visual.cardStyle === 'elevated' && {
+            boxShadow: customization.visual.shadowIntensity === 'medium' ? 
+              '0 10px 25px rgba(0,0,0,0.15)' : '0 4px 12px rgba(0,0,0,0.1)'
+          }),
+          ...(customization.visual.cardStyle === 'bordered' && {
+            border: `${customization.layout.borderWidth || 1}px solid ${customization.colors.border}`
+          }),
+          ...(customization.visual.cardStyle === 'gradient' && customization.colors.gradient && {
+            background: `linear-gradient(${customization.colors.gradient.direction}, ${customization.colors.gradient.from}, ${customization.colors.gradient.to})`
+          })
         }}>
-          {/* Header Section */}
+          {/* Header Section with fixed white-on-white text issues */}
           <div className="pdf-header avoid-break" style={{ 
             marginBottom: `${customization.layout.spacing.sectionGap + 8}px`,
             paddingTop: customization.branding?.logo?.position?.includes('top') ? '80px' : '0'
@@ -244,18 +283,23 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 <h1 style={{
                   fontSize: `${customization.typography.fontSize.title}px`,
                   fontWeight: customization.typography.fontWeight.title,
-                  color: customization.colors.titleText,
+                  // FIX: Ensure title text is never white-on-white, use primary color for contrast
+                  color: customization.colors.titleText === '#ffffff' && customization.colors.background === '#ffffff' 
+                    ? customization.colors.primary : customization.colors.titleText,
                   margin: '0 0 12px 0',
                   lineHeight: customization.typography.lineHeight.title,
-                  fontFamily: `${customization.typography.sectionFonts.title || customization.typography.fontFamily}, system-ui, -apple-system, sans-serif`
+                  fontFamily: getFontFamily(customization.typography.sectionFonts.title || customization.typography.fontFamily)
                 }}>
                   {callsheet.projectTitle || 'Untitled Project'}
                 </h1>
                 <p style={{
                   fontSize: `${customization.typography.fontSize.body}px`,
-                  color: customization.colors.textLight,
+                  // FIX: Ensure subtitle is visible
+                  color: customization.colors.textLight === '#ffffff' && customization.colors.background === '#ffffff' 
+                    ? customization.colors.secondary : customization.colors.textLight,
                   margin: 0,
-                  fontWeight: 'normal'
+                  fontWeight: 'normal',
+                  fontFamily: getFontFamily(customization.typography.sectionFonts.body || customization.typography.fontFamily)
                 }}>
                   CALL SHEET
                 </p>
@@ -265,11 +309,13 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 <div style={{
                   fontSize: `${customization.typography.fontSize.header}px`,
                   fontWeight: customization.typography.fontWeight.header,
-                  color: customization.colors.headerText,
+                  // FIX: Ensure company information text is visible
+                  color: customization.colors.headerText === '#ffffff' && customization.colors.background === '#ffffff' 
+                    ? customization.colors.primary : customization.colors.headerText,
                   textAlign: customization.layout.headerAlignment === 'center' ? 'center' : 
                            customization.layout.headerAlignment === 'left' ? 'left' : 'right',
                   lineHeight: customization.typography.lineHeight.header,
-                  fontFamily: `${customization.typography.sectionFonts.headers || customization.typography.fontFamily}, system-ui, -apple-system, sans-serif`
+                  fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily)
                 }}>
                   {customization.branding?.companyName && (
                     <div style={{ marginBottom: '4px' }}>{customization.branding.companyName}</div>
@@ -367,7 +413,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             </div>
           </div>
 
-          {/* Section Divider */}
+          {/* FIXED: Section Divider with proper styling */}
           {customization.visual.sectionDividers !== 'none' && (
             <div style={{
               marginBottom: `${customization.layout.spacing.sectionGap}px`,
@@ -377,8 +423,11 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 paddingBottom: '12px'
               }),
               ...(customization.visual.sectionDividers === 'accent' && {
-                borderBottom: `2px solid ${customization.colors.primary}`,
+                borderBottom: `3px solid ${customization.colors.accent || customization.colors.primary}`,
                 paddingBottom: '12px'
+              }),
+              ...(customization.visual.sectionDividers === 'space' && {
+                height: '24px'
               })
             }} />
           )}
@@ -394,7 +443,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 
                             customization.visual.sectionDividers === 'accent' ? `2px solid ${customization.colors.primary}` : 'none',
                 paddingBottom: '12px',
-                fontFamily: customization.typography.sectionFonts.headers,
+                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -409,7 +458,15 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 backgroundColor: customization.colors.scheduleBackground,
                 border: `1px solid ${customization.colors.scheduleBorder}`,
                 borderRadius: `${customization.visual.cornerRadius}px`,
-                overflow: 'hidden'
+                overflow: 'hidden',
+                // FIX: Apply card styling to schedule section
+                ...(customization.visual.cardStyle === 'elevated' && {
+                  boxShadow: customization.visual.shadowIntensity === 'medium' ? 
+                    '0 8px 20px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.08)'
+                }),
+                ...(customization.visual.cardStyle === 'gradient' && customization.colors.gradient && {
+                  background: `linear-gradient(${customization.colors.gradient.direction}, ${customization.colors.gradient.from}, ${customization.colors.gradient.to})`
+                })
               }}>
                 {/* Schedule Header */}
                 <div style={{
@@ -440,10 +497,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                       gridTemplateColumns: '80px 80px 1fr 120px 80px',
                       gap: '16px',
                       padding: '16px',
-                      backgroundColor: index % 2 === 0 ? customization.colors.scheduleRowBackground : customization.colors.scheduleRowAlternate,
+                      backgroundColor: index % 2 === 1 ? customization.colors.scheduleRowAlternate : customization.colors.scheduleRowBackground,
                       borderBottom: index < callsheet.schedule.length - 1 ? `1px solid ${customization.colors.scheduleBorder}` : 'none',
                       fontSize: `${customization.typography.fontSize.body}px`,
-                      color: customization.colors.scheduleBodyText
+                      color: customization.colors.scheduleBodyText,
+                      fontFamily: getFontFamily(customization.typography.sectionFonts.schedule || customization.typography.fontFamily),
+                      lineHeight: customization.layout.spacing.lineHeight || customization.typography.lineHeight.body
                     }}
                   >
                     <div style={{ fontWeight: 'medium' }}>{item.sceneNumber}</div>
@@ -467,7 +526,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
                 borderBottom: `1px solid ${customization.colors.border}`,
                 paddingBottom: '12px',
-                fontFamily: customization.typography.sectionFonts.headers,
+                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -546,7 +605,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
                 borderBottom: `1px solid ${customization.colors.border}`,
                 paddingBottom: '12px',
-                fontFamily: customization.typography.sectionFonts.headers,
+                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -623,7 +682,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
                 borderBottom: `2px solid ${customization.colors.emergencySectionColor}`,
                 paddingBottom: '12px',
-                fontFamily: customization.typography.sectionFonts.headers,
+                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -686,7 +745,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
                 borderBottom: `1px solid ${customization.colors.border}`,
                 paddingBottom: '12px',
-                fontFamily: customization.typography.sectionFonts.headers,
+                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'

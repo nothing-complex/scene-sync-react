@@ -13,6 +13,29 @@ export class PDFGenerator {
     this.htmlToPdfService = new HtmlToPdfService();
   }
 
+  // FIX: Font family mapping function for PDF generation consistency
+  private getFontFamily(fontName: string): string {
+    const fontMap: Record<string, string> = {
+      'inter': '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      'helvetica': '"Helvetica Neue", Helvetica, Arial, sans-serif',
+      'poppins': '"Poppins", system-ui, -apple-system, sans-serif',
+      'montserrat': '"Montserrat", system-ui, -apple-system, sans-serif',
+      'roboto': '"Roboto", system-ui, -apple-system, sans-serif',
+      'open-sans': '"Open Sans", system-ui, -apple-system, sans-serif',
+      'lato': '"Lato", system-ui, -apple-system, sans-serif',
+      'source-sans': '"Source Sans Pro", system-ui, -apple-system, sans-serif',
+      'nunito': '"Nunito", system-ui, -apple-system, sans-serif',
+      'raleway': '"Raleway", system-ui, -apple-system, sans-serif',
+      'work-sans': '"Work Sans", system-ui, -apple-system, sans-serif',
+      'playfair': '"Playfair Display", Georgia, serif',
+      'merriweather': '"Merriweather", Georgia, serif',
+      'crimson': '"Crimson Text", Georgia, serif',
+      'libre-baskerville': '"Libre Baskerville", Georgia, serif',
+      'pt-serif': '"PT Serif", Georgia, serif'
+    };
+    return fontMap[fontName] || fontMap['inter'];
+  }
+
   async generatePDF(callsheet: CallsheetData, customization: PDFCustomization): Promise<Blob> {
     console.log('PDFGenerator: Starting PDF generation with customization:', customization);
     
@@ -79,7 +102,7 @@ export class PDFGenerator {
               box-sizing: border-box;
             }
             html, body {
-              font-family: ${customization.typography.sectionFonts.body || customization.typography.fontFamily}, system-ui, -apple-system, sans-serif;
+              font-family: ${this.getFontFamily(customization.typography.fontFamily)};
               background-color: ${customization.colors.background};
               color: ${customization.colors.text};
               line-height: ${customization.layout.spacing.lineHeight || customization.typography.lineHeight.body};

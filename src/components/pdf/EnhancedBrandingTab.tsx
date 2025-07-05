@@ -134,22 +134,19 @@ export const EnhancedBrandingTab: React.FC<EnhancedBrandingTabProps> = ({
 
           {(customization.branding.companyName || customization.branding.productionCompany || customization.branding.customText1 || customization.branding.customText2 || customization.branding.customText3) && (
             <div>
-              <Label>Company Information Alignment</Label>
-              <Select
-                value={customization.layout.headerAlignment}
-                onValueChange={(value: 'left' | 'center' | 'right') => updateCustomization({
-                  layout: { ...customization.layout, headerAlignment: value }
+              <Label>Footer Text</Label>
+              <Input
+                value={customization.branding.footer?.text || ''}
+                onChange={(e) => updateBranding({
+                  footer: { 
+                    ...customization.branding.footer,
+                    text: e.target.value,
+                    position: customization.branding.footer?.position || 'center',
+                    style: customization.branding.footer?.style || 'minimal'
+                  }
                 })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="left">Left</SelectItem>
-                  <SelectItem value="center">Center</SelectItem>
-                  <SelectItem value="right">Right</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Optional footer text"
+              />
             </div>
           )}
         </CardContent>
