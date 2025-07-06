@@ -39,17 +39,20 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     return fontMap[fontName] || fontMap['inter'];
   };
   
-  // CRITICAL FIX: Proper page dimensions for consistent preview/generation
-  // Multi-page container to handle content overflow properly
+  // CRITICAL FIX: Simplified page container for better rendering
   const pageContainerStyle: React.CSSProperties = {
     width: isLandscape ? '297mm' : '210mm',
+    minHeight: isLandscape ? '210mm' : '297mm',
     backgroundColor: '#ffffff',
     margin: 0,
     padding: 0,
     boxSizing: 'border-box',
     position: 'relative',
-    overflow: 'hidden', // CRITICAL: Prevent content overflow - forces proper pagination
-    pageBreakAfter: 'always'
+    overflow: 'visible', // FIXED: Allow content to flow naturally
+    fontFamily: getFontFamily(customization.typography.fontFamily),
+    fontSize: `${customization.typography.fontSize.body}px`,
+    lineHeight: customization.typography.lineHeight.body,
+    color: customization.colors.text
   };
 
   // CRITICAL FIX: Content area with proper font application and dimensions
@@ -75,26 +78,14 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     overflow: 'visible'
   };
 
-  // Logo positioning helper
+  // Logo positioning helper - simplified to only top positions
   const getLogoPosition = (position: string) => {
     const baseOffset = 16;
     switch (position) {
       case 'top-left':
         return { top: `${baseOffset}px`, left: `${baseOffset}px` };
-      case 'top-center':
-        return { top: `${baseOffset}px`, left: '50%', transform: 'translateX(-50%)' };
       case 'top-right':
         return { top: `${baseOffset}px`, right: `${baseOffset}px` };
-      case 'center-left':
-        return { top: '50%', left: `${baseOffset}px`, transform: 'translateY(-50%)' };
-      case 'center-right':
-        return { top: '50%', right: `${baseOffset}px`, transform: 'translateY(-50%)' };
-      case 'bottom-left':
-        return { bottom: `${baseOffset + 40}px`, left: `${baseOffset}px` }; // Account for footer space
-      case 'bottom-center':
-        return { bottom: `${baseOffset + 40}px`, left: '50%', transform: 'translateX(-50%)' };
-      case 'bottom-right':
-        return { bottom: `${baseOffset + 40}px`, right: `${baseOffset}px` };
       default:
         return { top: `${baseOffset}px`, left: `${baseOffset}px` };
     }
@@ -214,30 +205,25 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           </div>
         )}
 
-        {/* FIXED: Watermark - positioned OVER content with proper visibility */}
+        {/* FIXED: Watermark - simplified positioning for better visibility */}
         {customization.branding?.watermark?.text && (
           <div
             style={{
-              position: 'absolute',
+              position: 'fixed',
               top: '50%',
               left: '50%',
               transform: customization.branding.watermark.position === 'diagonal' 
                 ? 'translate(-50%, -50%) rotate(-45deg)' 
                 : 'translate(-50%, -50%)',
-              fontSize: '72px',
+              fontSize: '48px',
               fontWeight: 'bold',
-              // FIX: Use primary color with better contrast and ensure visibility
-              color: customization.colors.primary || '#1f2937',
-              // FIX: Ensure watermark is visible - convert to decimal properly, max 50%
-              opacity: Math.min(customization.branding.watermark.opacity || 0.3, 0.5),
-              zIndex: 1000,
+              color: customization.colors.primary || '#666666',
+              opacity: Math.min(customization.branding.watermark.opacity || 0.15, 0.3),
+              zIndex: 9999,
               pointerEvents: 'none',
               userSelect: 'none',
-              textAlign: 'center',
               whiteSpace: 'nowrap',
-              fontFamily: getFontFamily(customization.typography.sectionFonts.title || customization.typography.fontFamily),
-              // FIX: Better text shadow for visibility on any background
-              textShadow: '1px 1px 2px rgba(255,255,255,0.8), -1px -1px 2px rgba(255,255,255,0.8)'
+              fontFamily: getFontFamily(customization.typography.fontFamily)
             }}
           >
             {customization.branding.watermark.text}

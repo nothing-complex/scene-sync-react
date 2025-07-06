@@ -65,13 +65,13 @@ export interface PDFBranding {
   customText3?: string;
   logo?: {
     url: string;
-    position: 'top-left' | 'top-right' | 'center-left' | 'center-right';
+    position: 'top-left' | 'top-right';
     size: 'small' | 'medium' | 'large';
     opacity: number;
   };
   secondaryLogo?: {
     url: string;
-    position: 'top-left' | 'top-right' | 'center-left' | 'center-right';
+    position: 'top-left' | 'top-right';
     size: 'small' | 'medium' | 'large';
     opacity: number;
     lockToPrimary: boolean;

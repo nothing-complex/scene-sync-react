@@ -70,9 +70,7 @@ export const EnhancedBrandingTab: React.FC<EnhancedBrandingTabProps> = ({
 
   const logoPositions = [
     { value: 'top-left', label: 'Top Left' },
-    { value: 'top-right', label: 'Top Right' },
-    { value: 'center-left', label: 'Center Left' },
-    { value: 'center-right', label: 'Center Right' }
+    { value: 'top-right', label: 'Top Right' }
   ];
 
   return (

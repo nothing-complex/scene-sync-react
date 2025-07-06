@@ -40,17 +40,17 @@ export class PDFGenerator {
     console.log('PDFGenerator: Starting PDF generation with customization:', customization);
     
     try {
-      // Create a container for React rendering
+      // FIXED: Simplified container setup for PDF generation
       const container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       container.style.top = '0';
       container.style.visibility = 'hidden';
       container.style.pointerEvents = 'none';
+      container.style.backgroundColor = '#ffffff';
       
       const isLandscape = customization.layout.pageOrientation === 'landscape';
       container.style.width = isLandscape ? '297mm' : '210mm';
-      container.style.height = 'auto';
       container.style.minHeight = isLandscape ? '210mm' : '297mm';
       container.style.overflow = 'visible';
       
@@ -220,18 +220,19 @@ export class PDFGenerator {
               overflow: visible !important;
             }
             
-            /* FIX: Ensure watermark renders above content in PDF */
-            .watermark-overlay {
+            /* FIXED: Watermark for PDF generation */
+            .pdf-watermark {
               position: fixed !important;
-              top: 0 !important;
-              left: 0 !important;
-              right: 0 !important;
-              bottom: 0 !important;
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
+              top: 50% !important;
+              left: 50% !important;
+              transform: translate(-50%, -50%) ${customization.branding?.watermark?.position === 'diagonal' ? 'rotate(-45deg)' : ''} !important;
+              font-size: 48px !important;
+              font-weight: bold !important;
+              opacity: ${Math.min(customization.branding?.watermark?.opacity || 0.15, 0.3)} !important;
               z-index: 9999 !important;
               pointer-events: none !important;
+              user-select: none !important;
+              color: ${customization.colors.primary || '#666666'} !important;
             }
           </style>
         </head>
