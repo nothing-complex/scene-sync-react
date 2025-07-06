@@ -40,10 +40,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   };
   
   // CRITICAL FIX: Proper page dimensions for consistent preview/generation
-  // Page container - represents the full page including margins
+  // Multi-page container to handle content overflow properly
   const pageContainerStyle: React.CSSProperties = {
     width: isLandscape ? '297mm' : '210mm',
-    height: isLandscape ? '210mm' : '297mm', // Fixed height, not minHeight to prevent overflow
     backgroundColor: '#ffffff',
     margin: 0,
     padding: 0,
@@ -60,8 +59,10 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     left: `${customization.layout.margins.left}px`,
     right: `${customization.layout.margins.right}px`,
     bottom: `${customization.layout.margins.bottom + 40}px`, // Extra space for footer
+    // CRITICAL FIX: Remove fixed height to allow content to flow naturally
     width: `calc(100% - ${customization.layout.margins.left + customization.layout.margins.right}px)`,
-    height: `calc(100% - ${customization.layout.margins.top + customization.layout.margins.bottom + 40}px)`, // Fixed height for pagination
+    height: 'auto',
+    minHeight: `calc(100% - ${customization.layout.margins.top + customization.layout.margins.bottom + 40}px)`,
     backgroundColor: customization.colors.background || '#ffffff',
     // FIX: Apply default font family properly with proper fallbacks
     fontFamily: getFontFamily(customization.typography.fontFamily),
@@ -70,7 +71,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     color: customization.colors.text,
     padding: 0,
     boxSizing: 'border-box',
-    overflow: 'hidden' // CRITICAL: Prevent overflow for proper pagination
+    // CRITICAL FIX: Remove overflow hidden to allow content to flow into multiple pages
+    overflow: 'visible'
   };
 
   // Logo positioning helper
@@ -226,16 +228,16 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
               fontWeight: 'bold',
               // FIX: Use primary color with better contrast and ensure visibility
               color: customization.colors.primary || '#1f2937',
-              // FIX: Ensure watermark is visible with minimum 20% opacity, max 50%
-              opacity: Math.max(Math.min((customization.branding.watermark.opacity || 30) / 100, 0.5), 0.2),
+              // FIX: Ensure watermark is visible - convert to decimal properly, max 50%
+              opacity: Math.min(customization.branding.watermark.opacity || 0.3, 0.5),
               zIndex: 1000,
               pointerEvents: 'none',
               userSelect: 'none',
               textAlign: 'center',
               whiteSpace: 'nowrap',
               fontFamily: getFontFamily(customization.typography.sectionFonts.title || customization.typography.fontFamily),
-              // FIX: Better text shadow for visibility
-              textShadow: '2px 2px 4px rgba(255,255,255,0.8), -2px -2px 4px rgba(255,255,255,0.8)'
+              // FIX: Better text shadow for visibility on any background
+              textShadow: '1px 1px 2px rgba(255,255,255,0.8), -1px -1px 2px rgba(255,255,255,0.8)'
             }}
           >
             {customization.branding.watermark.text}

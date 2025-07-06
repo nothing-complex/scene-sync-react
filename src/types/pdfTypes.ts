@@ -65,13 +65,13 @@ export interface PDFBranding {
   customText3?: string;
   logo?: {
     url: string;
-    position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'center-left' | 'center-right';
+    position: 'top-left' | 'top-right' | 'center-left' | 'center-right';
     size: 'small' | 'medium' | 'large';
     opacity: number;
   };
   secondaryLogo?: {
     url: string;
-    position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'center-left' | 'center-right';
+    position: 'top-left' | 'top-right' | 'center-left' | 'center-right';
     size: 'small' | 'medium' | 'large';
     opacity: number;
     lockToPrimary: boolean;
@@ -311,8 +311,8 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       accent: '#f59e0b',
       text: '#1f2937',
       textLight: '#6b7280',
-      titleText: '#ffffff',
-      headerText: '#ffffff',
+      titleText: '#1f2937',
+      headerText: '#1f2937',
       contactNameText: '#1f2937',
       contactRoleText: '#6b7280',
       contactDetailsText: '#1f2937',
@@ -368,8 +368,8 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       accent: '#d4af37',
       text: '#2d2d2d',
       textLight: '#6b6b6b',
-      titleText: '#fafafa',
-      headerText: '#fafafa',
+      titleText: '#2d2d2d',
+      headerText: '#2d2d2d',
       contactNameText: '#2d2d2d',
       contactRoleText: '#6b6b6b',
       contactDetailsText: '#2d2d2d',

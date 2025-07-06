@@ -170,7 +170,26 @@ export class PDFGenerator {
             .max-w-4xl { max-width: 56rem; }
             .mx-auto { margin-left: auto; margin-right: auto; }
             
-            /* Print Optimizations */
+            /* FIX: Watermark styles for PDF generation */
+            .pdf-watermark {
+              position: fixed !important;
+              top: 50% !important;
+              left: 50% !important;
+              transform: translate(-50%, -50%) !important;
+              font-size: 72px !important;
+              font-weight: bold !important;
+              opacity: 0.3 !important;
+              z-index: 1000 !important;
+              pointer-events: none !important;
+              user-select: none !important;
+              text-align: center !important;
+              white-space: nowrap !important;
+            }
+            .pdf-watermark.diagonal {
+              transform: translate(-50%, -50%) rotate(-45deg) !important;
+            }
+            
+            /* Print optimizations */
             .print-optimized {
               box-shadow: none !important;
               border-radius: 0 !important;
@@ -199,6 +218,20 @@ export class PDFGenerator {
               height: auto !important;
               min-height: 100% !important;
               overflow: visible !important;
+            }
+            
+            /* FIX: Ensure watermark renders above content in PDF */
+            .watermark-overlay {
+              position: fixed !important;
+              top: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              bottom: 0 !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              z-index: 9999 !important;
+              pointer-events: none !important;
             }
           </style>
         </head>
