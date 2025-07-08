@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { PDFCustomization } from '@/types/pdfTypes';
 
 interface LayoutTabProps {
@@ -23,6 +24,13 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
         ...customization[section],
         ...updates
       }
+    });
+  };
+
+  const updateSections = (updates: Partial<typeof customization.sections>) => {
+    onCustomizationChange({
+      ...customization,
+      sections: { ...customization.sections, ...updates }
     });
   };
 
@@ -153,6 +161,61 @@ export const LayoutTab: React.FC<LayoutTabProps> = ({
               <SelectItem value="medium">Medium</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Section Options - moved from branding tab */}
+        <div className="space-y-4 pt-4 border-t">
+          <h4 className="font-medium">Section Options</h4>
+          
+          <div>
+            <Label>Contact Layout</Label>
+            <Select
+              value={customization.sections.formatting.contactLayout}
+              onValueChange={(value: any) => updateSections({
+                formatting: { ...customization.sections.formatting, contactLayout: value }
+              })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="list">List</SelectItem>
+                <SelectItem value="cards">Cards</SelectItem>
+                <SelectItem value="table">Table</SelectItem>
+                <SelectItem value="compact">Compact</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label>Show Section Icons</Label>
+            <Switch
+              checked={customization.sections.formatting.showSectionIcons}
+              onCheckedChange={(checked) => updateSections({
+                formatting: { ...customization.sections.formatting, showSectionIcons: checked }
+              })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label>Emergency Contacts Prominent</Label>
+            <Switch
+              checked={customization.sections.formatting.emergencyProminent}
+              onCheckedChange={(checked) => updateSections({
+                formatting: { ...customization.sections.formatting, emergencyProminent: checked }
+              })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label>Alternate Row Colors</Label>
+            <Switch
+              checked={customization.sections.formatting.alternateRowColors}
+              onCheckedChange={(checked) => updateSections({
+                formatting: { ...customization.sections.formatting, alternateRowColors: checked }
+              })}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

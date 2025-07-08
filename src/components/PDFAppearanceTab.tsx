@@ -223,13 +223,13 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
               Live Preview
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="max-h-[800px] overflow-auto bg-gray-50 dark:bg-gray-900 flex justify-center">
-              <div className="w-full max-w-[400px] mx-auto p-4">
+          <CardContent className="p-2">
+            <div className="max-h-[800px] overflow-auto bg-white border rounded-lg">
+              <div className="transform scale-[0.5] origin-top-left">
                 <CallsheetPDFPreview
                   callsheet={callsheet}
                   customization={customization}
-                  className="shadow-lg scale-[0.6] origin-top"
+                  className="shadow-sm"
                 />
               </div>
             </div>

@@ -312,11 +312,11 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       text: '#1f2937',
       textLight: '#6b7280',
       titleText: '#1f2937',
-      headerText: '#1f2937',
+      headerText: '#1f2937', // FIXED: Changed from white to dark text
       contactNameText: '#1f2937',
       contactRoleText: '#6b7280',
       contactDetailsText: '#1f2937',
-      scheduleHeaderText: '#1f2937',
+      scheduleHeaderText: '#1f2937', // FIXED: Changed from white to dark text
       scheduleBodyText: '#1f2937',
       emergencyText: '#dc2626',
       background: '#fefefe',
@@ -369,11 +369,11 @@ export const PDF_THEMES: Record<string, PDFTheme> = {
       text: '#2d2d2d',
       textLight: '#6b6b6b',
       titleText: '#2d2d2d',
-      headerText: '#2d2d2d',
+      headerText: '#2d2d2d', // FIXED: Changed from white to dark text
       contactNameText: '#2d2d2d',
       contactRoleText: '#6b6b6b',
       contactDetailsText: '#2d2d2d',
-      scheduleHeaderText: '#2d2d2d',
+      scheduleHeaderText: '#2d2d2d', // FIXED: Changed from white to dark text
       scheduleBodyText: '#2d2d2d',
       emergencyText: '#dc2626',
       background: '#fafafa',

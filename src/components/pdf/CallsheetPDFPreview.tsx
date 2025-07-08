@@ -16,22 +16,25 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 }) => {
   const isLandscape = customization.layout.pageOrientation === 'landscape';
   
-  // FIX: Font family mapping function to ensure fonts work correctly - moved to top
+  // CRITICAL FIX: Add option to show/hide icons - default to off to prevent rendering issues
+  const showIcons = customization.sections.formatting.showSectionIcons;
+  
+  // FIX: Enhanced font family mapping to ensure consistency between preview and generated PDF
   const getFontFamily = (fontName: string): string => {
     const fontMap: Record<string, string> = {
-      'inter': '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-      'helvetica': '"Helvetica Neue", Helvetica, Arial, sans-serif',
-      'poppins': '"Poppins", system-ui, -apple-system, sans-serif',
-      'montserrat': '"Montserrat", system-ui, -apple-system, sans-serif',
-      'roboto': '"Roboto", system-ui, -apple-system, sans-serif',
+      'inter': 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      'helvetica': 'Helvetica, "Helvetica Neue", Arial, sans-serif',
+      'poppins': 'Poppins, system-ui, -apple-system, sans-serif',
+      'montserrat': 'Montserrat, system-ui, -apple-system, sans-serif',
+      'roboto': 'Roboto, system-ui, -apple-system, sans-serif',
       'open-sans': '"Open Sans", system-ui, -apple-system, sans-serif',
-      'lato': '"Lato", system-ui, -apple-system, sans-serif',
+      'lato': 'Lato, system-ui, -apple-system, sans-serif',
       'source-sans': '"Source Sans Pro", system-ui, -apple-system, sans-serif',
-      'nunito': '"Nunito", system-ui, -apple-system, sans-serif',
-      'raleway': '"Raleway", system-ui, -apple-system, sans-serif',
+      'nunito': 'Nunito, system-ui, -apple-system, sans-serif',
+      'raleway': 'Raleway, system-ui, -apple-system, sans-serif',
       'work-sans': '"Work Sans", system-ui, -apple-system, sans-serif',
       'playfair': '"Playfair Display", Georgia, serif',
-      'merriweather': '"Merriweather", Georgia, serif',
+      'merriweather': 'Merriweather, Georgia, serif',
       'crimson': '"Crimson Text", Georgia, serif',
       'libre-baskerville': '"Libre Baskerville", Georgia, serif',
       'pt-serif': '"PT Serif", Georgia, serif'
@@ -39,43 +42,45 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     return fontMap[fontName] || fontMap['inter'];
   };
   
-  // CRITICAL FIX: Simplified page container for better rendering
+  // CRITICAL FIX: Multi-page container for proper pagination support
   const pageContainerStyle: React.CSSProperties = {
     width: isLandscape ? '297mm' : '210mm',
+    height: 'auto',
     minHeight: isLandscape ? '210mm' : '297mm',
-    backgroundColor: '#ffffff',
+    backgroundColor: customization.colors.background || '#ffffff',
     margin: 0,
     padding: 0,
     boxSizing: 'border-box',
     position: 'relative',
-    overflow: 'visible', // FIXED: Allow content to flow naturally
+    overflow: 'visible',
     fontFamily: getFontFamily(customization.typography.fontFamily),
     fontSize: `${customization.typography.fontSize.body}px`,
     lineHeight: customization.typography.lineHeight.body,
-    color: customization.colors.text
+    color: customization.colors.text,
+    // CRITICAL FIX: Ensure consistent rendering for both preview and PDF generation
+    pageBreakInside: 'avoid' as any,
+    display: 'block'
   };
 
-  // CRITICAL FIX: Content area with proper font application and dimensions
+  // CRITICAL FIX: Content area with proper dimensions and page break support
   const contentAreaStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: `${customization.layout.margins.top}px`,
-    left: `${customization.layout.margins.left}px`,
-    right: `${customization.layout.margins.right}px`,
-    bottom: `${customization.layout.margins.bottom + 40}px`, // Extra space for footer
-    // CRITICAL FIX: Remove fixed height to allow content to flow naturally
+    position: 'relative', // Changed from absolute to relative for better content flow
+    margin: `${customization.layout.margins.top}px ${customization.layout.margins.right}px ${customization.layout.margins.bottom}px ${customization.layout.margins.left}px`,
     width: `calc(100% - ${customization.layout.margins.left + customization.layout.margins.right}px)`,
     height: 'auto',
-    minHeight: `calc(100% - ${customization.layout.margins.top + customization.layout.margins.bottom + 40}px)`,
-    backgroundColor: customization.colors.background || '#ffffff',
-    // FIX: Apply default font family properly with proper fallbacks
+    minHeight: `calc(${isLandscape ? '210mm' : '297mm'} - ${customization.layout.margins.top + customization.layout.margins.bottom + 60}px)`,
+    backgroundColor: 'transparent', // Let page background show through
     fontFamily: getFontFamily(customization.typography.fontFamily),
     fontSize: `${customization.typography.fontSize.body}px`,
     lineHeight: customization.layout.spacing.lineHeight || customization.typography.lineHeight.body,
     color: customization.colors.text,
     padding: 0,
     boxSizing: 'border-box',
-    // CRITICAL FIX: Remove overflow hidden to allow content to flow into multiple pages
-    overflow: 'visible'
+    overflow: 'visible',
+    // CRITICAL FIX: Add page break support
+    pageBreakInside: 'auto' as any,
+    orphans: 3,
+    widows: 3
   };
 
   // Logo positioning helper - simplified to only top positions
@@ -205,11 +210,12 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           </div>
         )}
 
-        {/* FIXED: Watermark - simplified positioning for better visibility */}
+        {/* CRITICAL FIX: Watermark positioned properly for each page */}
         {customization.branding?.watermark?.text && (
           <div
+            className="pdf-watermark"
             style={{
-              position: 'fixed',
+              position: 'absolute',
               top: '50%',
               left: '50%',
               transform: customization.branding.watermark.position === 'diagonal' 
@@ -217,13 +223,14 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 : 'translate(-50%, -50%)',
               fontSize: '48px',
               fontWeight: 'bold',
-              color: customization.colors.primary || '#666666',
-              opacity: Math.min(customization.branding.watermark.opacity || 0.15, 0.3),
-              zIndex: 9999,
+              color: customization.colors.primary || '#999999',
+              opacity: Math.min(customization.branding.watermark.opacity || 0.15, 0.5),
+              zIndex: 1,
               pointerEvents: 'none',
               userSelect: 'none',
               whiteSpace: 'nowrap',
-              fontFamily: getFontFamily(customization.typography.fontFamily)
+              fontFamily: getFontFamily(customization.typography.fontFamily),
+              textAlign: 'center'
             }}
           >
             {customization.branding.watermark.text}
@@ -436,9 +443,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                {customization.sections.formatting.showSectionIcons && (
-                  <span style={{ fontSize: '16px' }}>📅</span>
-                )}
+                 {showIcons && (
+                   <span style={{ fontSize: '16px', marginRight: '4px' }}>📅</span>
+                 )}
                 SCHEDULE
               </h2>
               
@@ -519,9 +526,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                {customization.sections.formatting.showSectionIcons && (
-                  <span style={{ fontSize: '16px' }}>🎭</span>
-                )}
+                 {showIcons && (
+                   <span style={{ fontSize: '16px', marginRight: '4px' }}>🎭</span>
+                 )}
                 CAST
               </h2>
               
@@ -565,18 +572,20 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                         as {member.character}
                       </div>
                     )}
-                    <div style={{ fontSize: `${customization.typography.fontSize.small}px`, color: customization.colors.contactDetailsText }}>
-                      {member.phone && (
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                          <span>📞 {member.phone}</span>
-                        </div>
-                      )}
-                      {member.email && (
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <span>📧 {member.email}</span>
-                        </div>
-                      )}
-                    </div>
+                     <div style={{ fontSize: `${customization.typography.fontSize.small}px`, color: customization.colors.contactDetailsText }}>
+                       {member.phone && (
+                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                           {showIcons && <span style={{ marginRight: '4px' }}>📞</span>}
+                           <span>{member.phone}</span>
+                         </div>
+                       )}
+                       {member.email && (
+                         <div style={{ display: 'flex', alignItems: 'center' }}>
+                           {showIcons && <span style={{ marginRight: '4px' }}>📧</span>}
+                           <span>{member.email}</span>
+                         </div>
+                       )}
+                     </div>
                   </div>
                 ))}
               </div>
@@ -598,9 +607,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                {customization.sections.formatting.showSectionIcons && (
-                  <span style={{ fontSize: '16px' }}>🎬</span>
-                )}
+                 {showIcons && (
+                   <span style={{ fontSize: '16px', marginRight: '4px' }}>🎬</span>
+                 )}
                 CREW
               </h2>
               
@@ -642,18 +651,20 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                     }}>
                       {member.role}
                     </div>
-                    <div style={{ fontSize: `${customization.typography.fontSize.small}px`, color: customization.colors.contactDetailsText }}>
-                      {member.phone && (
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                          <span>📞 {member.phone}</span>
-                        </div>
-                      )}
-                      {member.email && (
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <span>📧 {member.email}</span>
-                        </div>
-                      )}
-                    </div>
+                     <div style={{ fontSize: `${customization.typography.fontSize.small}px`, color: customization.colors.contactDetailsText }}>
+                       {member.phone && (
+                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                           {showIcons && <span style={{ marginRight: '4px' }}>📞</span>}
+                           <span>{member.phone}</span>
+                         </div>
+                       )}
+                       {member.email && (
+                         <div style={{ display: 'flex', alignItems: 'center' }}>
+                           {showIcons && <span style={{ marginRight: '4px' }}>📧</span>}
+                           <span>{member.email}</span>
+                         </div>
+                       )}
+                     </div>
                   </div>
                 ))}
               </div>
@@ -675,9 +686,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                {customization.sections.formatting.showSectionIcons && (
-                  <span style={{ fontSize: '16px' }}>🚨</span>
-                )}
+                 {showIcons && (
+                   <span style={{ fontSize: '16px', marginRight: '4px' }}>🚨</span>
+                 )}
                 EMERGENCY CONTACTS
               </h2>
               
@@ -709,13 +720,14 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                       }}>
                         {contact.role}
                       </div>
-                      <div style={{
-                        fontSize: `${customization.typography.fontSize.body}px`,
-                        color: customization.colors.emergencyText,
-                        fontWeight: 'medium'
-                      }}>
-                        📞 {contact.phone}
-                      </div>
+                       <div style={{
+                         fontSize: `${customization.typography.fontSize.body}px`,
+                         color: customization.colors.emergencyText,
+                         fontWeight: 'medium'
+                       }}>
+                         {showIcons && <span style={{ marginRight: '4px' }}>📞</span>}
+                         {contact.phone}
+                       </div>
                     </div>
                   ))}
                 </div>
@@ -738,9 +750,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                {customization.sections.formatting.showSectionIcons && (
-                  <span style={{ fontSize: '16px' }}>📝</span>
-                )}
+                 {showIcons && (
+                   <span style={{ fontSize: '16px', marginRight: '4px' }}>📝</span>
+                 )}
                 NOTES
               </h2>
               

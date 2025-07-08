@@ -13,22 +13,22 @@ export class PDFGenerator {
     this.htmlToPdfService = new HtmlToPdfService();
   }
 
-  // FIX: Font family mapping function for PDF generation consistency
+  // CRITICAL FIX: Enhanced font family mapping to match preview component exactly
   private getFontFamily(fontName: string): string {
     const fontMap: Record<string, string> = {
-      'inter': '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-      'helvetica': '"Helvetica Neue", Helvetica, Arial, sans-serif',
-      'poppins': '"Poppins", system-ui, -apple-system, sans-serif',
-      'montserrat': '"Montserrat", system-ui, -apple-system, sans-serif',
-      'roboto': '"Roboto", system-ui, -apple-system, sans-serif',
+      'inter': 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      'helvetica': 'Helvetica, "Helvetica Neue", Arial, sans-serif',
+      'poppins': 'Poppins, system-ui, -apple-system, sans-serif',
+      'montserrat': 'Montserrat, system-ui, -apple-system, sans-serif',
+      'roboto': 'Roboto, system-ui, -apple-system, sans-serif',
       'open-sans': '"Open Sans", system-ui, -apple-system, sans-serif',
-      'lato': '"Lato", system-ui, -apple-system, sans-serif',
+      'lato': 'Lato, system-ui, -apple-system, sans-serif',
       'source-sans': '"Source Sans Pro", system-ui, -apple-system, sans-serif',
-      'nunito': '"Nunito", system-ui, -apple-system, sans-serif',
-      'raleway': '"Raleway", system-ui, -apple-system, sans-serif',
+      'nunito': 'Nunito, system-ui, -apple-system, sans-serif',
+      'raleway': 'Raleway, system-ui, -apple-system, sans-serif',
       'work-sans': '"Work Sans", system-ui, -apple-system, sans-serif',
       'playfair': '"Playfair Display", Georgia, serif',
-      'merriweather': '"Merriweather", Georgia, serif',
+      'merriweather': 'Merriweather, Georgia, serif',
       'crimson': '"Crimson Text", Georgia, serif',
       'libre-baskerville': '"Libre Baskerville", Georgia, serif',
       'pt-serif': '"PT Serif", Georgia, serif'
@@ -40,19 +40,24 @@ export class PDFGenerator {
     console.log('PDFGenerator: Starting PDF generation with customization:', customization);
     
     try {
-      // FIXED: Simplified container setup for PDF generation
+      // CRITICAL FIX: Enhanced container setup for consistent PDF generation
       const container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       container.style.top = '0';
       container.style.visibility = 'hidden';
       container.style.pointerEvents = 'none';
-      container.style.backgroundColor = '#ffffff';
+      container.style.backgroundColor = customization.colors.background || '#ffffff';
       
       const isLandscape = customization.layout.pageOrientation === 'landscape';
       container.style.width = isLandscape ? '297mm' : '210mm';
+      container.style.height = 'auto';
       container.style.minHeight = isLandscape ? '210mm' : '297mm';
       container.style.overflow = 'visible';
+      container.style.fontFamily = this.getFontFamily(customization.typography.fontFamily);
+      container.style.fontSize = `${customization.typography.fontSize.body}px`;
+      container.style.lineHeight = `${customization.typography.lineHeight.body}`;
+      container.style.color = customization.colors.text;
       
       document.body.appendChild(container);
 
@@ -170,24 +175,6 @@ export class PDFGenerator {
             .max-w-4xl { max-width: 56rem; }
             .mx-auto { margin-left: auto; margin-right: auto; }
             
-            /* FIX: Watermark styles for PDF generation */
-            .pdf-watermark {
-              position: fixed !important;
-              top: 50% !important;
-              left: 50% !important;
-              transform: translate(-50%, -50%) !important;
-              font-size: 72px !important;
-              font-weight: bold !important;
-              opacity: 0.3 !important;
-              z-index: 1000 !important;
-              pointer-events: none !important;
-              user-select: none !important;
-              text-align: center !important;
-              white-space: nowrap !important;
-            }
-            .pdf-watermark.diagonal {
-              transform: translate(-50%, -50%) rotate(-45deg) !important;
-            }
             
             /* Print optimizations */
             .print-optimized {
@@ -213,26 +200,46 @@ export class PDFGenerator {
               overflow: visible;
             }
             
-            /* Prevent content cutoff */
+            /* CRITICAL FIX: Prevent content cutoff and ensure proper page breaks */
             .callsheet-pdf-preview {
               height: auto !important;
               min-height: 100% !important;
               overflow: visible !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
             }
             
-            /* FIXED: Watermark for PDF generation */
+            /* CRITICAL FIX: Enhanced page break control for cards and sections */
+            .contact-card, .schedule-row, .emergency-contact, .pdf-section, .avoid-break {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+              orphans: 3 !important;
+              widows: 3 !important;
+            }
+            
+            .pdf-section {
+              margin-bottom: ${customization.layout.spacing.sectionGap}px !important;
+            }
+            
+            .contact-card {
+              margin-bottom: ${customization.layout.spacing.cardSpacing}px !important;
+            }
+            
+            /* CRITICAL FIX: Watermark positioning and visibility for PDF generation */
             .pdf-watermark {
-              position: fixed !important;
+              position: absolute !important;
               top: 50% !important;
               left: 50% !important;
               transform: translate(-50%, -50%) ${customization.branding?.watermark?.position === 'diagonal' ? 'rotate(-45deg)' : ''} !important;
               font-size: 48px !important;
               font-weight: bold !important;
-              opacity: ${Math.min(customization.branding?.watermark?.opacity || 0.15, 0.3)} !important;
-              z-index: 9999 !important;
+              opacity: ${Math.min(customization.branding?.watermark?.opacity || 0.15, 0.5)} !important;
+              z-index: 1 !important;
               pointer-events: none !important;
               user-select: none !important;
-              color: ${customization.colors.primary || '#666666'} !important;
+              color: ${customization.colors.primary || '#999999'} !important;
+              text-align: center !important;
+              white-space: nowrap !important;
             }
           </style>
         </head>
