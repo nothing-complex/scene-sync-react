@@ -225,7 +225,13 @@ export const PDFAppearanceTab: React.FC<PDFAppearanceTabProps> = ({
           </CardHeader>
           <CardContent className="p-2">
             <div className="max-h-[800px] overflow-auto bg-white border rounded-lg">
-              <div className="transform scale-[0.5] origin-top-left">
+              <div 
+                className="transform scale-[0.35] origin-top-left"
+                style={{ 
+                  width: '285.7%', // 100% / 0.35 to ensure content fills container properly
+                  height: 'auto'
+                }}
+              >
                 <CallsheetPDFPreview
                   callsheet={callsheet}
                   customization={customization}

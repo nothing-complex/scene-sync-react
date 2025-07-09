@@ -44,9 +44,9 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
   
   // CRITICAL FIX: Multi-page container for proper pagination support
   const pageContainerStyle: React.CSSProperties = {
-    width: isLandscape ? '297mm' : '210mm',
+    width: isLandscape ? '1123px' : '794px', // A4 size in pixels at 96 DPI
     height: 'auto',
-    minHeight: isLandscape ? '210mm' : '297mm',
+    minHeight: isLandscape ? '794px' : '1123px',
     backgroundColor: customization.colors.background || '#ffffff',
     margin: 0,
     padding: 0,
@@ -68,7 +68,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     margin: `${customization.layout.margins.top}px ${customization.layout.margins.right}px ${customization.layout.margins.bottom}px ${customization.layout.margins.left}px`,
     width: `calc(100% - ${customization.layout.margins.left + customization.layout.margins.right}px)`,
     height: 'auto',
-    minHeight: `calc(${isLandscape ? '210mm' : '297mm'} - ${customization.layout.margins.top + customization.layout.margins.bottom + 60}px)`,
+    minHeight: `calc(${isLandscape ? '794px' : '1123px'} - ${customization.layout.margins.top + customization.layout.margins.bottom + 60}px)`,
     backgroundColor: 'transparent', // Let page background show through
     fontFamily: getFontFamily(customization.typography.fontFamily),
     fontSize: `${customization.typography.fontSize.body}px`,

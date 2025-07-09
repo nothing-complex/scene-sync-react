@@ -50,9 +50,9 @@ export class PDFGenerator {
       container.style.backgroundColor = customization.colors.background || '#ffffff';
       
       const isLandscape = customization.layout.pageOrientation === 'landscape';
-      container.style.width = isLandscape ? '297mm' : '210mm';
+      container.style.width = isLandscape ? '1123px' : '794px'; // A4 in pixels
       container.style.height = 'auto';
-      container.style.minHeight = isLandscape ? '210mm' : '297mm';
+      container.style.minHeight = isLandscape ? '794px' : '1123px';
       container.style.overflow = 'visible';
       container.style.fontFamily = this.getFontFamily(customization.typography.fontFamily);
       container.style.fontSize = `${customization.typography.fontSize.body}px`;
@@ -193,10 +193,10 @@ export class PDFGenerator {
             
             /* Ensure proper sizing and no cutoff */
             body > * {
-              width: ${isLandscape ? '297mm' : '210mm'};
+              width: ${isLandscape ? '1123px' : '794px'};
               height: auto;
-              min-height: ${isLandscape ? '210mm' : '297mm'};
-              max-width: ${isLandscape ? '297mm' : '210mm'};
+              min-height: ${isLandscape ? '794px' : '1123px'};
+              max-width: ${isLandscape ? '1123px' : '794px'};
               overflow: visible;
             }
             

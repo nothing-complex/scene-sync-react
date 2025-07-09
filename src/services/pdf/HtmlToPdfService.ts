@@ -26,9 +26,9 @@ export class HtmlToPdfService {
       iframe.style.position = 'absolute';
       iframe.style.left = '-9999px';
       iframe.style.top = '0';
-      iframe.style.width = isLandscape ? '297mm' : '210mm';
+      iframe.style.width = isLandscape ? '1123px' : '794px'; // A4 in pixels
       iframe.style.height = 'auto'; // Allow content to expand
-      iframe.style.minHeight = isLandscape ? '210mm' : '297mm';
+      iframe.style.minHeight = isLandscape ? '794px' : '1123px';
       iframe.style.border = 'none';
       iframe.style.overflow = 'visible';
       
@@ -91,9 +91,9 @@ export class HtmlToPdfService {
           // Ensure all styles are properly applied in the cloned document
           const clonedBody = clonedDoc.body;
           if (clonedBody) {
-            clonedBody.style.width = isLandscape ? '297mm' : '210mm';
+            clonedBody.style.width = isLandscape ? '1123px' : '794px';
             clonedBody.style.height = 'auto';
-            clonedBody.style.minHeight = isLandscape ? '210mm' : '297mm';
+            clonedBody.style.minHeight = isLandscape ? '794px' : '1123px';
             clonedBody.style.margin = '0';
             clonedBody.style.padding = '0';
             clonedBody.style.overflow = 'visible';
