@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CallsheetData } from '@/contexts/CallsheetContext';
 import { PDFCustomization } from '@/types/pdfTypes';
@@ -16,10 +15,10 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
 }) => {
   const isLandscape = customization.layout.pageOrientation === 'landscape';
   
-  // CRITICAL FIX: Add option to show/hide icons - default to off to prevent rendering issues
+  // Add option to show/hide icons - default to off to prevent rendering issues
   const showIcons = customization.sections.formatting.showSectionIcons;
   
-  // FIX: Enhanced font family mapping to ensure consistency between preview and generated PDF
+  // Enhanced font family mapping to ensure consistency between preview and generated PDF
   const getFontFamily = (fontName: string): string => {
     const fontMap: Record<string, string> = {
       'inter': 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -42,45 +41,37 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
     return fontMap[fontName] || fontMap['inter'];
   };
   
-  // CRITICAL FIX: Multi-page container for proper pagination support
+  // Fixed page container for A4 dimensions with proper multi-page support
   const pageContainerStyle: React.CSSProperties = {
     width: isLandscape ? '1123px' : '794px', // A4 size in pixels at 96 DPI
-    height: 'auto',
-    minHeight: isLandscape ? '794px' : '1123px',
+    height: isLandscape ? '794px' : '1123px', // Fixed height for consistent layout
     backgroundColor: customization.colors.background || '#ffffff',
     margin: 0,
     padding: 0,
     boxSizing: 'border-box',
     position: 'relative',
-    overflow: 'visible',
+    overflow: 'hidden', // Ensure content doesn't overflow page bounds
     fontFamily: getFontFamily(customization.typography.fontFamily),
     fontSize: `${customization.typography.fontSize.body}px`,
     lineHeight: customization.typography.lineHeight.body,
     color: customization.colors.text,
-    // CRITICAL FIX: Ensure consistent rendering for both preview and PDF generation
-    pageBreakInside: 'avoid' as any,
     display: 'block'
   };
 
-  // CRITICAL FIX: Content area with proper dimensions and page break support
+  // Content area within the page margins
   const contentAreaStyle: React.CSSProperties = {
-    position: 'relative', // Changed from absolute to relative for better content flow
+    position: 'relative',
     margin: `${customization.layout.margins.top}px ${customization.layout.margins.right}px ${customization.layout.margins.bottom}px ${customization.layout.margins.left}px`,
     width: `calc(100% - ${customization.layout.margins.left + customization.layout.margins.right}px)`,
-    height: 'auto',
-    minHeight: `calc(${isLandscape ? '794px' : '1123px'} - ${customization.layout.margins.top + customization.layout.margins.bottom + 60}px)`,
-    backgroundColor: 'transparent', // Let page background show through
+    height: `calc(100% - ${customization.layout.margins.top + customization.layout.margins.bottom}px)`,
+    backgroundColor: 'transparent',
     fontFamily: getFontFamily(customization.typography.fontFamily),
     fontSize: `${customization.typography.fontSize.body}px`,
     lineHeight: customization.layout.spacing.lineHeight || customization.typography.lineHeight.body,
     color: customization.colors.text,
     padding: 0,
     boxSizing: 'border-box',
-    overflow: 'visible',
-    // CRITICAL FIX: Add page break support
-    pageBreakInside: 'auto' as any,
-    orphans: 3,
-    widows: 3
+    overflow: 'hidden'
   };
 
   // Logo positioning helper - simplified to only top positions
@@ -115,44 +106,20 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
       className={`callsheet-pdf-preview ${className}`}
       style={pageContainerStyle}
     >
-      {/* CSS for page break prevention and proper spacing */}
+      {/* CSS for consistent styling and page break prevention */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          .callsheet-pdf-preview {
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
           .pdf-section {
+            margin-bottom: ${customization.layout.spacing.sectionGap}px;
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: ${customization.layout.spacing.sectionGap}px;
-            orphans: 3;
-            widows: 3;
           }
           .pdf-section-item {
-            page-break-inside: avoid;
-            break-inside: avoid;
             margin-bottom: ${customization.layout.spacing.itemGap}px;
-            orphans: 2;
-            widows: 2;
-          }
-          .pdf-header {
-            page-break-inside: avoid;
-            break-inside: avoid;
-            page-break-after: avoid;
-            break-after: avoid;
           }
           .contact-card {
-            page-break-inside: avoid;
-            break-inside: avoid;
             margin-bottom: ${customization.layout.spacing.cardSpacing}px;
             line-height: ${customization.layout.spacing.lineHeight || customization.typography.lineHeight.body};
-          }
-          .schedule-row {
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-          .emergency-contact {
             page-break-inside: avoid;
             break-inside: avoid;
           }
@@ -163,7 +130,6 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
         `
       }} />
 
-      {/* Content area - positioned within margins */}
       <div style={contentAreaStyle}>
         {/* Logos - positioned relative to content area */}
         {customization.branding?.logo && (
@@ -210,7 +176,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           </div>
         )}
 
-        {/* CRITICAL FIX: Watermark positioned properly for each page */}
+        {/* Watermark positioned properly */}
         {customization.branding?.watermark?.text && (
           <div
             className="pdf-watermark"
@@ -237,25 +203,20 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           </div>
         )}
 
-        {/* Main content container with proper card styling */}
+        {/* Main content container with simplified styling for consistent rendering */}
         <div style={{ 
           padding: '20px',
           position: 'relative',
           zIndex: 2,
-          borderRadius: `${customization.visual.cornerRadius}px`,
-          // FIX: Apply card styling based on customization
-          ...(customization.visual.cardStyle === 'elevated' && {
-            boxShadow: customization.visual.shadowIntensity === 'medium' ? 
-              '0 10px 25px rgba(0,0,0,0.15)' : '0 4px 12px rgba(0,0,0,0.1)'
-          }),
+          backgroundColor: 'transparent',
+          height: 'calc(100% - 40px)',
+          overflow: 'hidden',
+          // Simplified styling to prevent rendering issues
           ...(customization.visual.cardStyle === 'bordered' && {
-            border: `${customization.layout.borderWidth || 1}px solid ${customization.colors.border}`
-          }),
-          ...(customization.visual.cardStyle === 'gradient' && customization.colors.gradient && {
-            background: `linear-gradient(${customization.colors.gradient.direction}, ${customization.colors.gradient.from}, ${customization.colors.gradient.to})`
+            border: `1px solid ${customization.colors.border}`
           })
         }}>
-          {/* Header Section with fixed white-on-white text issues */}
+          {/* Header Section */}
           <div className="pdf-header avoid-break" style={{ 
             marginBottom: `${customization.layout.spacing.sectionGap + 8}px`,
             paddingTop: customization.branding?.logo?.position?.includes('top') ? '80px' : '0'
@@ -278,7 +239,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 <h1 style={{
                   fontSize: `${customization.typography.fontSize.title}px`,
                   fontWeight: customization.typography.fontWeight.title,
-                  // FIX: Ensure title text is never white-on-white, use primary color for contrast
+                  // Ensure title text is never white-on-white, use primary color for contrast
                   color: customization.colors.titleText === '#ffffff' && customization.colors.background === '#ffffff' 
                     ? customization.colors.primary : customization.colors.titleText,
                   margin: '0 0 12px 0',
@@ -289,7 +250,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 </h1>
                 <p style={{
                   fontSize: `${customization.typography.fontSize.body}px`,
-                  // FIX: Ensure subtitle is visible
+                  // Ensure subtitle is visible
                   color: customization.colors.textLight === '#ffffff' && customization.colors.background === '#ffffff' 
                     ? customization.colors.secondary : customization.colors.textLight,
                   margin: 0,
@@ -304,7 +265,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 <div style={{
                   fontSize: `${customization.typography.fontSize.header}px`,
                   fontWeight: customization.typography.fontWeight.header,
-                  // FIX: Ensure company information text is visible
+                  // Ensure company information text is visible
                   color: customization.colors.headerText === '#ffffff' && customization.colors.background === '#ffffff' 
                     ? customization.colors.primary : customization.colors.headerText,
                   textAlign: customization.layout.headerAlignment === 'center' ? 'center' : 
@@ -408,263 +369,110 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
             </div>
           </div>
 
-          {/* FIXED: Section Divider with proper styling */}
-          {customization.visual.sectionDividers !== 'none' && (
-            <div style={{
-              marginBottom: `${customization.layout.spacing.sectionGap}px`,
-              marginTop: `${customization.layout.spacing.sectionGap}px`,
-              ...(customization.visual.sectionDividers === 'line' && {
-                borderBottom: `1px solid ${customization.colors.border}`,
-                paddingBottom: '12px'
-              }),
-              ...(customization.visual.sectionDividers === 'accent' && {
-                borderBottom: `3px solid ${customization.colors.accent || customization.colors.primary}`,
-                paddingBottom: '12px'
-              }),
-              ...(customization.visual.sectionDividers === 'space' && {
-                height: '24px'
-              })
-            }} />
+          {/* Contacts Section */}
+          {(callsheet.cast_members && callsheet.cast_members.length > 0) && customization.sections.enabled.contacts && (
+            <div className="pdf-section avoid-break">
+              <h2 style={{
+                fontSize: `${customization.typography.fontSize.header}px`,
+                fontWeight: customization.typography.fontWeight.header,
+                color: customization.colors.text,
+                marginBottom: `${customization.layout.spacing.itemGap}px`,
+                borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 'none',
+                paddingBottom: customization.visual.sectionDividers === 'line' ? '8px' : '0'
+              }}>
+                {showIcons && '👥 '}Cast & Crew
+              </h2>
+              
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: `${customization.layout.spacing.cardSpacing}px`
+              }}>
+                {callsheet.cast_members.map((contact, index) => (
+                  <div key={index} className="contact-card avoid-break" style={{
+                    padding: '12px',
+                    border: `1px solid ${customization.colors.border}`,
+                    borderRadius: `${customization.visual.cornerRadius}px`
+                  }}>
+                    <div style={{
+                      fontSize: `${customization.typography.fontSize.body}px`,
+                      fontWeight: 'bold',
+                      color: customization.colors.text,
+                      marginBottom: '4px'
+                    }}>
+                      {contact.name}
+                    </div>
+                    {contact.role && (
+                      <div style={{
+                        fontSize: `${customization.typography.fontSize.small}px`,
+                        color: customization.colors.textLight,
+                        marginBottom: '2px'
+                      }}>
+                        {contact.role}
+                      </div>
+                    )}
+                    {contact.character && (
+                      <div style={{
+                        fontSize: `${customization.typography.fontSize.small}px`,
+                        color: customization.colors.textLight,
+                        marginBottom: '4px'
+                      }}>
+                        as {contact.character}
+                      </div>
+                    )}
+                    <div style={{
+                      fontSize: `${customization.typography.fontSize.small}px`,
+                      color: customization.colors.text
+                    }}>
+                      {contact.phone}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Schedule Section */}
-          {callsheet.schedule && callsheet.schedule.length > 0 && (
-            <div className="pdf-section avoid-break">
+          {(callsheet.schedule && callsheet.schedule.length > 0) && customization.sections.schedule && (
+            <div className="pdf-section">
               <h2 style={{
-                fontSize: `${customization.typography.fontSize.header}px`,
-                fontWeight: customization.typography.fontWeight.header,
-                color: customization.colors.scheduleSectionColor,
-                margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
-                borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 
-                            customization.visual.sectionDividers === 'accent' ? `2px solid ${customization.colors.primary}` : 'none',
-                paddingBottom: '12px',
-                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
+                fontSize: `${customization.typography.fontSize.section}px`,
+                fontWeight: customization.typography.fontWeight.section,
+                color: customization.colors.sectionText,
+                marginBottom: `${customization.layout.spacing.itemGap}px`,
+                textAlign: customization.layout.sectionAlignment,
+                borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 'none',
+                paddingBottom: customization.visual.sectionDividers === 'line' ? '8px' : '0'
               }}>
-                 {showIcons && (
-                   <span style={{ fontSize: '16px', marginRight: '4px' }}>📅</span>
-                 )}
-                SCHEDULE
+                {showIcons && '📅 '}Schedule
               </h2>
               
-              <div style={{
-                backgroundColor: customization.colors.scheduleBackground,
-                border: `1px solid ${customization.colors.scheduleBorder}`,
-                borderRadius: `${customization.visual.cornerRadius}px`,
-                overflow: 'hidden',
-                // FIX: Apply card styling to schedule section
-                ...(customization.visual.cardStyle === 'elevated' && {
-                  boxShadow: customization.visual.shadowIntensity === 'medium' ? 
-                    '0 8px 20px rgba(0,0,0,0.12)' : '0 2px 8px rgba(0,0,0,0.08)'
-                }),
-                ...(customization.visual.cardStyle === 'gradient' && customization.colors.gradient && {
-                  background: `linear-gradient(${customization.colors.gradient.direction}, ${customization.colors.gradient.from}, ${customization.colors.gradient.to})`
-                })
-              }}>
-                {/* Schedule Header */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '80px 80px 1fr 120px 80px',
-                  gap: '16px',
-                  padding: '16px',
-                  backgroundColor: customization.colors.scheduleRowAlternate,
-                  borderBottom: `1px solid ${customization.colors.scheduleBorder}`,
-                  fontSize: `${customization.typography.fontSize.small}px`,
-                  fontWeight: 'medium',
-                  color: customization.colors.scheduleHeaderText
-                }}>
-                  <div>Scene</div>
-                  <div>Int/Ext</div>
-                  <div>Description</div>
-                  <div>Time</div>
-                  <div>Pages</div>
-                </div>
-                
-                {/* Schedule Rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {callsheet.schedule.map((item, index) => (
-                  <div
-                    key={index}
-                    className="schedule-row avoid-break"
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '80px 80px 1fr 120px 80px',
-                      gap: '16px',
-                      padding: '16px',
-                      backgroundColor: index % 2 === 1 ? customization.colors.scheduleRowAlternate : customization.colors.scheduleRowBackground,
-                      borderBottom: index < callsheet.schedule.length - 1 ? `1px solid ${customization.colors.scheduleBorder}` : 'none',
-                      fontSize: `${customization.typography.fontSize.body}px`,
-                      color: customization.colors.scheduleBodyText,
-                      fontFamily: getFontFamily(customization.typography.sectionFonts.schedule || customization.typography.fontFamily),
-                      lineHeight: customization.layout.spacing.lineHeight || customization.typography.lineHeight.body
-                    }}
-                  >
-                    <div style={{ fontWeight: 'medium' }}>{item.sceneNumber}</div>
-                    <div>{item.intExt}</div>
-                    <div style={{ wordBreak: 'break-word' }}>{item.description}</div>
-                    <div>{item.estimatedTime}</div>
-                    <div>{item.pageCount}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Cast Section */}
-          {callsheet.cast && callsheet.cast.length > 0 && (
-            <div className="pdf-section avoid-break">
-              <h2 style={{
-                fontSize: `${customization.typography.fontSize.header}px`,
-                fontWeight: customization.typography.fontWeight.header,
-                color: customization.colors.castSectionColor,
-                margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
-                borderBottom: `1px solid ${customization.colors.border}`,
-                paddingBottom: '12px',
-                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                 {showIcons && (
-                   <span style={{ fontSize: '16px', marginRight: '4px' }}>🎭</span>
-                 )}
-                CAST
-              </h2>
-              
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: isLandscape ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
-                gap: `${customization.layout.spacing.itemGap + 8}px`
-              }}>
-                {callsheet.cast.map((member, index) => (
-                  <div
-                    key={index}
-                    className="contact-card avoid-break"
-                     style={{
-                       backgroundColor: customization.visual.cardStyle === 'gradient' ? 'transparent' : customization.colors.contactCardBackground,
-                       background: customization.visual.cardStyle === 'gradient' && customization.colors.gradient ? 
-                         `linear-gradient(${customization.colors.gradient.direction}, ${customization.colors.gradient.from}, ${customization.colors.gradient.to})` : 
-                         customization.colors.contactCardBackground,
-                       border: customization.visual.cardStyle === 'bordered' ? `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` :
-                              customization.visual.cardStyle === 'elevated' ? 'none' : 
-                              `1px solid ${customization.colors.contactCardBorder}`,
-                       borderRadius: `${customization.visual.cornerRadius}px`,
-                       padding: '18px',
-                       boxShadow: customization.visual.cardStyle === 'elevated' || customization.visual.shadowIntensity === 'medium' ? '0 4px 6px rgba(0,0,0,0.1)' :
-                                 customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
-                     }}
-                  >
+                  <div key={index} className="schedule-row avoid-break" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '8px',
+                    borderBottom: `1px solid ${customization.colors.border}`,
+                    backgroundColor: customization.visual.alternateRowColors && index % 2 === 1 ? 
+                      customization.colors.backgroundAlt : 'transparent'
+                  }}>
                     <div style={{
                       fontSize: `${customization.typography.fontSize.body}px`,
-                      fontWeight: 'medium',
-                      color: customization.colors.contactNameText,
-                      marginBottom: '8px'
+                      fontWeight: 'bold',
+                      color: customization.colors.text,
+                      minWidth: '80px',
+                      marginRight: '16px'
                     }}>
-                      {member.name}
+                      {item.time}
                     </div>
-                    {member.character && (
-                      <div style={{
-                        fontSize: `${customization.typography.fontSize.small}px`,
-                        color: customization.colors.contactRoleText,
-                        marginBottom: '12px'
-                      }}>
-                        as {member.character}
-                      </div>
-                    )}
-                     <div style={{ fontSize: `${customization.typography.fontSize.small}px`, color: customization.colors.contactDetailsText }}>
-                       {member.phone && (
-                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                           {showIcons && <span style={{ marginRight: '4px' }}>📞</span>}
-                           <span>{member.phone}</span>
-                         </div>
-                       )}
-                       {member.email && (
-                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                           {showIcons && <span style={{ marginRight: '4px' }}>📧</span>}
-                           <span>{member.email}</span>
-                         </div>
-                       )}
-                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Crew Section */}
-          {callsheet.crew && callsheet.crew.length > 0 && (
-            <div className="pdf-section avoid-break">
-              <h2 style={{
-                fontSize: `${customization.typography.fontSize.header}px`,
-                fontWeight: customization.typography.fontWeight.header,
-                color: customization.colors.crewSectionColor,
-                margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
-                borderBottom: `1px solid ${customization.colors.border}`,
-                paddingBottom: '12px',
-                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                 {showIcons && (
-                   <span style={{ fontSize: '16px', marginRight: '4px' }}>🎬</span>
-                 )}
-                CREW
-              </h2>
-              
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: isLandscape ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
-                gap: `${customization.layout.spacing.itemGap + 8}px`
-              }}>
-                {callsheet.crew.map((member, index) => (
-                  <div
-                    key={index}
-                    className="contact-card avoid-break"
-                     style={{
-                       backgroundColor: customization.visual.cardStyle === 'gradient' ? 'transparent' : customization.colors.contactCardBackground,
-                       background: customization.visual.cardStyle === 'gradient' && customization.colors.gradient ? 
-                         `linear-gradient(${customization.colors.gradient.direction}, ${customization.colors.gradient.from}, ${customization.colors.gradient.to})` : 
-                         customization.colors.contactCardBackground,
-                       border: customization.visual.cardStyle === 'bordered' ? `${customization.layout.borderWidth}px solid ${customization.colors.contactCardBorder}` :
-                              customization.visual.cardStyle === 'elevated' ? 'none' : 
-                              `1px solid ${customization.colors.contactCardBorder}`,
-                       borderRadius: `${customization.visual.cornerRadius}px`,
-                       padding: '18px',
-                       boxShadow: customization.visual.cardStyle === 'elevated' || customization.visual.shadowIntensity === 'medium' ? '0 4px 6px rgba(0,0,0,0.1)' :
-                                 customization.visual.shadowIntensity === 'subtle' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
-                     }}
-                  >
                     <div style={{
                       fontSize: `${customization.typography.fontSize.body}px`,
-                      fontWeight: 'medium',
-                      color: customization.colors.contactNameText,
-                      marginBottom: '8px'
+                      color: customization.colors.text,
+                      flex: 1
                     }}>
-                      {member.name}
+                      {item.activity}
                     </div>
-                    <div style={{
-                      fontSize: `${customization.typography.fontSize.small}px`,
-                      color: customization.colors.contactRoleText,
-                      marginBottom: '12px'
-                    }}>
-                      {member.role}
-                    </div>
-                     <div style={{ fontSize: `${customization.typography.fontSize.small}px`, color: customization.colors.contactDetailsText }}>
-                       {member.phone && (
-                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                           {showIcons && <span style={{ marginRight: '4px' }}>📞</span>}
-                           <span>{member.phone}</span>
-                         </div>
-                       )}
-                       {member.email && (
-                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                           {showIcons && <span style={{ marginRight: '4px' }}>📧</span>}
-                           <span>{member.email}</span>
-                         </div>
-                       )}
-                     </div>
                   </div>
                 ))}
               </div>
@@ -672,136 +480,124 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           )}
 
           {/* Emergency Contacts */}
-          {callsheet.emergencyContacts && callsheet.emergencyContacts.length > 0 && (
-            <div className="pdf-section avoid-break">
+          {(callsheet.emergencyContacts && callsheet.emergencyContacts.length > 0) && customization.sections.emergency && (
+            <div className="pdf-section">
               <h2 style={{
-                fontSize: `${customization.typography.fontSize.header}px`,
-                fontWeight: customization.typography.fontWeight.header,
-                color: customization.colors.emergencySectionColor,
-                margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
-                borderBottom: `2px solid ${customization.colors.emergencySectionColor}`,
-                paddingBottom: '12px',
-                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
+                fontSize: `${customization.typography.fontSize.section}px`,
+                fontWeight: customization.typography.fontWeight.section,
+                color: customization.colors.sectionText,
+                marginBottom: `${customization.layout.spacing.itemGap}px`,
+                textAlign: customization.layout.sectionAlignment,
+                borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 'none',
+                paddingBottom: customization.visual.sectionDividers === 'line' ? '8px' : '0'
               }}>
-                 {showIcons && (
-                   <span style={{ fontSize: '16px', marginRight: '4px' }}>🚨</span>
-                 )}
-                EMERGENCY CONTACTS
+                {showIcons && '🚨 '}Emergency Contacts
               </h2>
               
-              <div style={{
-                backgroundColor: customization.colors.emergencyBackground,
-                border: `2px solid ${customization.colors.emergencyBorder}`,
-                borderRadius: `${customization.visual.cornerRadius}px`,
-                padding: '24px'
-              }}>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: isLandscape ? 'repeat(2, 1fr)' : '1fr',
-                  gap: `${customization.layout.spacing.itemGap + 8}px`
-                }}>
-                  {callsheet.emergencyContacts.map((contact, index) => (
-                    <div key={index} className="emergency-contact avoid-break">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {callsheet.emergencyContacts.map((contact, index) => (
+                  <div key={index} className="emergency-contact avoid-break" style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '8px',
+                    border: `1px solid ${customization.colors.primary}`,
+                    borderRadius: `${customization.visual.cornerRadius}px`,
+                    backgroundColor: customization.sections.formatting.emergencyProminent ? 
+                      `${customization.colors.primary}20` : 'transparent'
+                  }}>
+                    <div>
                       <div style={{
                         fontSize: `${customization.typography.fontSize.body}px`,
                         fontWeight: 'bold',
-                        color: customization.colors.emergencyText,
-                        marginBottom: '8px'
+                        color: customization.colors.text
                       }}>
                         {contact.name}
                       </div>
-                      <div style={{
-                        fontSize: `${customization.typography.fontSize.small}px`,
-                        color: customization.colors.emergencyText,
-                        marginBottom: '12px'
-                      }}>
-                        {contact.role}
-                      </div>
-                       <div style={{
-                         fontSize: `${customization.typography.fontSize.body}px`,
-                         color: customization.colors.emergencyText,
-                         fontWeight: 'medium'
-                       }}>
-                         {showIcons && <span style={{ marginRight: '4px' }}>📞</span>}
-                         {contact.phone}
-                       </div>
+                      {contact.role && (
+                        <div style={{
+                          fontSize: `${customization.typography.fontSize.small}px`,
+                          color: customization.colors.textLight
+                        }}>
+                          {contact.role}
+                        </div>
+                      )}
                     </div>
-                  ))}
+                    <div style={{
+                      fontSize: `${customization.typography.fontSize.body}px`,
+                      color: customization.colors.text,
+                      fontWeight: 'bold'
+                    }}>
+                      {contact.phone}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Special Notes */}
+          {callsheet.specialNotes && customization.sections.notes && (
+            <div className="pdf-section">
+              <h2 style={{
+                fontSize: `${customization.typography.fontSize.section}px`,
+                fontWeight: customization.typography.fontWeight.section,
+                color: customization.colors.sectionText,
+                marginBottom: `${customization.layout.spacing.itemGap}px`,
+                textAlign: customization.layout.sectionAlignment,
+                borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 'none',
+                paddingBottom: customization.visual.sectionDividers === 'line' ? '8px' : '0'
+              }}>
+                {showIcons && '📝 '}Special Notes
+              </h2>
+              
+              <div style={{
+                border: `1px solid ${customization.colors.border}`,
+                borderRadius: `${customization.visual.cornerRadius}px`,
+                padding: '16px',
+                backgroundColor: customization.colors.backgroundAlt || 'transparent'
+              }}>
+                <div style={{
+                  fontSize: `${customization.typography.fontSize.body}px`,
+                  color: customization.colors.text,
+                  lineHeight: customization.typography.lineHeight.body,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word'
+                }}>
+                  {callsheet.specialNotes}
                 </div>
               </div>
             </div>
           )}
-
-          {/* Notes Section */}
-          {callsheet.specialNotes && (
-            <div className="pdf-section avoid-break">
-              <h2 style={{
-                fontSize: `${customization.typography.fontSize.header}px`,
-                fontWeight: customization.typography.fontWeight.header,
-                color: customization.colors.notesSectionColor,
-                margin: `0 0 ${customization.layout.spacing.itemGap + 8}px 0`,
-                borderBottom: `1px solid ${customization.colors.border}`,
-                paddingBottom: '12px',
-                fontFamily: getFontFamily(customization.typography.sectionFonts.headers || customization.typography.fontFamily),
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                 {showIcons && (
-                   <span style={{ fontSize: '16px', marginRight: '4px' }}>📝</span>
-                 )}
-                NOTES
-              </h2>
-              
-              <div style={{
-                backgroundColor: customization.colors.surface,
-                border: `1px solid ${customization.colors.border}`,
-                borderRadius: `${customization.visual.cornerRadius}px`,
-                padding: '24px',
-                fontSize: `${customization.typography.fontSize.body}px`,
-                color: customization.colors.text,
-                lineHeight: customization.typography.lineHeight.body,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word'
-              }}>
-                {callsheet.specialNotes}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Footer - positioned at the bottom */}
+        {customization.branding?.footer?.text && (
+          <div style={{
+            position: 'absolute',
+            bottom: '20px',
+            left: customization.branding.footer.position === 'left' ? '20px' : 
+                  customization.branding.footer.position === 'right' ? 'auto' : '50%',
+            right: customization.branding.footer.position === 'right' ? '20px' : 'auto',
+            transform: customization.branding.footer.position === 'center' ? 'translateX(-50%)' : 'none',
+            fontSize: `${customization.typography.fontSize.small}px`,
+            color: customization.colors.textLight,
+            textAlign: customization.branding.footer.position as any,
+            padding: customization.branding.footer.style === 'bordered' ? '8px 12px' : '4px 0',
+            border: customization.branding.footer.style === 'bordered' ? `1px solid ${customization.colors.border}` : 'none',
+            borderRadius: customization.branding.footer.style === 'bordered' ? `${customization.visual.cornerRadius}px` : '0',
+            backgroundColor: customization.branding.footer.style === 'accent' ? customization.colors.accent : 'transparent',
+            zIndex: 10
+          }}>
+            {customization.branding.footer.text}
+            {customization.branding.footer.unionCompliance && (
+              <span style={{ display: 'block', marginTop: '4px', fontSize: '10px' }}>
+                This production complies with all applicable union regulations and safety standards.
+              </span>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Footer - positioned at the very bottom of the page within margins */}
-      {customization.branding?.footer?.text && (
-        <div style={{
-          position: 'absolute',
-          bottom: `${customization.layout.margins.bottom}px`,
-          left: customization.branding.footer.position === 'left' ? `${customization.layout.margins.left + 20}px` : 
-                customization.branding.footer.position === 'right' ? 'auto' : '50%',
-          right: customization.branding.footer.position === 'right' ? `${customization.layout.margins.right + 20}px` : 'auto',
-          transform: customization.branding.footer.position === 'center' ? 'translateX(-50%)' : 'none',
-          fontSize: `${customization.typography.fontSize.small}px`,
-          color: customization.colors.textLight,
-          textAlign: customization.branding.footer.position as any,
-          padding: customization.branding.footer.style === 'bordered' ? '8px 12px' : '4px 0',
-          border: customization.branding.footer.style === 'bordered' ? `1px solid ${customization.colors.border}` : 'none',
-          borderRadius: customization.branding.footer.style === 'bordered' ? `${customization.visual.cornerRadius}px` : '0',
-          backgroundColor: customization.branding.footer.style === 'accent' ? customization.colors.accent : 'transparent',
-          maxWidth: customization.branding.footer.position === 'center' ? 
-            `calc(${isLandscape ? '297mm' : '210mm'} - ${customization.layout.margins.left + customization.layout.margins.right + 40}px)` : 'auto',
-          zIndex: 10
-        }}>
-          {customization.branding.footer.text}
-          {customization.branding.footer.unionCompliance && (
-            <span style={{ display: 'block', marginTop: '4px', fontSize: '6px' }}>
-              This production complies with all applicable union regulations and safety standards.
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 };

@@ -68,36 +68,46 @@ export class HtmlToPdfService {
       
       console.log('HtmlToPdfService: Actual content dimensions:', actualWidth, 'x', actualHeight);
 
-      // Calculate canvas dimensions for high quality
-      const scaleFactor = 2; // Balanced quality and performance
-      const canvasWidth = Math.max(actualWidth, isLandscape ? 1100 : 800);
-      const canvasHeight = Math.max(actualHeight, isLandscape ? 800 : 1100);
+      // CRITICAL FIX: Use exact A4 dimensions for consistent rendering
+      const targetWidth = isLandscape ? 1123 : 794;
+      const targetHeight = isLandscape ? 794 : 1123;
+      const scaleFactor = 2; // High quality rendering
 
-      console.log('HtmlToPdfService: Target canvas dimensions:', canvasWidth, 'x', canvasHeight);
+      console.log('HtmlToPdfService: Target canvas dimensions:', targetWidth, 'x', actualHeight);
 
-      // Generate canvas from the iframe content
+      // Generate canvas with proper page breaking
       const canvas = await html2canvas(bodyElement, {
         scale: scaleFactor,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: canvasWidth,
-        height: canvasHeight,
+        backgroundColor: options.customization?.colors.background || '#ffffff',
+        width: targetWidth,
+        height: actualHeight,
         logging: false,
         removeContainer: false,
-        foreignObjectRendering: true,
+        foreignObjectRendering: false, // Disable for better compatibility
         imageTimeout: 15000,
         onclone: (clonedDoc) => {
-          // Ensure all styles are properly applied in the cloned document
+          // Apply consistent styling to cloned document
           const clonedBody = clonedDoc.body;
           if (clonedBody) {
-            clonedBody.style.width = isLandscape ? '1123px' : '794px';
+            clonedBody.style.width = `${targetWidth}px`;
             clonedBody.style.height = 'auto';
-            clonedBody.style.minHeight = isLandscape ? '794px' : '1123px';
             clonedBody.style.margin = '0';
             clonedBody.style.padding = '0';
             clonedBody.style.overflow = 'visible';
             clonedBody.style.boxSizing = 'border-box';
+            clonedBody.style.fontFamily = options.customization?.typography?.fontFamily || 'Inter, sans-serif';
+            clonedBody.style.fontSize = `${options.customization?.typography?.fontSize?.body || 14}px`;
+            
+            // Apply print-specific styles
+            const style = clonedDoc.createElement('style');
+            style.textContent = `
+              .contact-card { page-break-inside: avoid !important; break-inside: avoid !important; }
+              .pdf-section { page-break-inside: avoid !important; break-inside: avoid !important; }
+              .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; }
+            `;
+            clonedDoc.head.appendChild(style);
           }
         }
       });
@@ -128,41 +138,43 @@ export class HtmlToPdfService {
       let finalWidth = pdfWidth;
       let finalHeight = pdfHeight;
       
-      // If content is taller than PDF page, create multiple pages
-      if (canvas.height > canvas.width * (pdfHeight / pdfWidth)) {
-        // Content needs multiple pages
-        const pageHeight = canvas.width * (pdfHeight / pdfWidth);
-        const numPages = Math.ceil(canvas.height / pageHeight);
-        
-        for (let i = 0; i < numPages; i++) {
-          if (i > 0) {
-            pdf.addPage();
-          }
-          
-          // Create a temporary canvas for this page
-          const pageCanvas = document.createElement('canvas');
-          const pageCtx = pageCanvas.getContext('2d');
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = pageHeight;
-          
-          if (pageCtx) {
-            pageCtx.fillStyle = '#ffffff';
-            pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-            pageCtx.drawImage(canvas, 0, -i * pageHeight);
-            
-            const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
-            pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-          }
-        }
-      } else {
-        // Single page - fit content maintaining aspect ratio
-        if (imgAspectRatio > pdfAspectRatio) {
-          finalHeight = pdfWidth / imgAspectRatio;
-        } else {
-          finalWidth = pdfHeight * imgAspectRatio;
+      // CRITICAL FIX: Improved multi-page handling with better page breaks
+      const pageHeightInPx = isLandscape ? 794 : 1123; // A4 page height in pixels
+      const scaledPageHeight = pageHeightInPx * scaleFactor;
+      
+      // Calculate how many pages we need
+      const numPages = Math.ceil(canvas.height / scaledPageHeight);
+      
+      console.log('HtmlToPdfService: Creating', numPages, 'pages');
+      
+      for (let i = 0; i < numPages; i++) {
+        if (i > 0) {
+          pdf.addPage();
         }
         
-        pdf.addImage(imgData, 'JPEG', 0, 0, finalWidth, finalHeight, undefined, 'FAST');
+        // Create a page-specific canvas
+        const pageCanvas = document.createElement('canvas');
+        const pageCtx = pageCanvas.getContext('2d');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = scaledPageHeight;
+        
+        if (pageCtx) {
+          // Fill with background color
+          pageCtx.fillStyle = options.customization?.colors.background || '#ffffff';
+          pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          
+          // Draw the portion of the main canvas for this page
+          const sourceY = i * scaledPageHeight;
+          const sourceHeight = Math.min(scaledPageHeight, canvas.height - sourceY);
+          
+          if (sourceHeight > 0) {
+            pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight);
+          }
+          
+          // Convert to image and add to PDF
+          const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+          pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+        }
       }
       
       console.log('HtmlToPdfService: Image added to PDF successfully');
