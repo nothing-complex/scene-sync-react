@@ -1,5 +1,5 @@
 import React from 'react';
-import { CallsheetData } from '@/contexts/CallsheetContext';
+import { CallsheetData } from '@/types/callsheet';
 import { PDFCustomization } from '@/types/pdfTypes';
 
 interface CallsheetPDFPreviewProps {
@@ -370,7 +370,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           </div>
 
           {/* Contacts Section */}
-          {(callsheet.cast_members && callsheet.cast_members.length > 0) && customization.sections.enabled.contacts && (
+          {(callsheet.cast && callsheet.cast.length > 0) && customization.sections.visibility.companyInfo && (
             <div className="pdf-section avoid-break">
               <h2 style={{
                 fontSize: `${customization.typography.fontSize.header}px`,
@@ -388,7 +388,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 gridTemplateColumns: 'repeat(2, 1fr)',
                 gap: `${customization.layout.spacing.cardSpacing}px`
               }}>
-                {callsheet.cast_members.map((contact, index) => (
+                {callsheet.cast.map((contact, index) => (
                   <div key={index} className="contact-card avoid-break" style={{
                     padding: '12px',
                     border: `1px solid ${customization.colors.border}`,
@@ -433,14 +433,13 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           )}
 
           {/* Schedule Section */}
-          {(callsheet.schedule && callsheet.schedule.length > 0) && customization.sections.schedule && (
+          {(callsheet.schedule && callsheet.schedule.length > 0) && customization.sections.visibility.schedule && (
             <div className="pdf-section">
               <h2 style={{
-                fontSize: `${customization.typography.fontSize.section}px`,
-                fontWeight: customization.typography.fontWeight.section,
-                color: customization.colors.sectionText,
+                fontSize: `${customization.typography.fontSize.header}px`,
+                fontWeight: customization.typography.fontWeight.header,
+                color: customization.colors.text,
                 marginBottom: `${customization.layout.spacing.itemGap}px`,
-                textAlign: customization.layout.sectionAlignment,
                 borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 'none',
                 paddingBottom: customization.visual.sectionDividers === 'line' ? '8px' : '0'
               }}>
@@ -454,8 +453,8 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                     alignItems: 'center',
                     padding: '8px',
                     borderBottom: `1px solid ${customization.colors.border}`,
-                    backgroundColor: customization.visual.alternateRowColors && index % 2 === 1 ? 
-                      customization.colors.backgroundAlt : 'transparent'
+                    backgroundColor: customization.sections.formatting.alternateRowColors && index % 2 === 1 ? 
+                      customization.colors.surface : 'transparent'
                   }}>
                     <div style={{
                       fontSize: `${customization.typography.fontSize.body}px`,
@@ -464,14 +463,14 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                       minWidth: '80px',
                       marginRight: '16px'
                     }}>
-                      {item.time}
+                      {item.estimatedTime}
                     </div>
                     <div style={{
                       fontSize: `${customization.typography.fontSize.body}px`,
                       color: customization.colors.text,
                       flex: 1
                     }}>
-                      {item.activity}
+                      {item.description}
                     </div>
                   </div>
                 ))}
@@ -480,14 +479,13 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           )}
 
           {/* Emergency Contacts */}
-          {(callsheet.emergencyContacts && callsheet.emergencyContacts.length > 0) && customization.sections.emergency && (
+          {(callsheet.emergencyContacts && callsheet.emergencyContacts.length > 0) && customization.sections.visibility.emergencyContacts && (
             <div className="pdf-section">
               <h2 style={{
-                fontSize: `${customization.typography.fontSize.section}px`,
-                fontWeight: customization.typography.fontWeight.section,
-                color: customization.colors.sectionText,
+                fontSize: `${customization.typography.fontSize.header}px`,
+                fontWeight: customization.typography.fontWeight.header,
+                color: customization.colors.text,
                 marginBottom: `${customization.layout.spacing.itemGap}px`,
-                textAlign: customization.layout.sectionAlignment,
                 borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 'none',
                 paddingBottom: customization.visual.sectionDividers === 'line' ? '8px' : '0'
               }}>
@@ -537,14 +535,13 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
           )}
 
           {/* Special Notes */}
-          {callsheet.specialNotes && customization.sections.notes && (
+          {callsheet.specialNotes && customization.sections.visibility.notes && (
             <div className="pdf-section">
               <h2 style={{
-                fontSize: `${customization.typography.fontSize.section}px`,
-                fontWeight: customization.typography.fontWeight.section,
-                color: customization.colors.sectionText,
+                fontSize: `${customization.typography.fontSize.header}px`,
+                fontWeight: customization.typography.fontWeight.header,
+                color: customization.colors.text,
                 marginBottom: `${customization.layout.spacing.itemGap}px`,
-                textAlign: customization.layout.sectionAlignment,
                 borderBottom: customization.visual.sectionDividers === 'line' ? `1px solid ${customization.colors.border}` : 'none',
                 paddingBottom: customization.visual.sectionDividers === 'line' ? '8px' : '0'
               }}>
@@ -555,7 +552,7 @@ export const CallsheetPDFPreview: React.FC<CallsheetPDFPreviewProps> = ({
                 border: `1px solid ${customization.colors.border}`,
                 borderRadius: `${customization.visual.cornerRadius}px`,
                 padding: '16px',
-                backgroundColor: customization.colors.backgroundAlt || 'transparent'
+                backgroundColor: customization.colors.surface || 'transparent'
               }}>
                 <div style={{
                   fontSize: `${customization.typography.fontSize.body}px`,
